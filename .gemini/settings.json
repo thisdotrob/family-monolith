@@ -1,0 +1,6 @@
+{
+  "fileFiltering": {
+    "respectGitIgnore": true
+  },
+  "vimMode": true
+}
