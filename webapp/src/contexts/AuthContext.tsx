@@ -1,4 +1,5 @@
 import React, { createContext, useState, useContext, ReactNode } from 'react';
+import client from '../api/apollo';
 
 interface AuthContextType {
   token: string | null;
@@ -15,14 +16,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     localStorage.setItem('token', newToken);
     localStorage.setItem('refreshToken', newRefreshToken);
     setToken(newToken);
+    client.resetStore();
   };
 
   const logout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('refreshToken');
     setToken(null);
-    // In a real app, you'd also want to clear the Apollo Client cache here.
-    // We will add this in a later step.
+    client.resetStore();
   };
 
   const authContextValue = {

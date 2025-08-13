@@ -1,18 +1,48 @@
 use sqlx::SqlitePool;
 mod auth;
 
-use crate::auth::guard::AuthGuard;
 pub use crate::graphql::auth::{AuthenticatedMutation, UnauthenticatedMutation};
-use async_graphql::Object;
-use async_graphql::{EmptySubscription, Schema};
+use async_graphql::{Object, SimpleObject};
+use async_graphql::{Context, EmptySubscription, Schema};
 
-// Define an empty query root
+use crate::auth::Claims;
+use std::sync::Arc;
+
+#[derive(SimpleObject)]
+struct User {
+    username: String,
+    #[graphql(name = "firstName")]
+    first_name: Option<String>,
+}
+
+// Define a query root
 pub struct QueryRoot;
 
 #[Object]
 impl QueryRoot {
-    async fn type_name(&self) -> &'static str {
-        "Query"
+    async fn me(&self, ctx: &Context<'_>) -> async_graphql::Result<User> {
+        let claims = match ctx.data_opt::<Arc<Claims>>() {
+            Some(claims) => claims,
+            None => {
+                return Err(async_graphql::Error::new("Authentication required"));
+            }
+        };
+
+        let pool = ctx.data::<SqlitePool>()?;
+
+        let username = &claims.sub;
+
+        let user_data = sqlx::query_as::<_, (String, Option<String>)>(
+            "SELECT username, first_name FROM users WHERE username = ?1",
+        )
+        .bind(username)
+        .fetch_one(pool)
+        .await?;
+
+        Ok(User {
+            username: user_data.0,
+            first_name: user_data.1,
+        })
     }
 }
 
@@ -31,7 +61,6 @@ pub fn build_unauthenticated(pool: SqlitePool) -> UnauthenticatedSchema {
 pub fn build_authenticated(pool: SqlitePool) -> AuthenticatedSchema {
     Schema::build(QueryRoot, AuthenticatedMutation, EmptySubscription)
         .data(pool)
-        .extension(AuthGuard)
         .limit_depth(5)
         .limit_complexity(50)
         .disable_introspection()

@@ -1,6 +1,6 @@
 use crate::{config, graphql};
 use axum::body::Bytes;
-use axum::extract::{ConnectInfo, Request};
+use axum::extract::{ConnectInfo, Extension, Request};
 use axum::http::{HeaderMap, Method, StatusCode};
 use axum::middleware::{self, Next};
 use axum::{
@@ -62,6 +62,10 @@ pub async fn run(port: u16) {
         ])
         .max_age(std::time::Duration::from_secs(3600));
 
+    let authenticated_app = Router::new()
+        .route("/v1/graphql/app", post(graphql_authenticated_handler))
+        .layer(middleware::from_fn(jwt_middleware));
+
     let app = Router::new()
         .nest_service("/", ServeDir::new("static"))
         .route("/v1/healthz", get(health_check))
@@ -71,8 +75,7 @@ pub async fn run(port: u16) {
             post(graphql_unauthenticated_handler)
                 .layer(middleware::from_fn(rate_limit::login_rate_limit)),
         )
-        .route("/v1/graphql/app", post(graphql_authenticated_handler))
-        .layer(middleware::from_fn(jwt_middleware))
+        .merge(authenticated_app)
         .layer(middleware::from_fn(content_type_middleware))
         .with_state(app_state)
         .layer(
@@ -182,33 +185,23 @@ async fn content_type_middleware(request: Request, next: Next) -> impl IntoRespo
         .into_response()
 }
 
-async fn jwt_middleware(headers: HeaderMap, request: Request, next: Next) -> impl IntoResponse {
-    // Extract the Authorization header
-    let auth_header = headers.get("Authorization");
+async fn jwt_middleware(mut request: Request, next: Next) -> impl IntoResponse {
+    let auth_header = request
+        .headers()
+        .get("Authorization")
+        .and_then(|header| header.to_str().ok());
 
-    if let Some(auth_value) = auth_header {
-        if let Ok(auth_str) = auth_value.to_str() {
-            if auth_str.starts_with("Bearer ") {
-                let token = &auth_str[7..]; // Skip "Bearer " prefix
+    if let Some(auth_str) = auth_header {
+        if auth_str.starts_with("Bearer ") {
+            let token = &auth_str[7..];
 
-                // Try to decode the JWT
-                match crate::auth::decode(token) {
-                    Ok(claims) => {
-                        // Add claims to request extensions
-                        let mut req = request;
-                        req.extensions_mut().insert(Arc::new(claims));
-                        return next.run(req).await;
-                    }
-                    Err(err) => {
-                        tracing::debug!("JWT validation failed: {}", err);
-                        // Continue without claims - the AuthGuard will handle rejection if needed
-                    }
-                }
+            if let Ok(claims) = crate::auth::decode(token) {
+                request.extensions_mut().insert(Arc::new(claims));
+            } else {
+                tracing::debug!("JWT validation failed");
             }
         }
     }
-
-    // Continue the middleware chain without claims
     next.run(request).await
 }
 
@@ -234,7 +227,7 @@ async fn graphql_unauthenticated_handler(
 
 async fn graphql_authenticated_handler(
     State(state): State<AppState>,
-    _headers: HeaderMap,
+    claims: Option<Extension<Arc<crate::auth::Claims>>>,
     body: Bytes,
 ) -> impl IntoResponse {
     let query = match String::from_utf8(body.to_vec()) {
@@ -242,10 +235,14 @@ async fn graphql_authenticated_handler(
         Err(_) => return (StatusCode::BAD_REQUEST, "Invalid UTF-8").into_response(),
     };
 
-    let request = match serde_json::from_str::<async_graphql::Request>(&query) {
+    let mut request = match serde_json::from_str::<async_graphql::Request>(&query) {
         Ok(req) => req,
         Err(_) => return (StatusCode::BAD_REQUEST, "Invalid GraphQL request").into_response(),
     };
+
+    if let Some(Extension(claims_data)) = claims {
+        request = request.data(claims_data);
+    }
 
     let response = state.authenticated_schema.execute(request).await;
 
