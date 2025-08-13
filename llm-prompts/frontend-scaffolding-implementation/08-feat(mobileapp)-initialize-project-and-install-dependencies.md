@@ -4,7 +4,7 @@ You are an expert mobile software engineer. Your task is to initialize a new Rea
 
 ## 1. Project Initialization
 
-From the `monolith-frontend` directory, create a new Expo project named `mobileapp`. When prompted, choose the "Blank" template.
+From the `family-frontend` directory, create a new Expo project named `mobileapp`. When prompted, choose the "Blank" template.
 
 ```bash
 npx create-expo-app mobileapp
