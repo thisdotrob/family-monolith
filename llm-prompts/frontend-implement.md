@@ -1,0 +1,1 @@
+Follow the instructions in @filename. If the verification steps need visual content checking, the dev server running or anything else you can't easily do, let me know and I'll perform the verification step. Once the necessary changes are finalised and verified, commit using the commit title given in the instructions.

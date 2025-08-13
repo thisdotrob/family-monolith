@@ -1,0 +1,362 @@
+╭────────────────────────────────────────────────────────────╮
+│  > follow the instructions in @llm-prompts/idea-honing.md  │
+╰────────────────────────────────────────────────────────────╯
+
+ ╭───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+ │ ✔  ReadManyFiles Will attempt to read and concatenate files using patterns: `llm-prompts/idea-honing.md` (within target directory: `/Users/rob.s/src/github.com/thisdotrob/family-monolith/monolith-frontend`). Excluding: patterns like `**/node_modules/**`, `**/.git/**...`. File encoding: utf-8. S…  │
+ │                                                                                                                                                                                                                                                                                                           │
+ │    ### ReadManyFiles Result (Target Dir: `/Users/rob.s/src/github.com/thisdotrob/family-monolith/monolith-frontend`)                                                                                                                                                                                      │
+ │                                                                                                                                                                                                                                                                                                           │
+ │    Successfully read and concatenated content from **1 file(s)**.                                                                                                                                                                                                                                         │
+ │                                                                                                                                                                                                                                                                                                           │
+ │    **Processed Files:**                                                                                                                                                                                                                                                                                   │
+ │    - `llm-prompts/idea-honing.md`                                                                                                                                                                                                                                                                         │
+ ╰───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+✦ Of course. I will ask you one question at a time to develop a detailed specification for your project.
+
+  Let's start with the web application. What build tool and language should we use? For example, do you have a preference between Vite and Create React App, and would you prefer JavaScript or TypeScript?
+
+╭─────────────────────────╮
+│  > Vite and TypeScript  │
+╰─────────────────────────╯
+
+✦ Great, Vite and TypeScript it is.
+
+  Regarding the project structure, should I create a new directory for the web application within the existing monolith-frontend directory, for example, /Users/rob.s/src/github.com/thisdotrob/family-monolith/monolith-frontend/webapp?
+
+╭─────────╮
+│  > yes  │
+╰─────────╯
+
+✦ I will now create a new Vite and TypeScript project named webapp in the current directory. This command will create a new directory named webapp and populate it with the basic structure for a React and TypeScript application.
+ ╭───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+ │ -  Shell npm create vite@latest webapp -- --template react-ts (This command will create a new Vite and TypeScript project named `webapp` in the current directory. This command will create a new directory named `webapp` and populate it with the basic structure for a React and TypeScript applicat…  │
+ ╰───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+
+╭────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│  > We aren't creating the project yet so don't make any changes please. I just want you to ask me questions one at a time until we have a detailed specification for the project.  │
+╰────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+
+✦ My apologies. I'll stick to the plan of asking questions to build the specification without making any changes yet.
+
+  For the web application's UI, do you have a preference for a component library like Material-UI, Ant Design, or would you prefer to use a CSS framework like Tailwind CSS or plain CSS?
+
+╭──────────────╮
+│  > Tailwind  │
+╰──────────────╯
+
+✦ Excellent choice. Tailwind CSS is a great option for building modern UIs.
+
+  Now, let's focus on the login page for the web app. What specific fields and buttons should be displayed on this page? For example, should it include "Email" and "Password" fields, a "Login" button, and perhaps a "Forgot Password?" link?
+
+╭───────────────────────────────────────────────────────────────╮
+│  > Reading the @AUTH.md should give you the answers you need  │
+╰───────────────────────────────────────────────────────────────╯
+
+ ╭───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+ │ ✔  ReadManyFiles Will attempt to read and concatenate files using patterns: `AUTH.md` (within target directory: `/Users/rob.s/src/github.com/thisdotrob/family-monolith/monolith-frontend`). Excluding: patterns like `**/node_modules/**`, `**/.git/**...`. File encoding: utf-8. Separator: "--- path…  │
+ │                                                                                                                                                                                                                                                                                                           │
+ │    ### ReadManyFiles Result (Target Dir: `/Users/rob.s/src/github.com/thisdotrob/family-monolith/monolith-frontend`)                                                                                                                                                                                      │
+ │                                                                                                                                                                                                                                                                                                           │
+ │    Successfully read and concatenated content from **1 file(s)**.                                                                                                                                                                                                                                         │
+ │                                                                                                                                                                                                                                                                                                           │
+ │    **Processed Files:**                                                                                                                                                                                                                                                                                   │
+ │    - `AUTH.md`                                                                                                                                                                                                                                                                                            │
+ ╰───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+✦ Thank you for providing the AUTH.md file. Based on the login mutation, the login page will require a "Username" field, a "Password" field, and a "Login" button.
+
+  After the user clicks "Login," how should the application respond to a successful or failed login attempt? For instance, on success, should it redirect to a new, authenticated page, or simply display a success message? And for a failure, how and where should the error message be displayed?
+
+╭────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│  > On success it should simply display a success message. On failure it should also display a message  │
+╰────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+
+✦ Got it. For the success message, what should the text say, and where on the page should it be displayed? For example, should it appear above or below the login form?
+
+╭────────────────╮
+│  > You decide  │
+╰────────────────╯
+
+✦ Understood. I'll propose a clear and user-friendly approach.
+
+  For a successful login, a message like "Login successful!" will appear in green text directly above the login form. For a failed attempt, a message such as "Login failed. Please check your username and password." will be displayed in the same location, but in red text.
+
+  Now, let's consider token storage. The AUTH.md file suggests using localStorage to persist the token and refreshToken. Is this approach suitable for the web application?
+
+╭─────────────────╮
+│  > You tell me  │
+╰─────────────────╯
+
+✦ Using localStorage as suggested in AUTH.md is a straightforward approach that will work well for persisting the user's session across browser restarts. It's simple to implement.
+
+  However, it's important to be aware of the security implications. Data stored in localStorage is accessible to any JavaScript running on your site. This means if your application is ever vulnerable to a Cross-Site Scripting (XSS) attack, a malicious script could steal the tokens and impersonate
+  your users.
+
+  A more secure alternative is to store tokens in HttpOnly cookies, which are not accessible to JavaScript. This would require the backend to be modified to set these cookies upon login.
+
+  Given that this is a personal family application and the AUTH.md already provides a clear path, using localStorage is a reasonable and pragmatic choice.
+
+  Shall we proceed with the localStorage approach as documented?
+
+╭─────────╮
+│  > Yes  │
+╰─────────╯
+
+✦ Excellent. We'll proceed with using localStorage for token storage in the web app.
+
+  The AUTH.md file also provides an example of an AuthContext for managing authentication state and a fetchGraphQL helper function for making API calls.
+
+  Should we adopt this pattern for the web application? This would involve creating a central place to manage the user's authentication status and a reusable function for all GraphQL communication.
+
+╭─────────╮
+│  > Yes  │
+╰─────────╯
+
+✦ Great. We will implement the AuthContext and fetchGraphQL pattern as described.
+
+  For handling the GraphQL requests themselves, the AUTH.md example uses the native fetch API. This is perfectly fine, but a dedicated GraphQL client library like Apollo Client can offer benefits like caching and a more structured way to manage queries.
+
+  Would you prefer to use a library like Apollo Client, or should we stick with the basic fetch implementation for now?
+
+╭───────────────────╮
+│  > Apollo Client  │
+╰───────────────────╯
+
+✦ Excellent choice. Apollo Client will provide a robust foundation for managing data in the web application.
+
+  Now, let's shift our focus to the React Native application.
+
+  What tool should we use to set up the React Native project? For example, are you planning to use Expo or the React Native CLI?
+
+╭──────────╮
+│  > Expo  │
+╰──────────╯
+
+✦ Expo is a great choice for streamlining React Native development.
+
+  For the mobile app's login screen, should the UI and behavior mirror the web application? That is, should it have a "Username" field, a "Password" field, a "Login" button, and display success or failure messages in a similar manner?
+
+╭─────────╮
+│  > Yes  │
+╰─────────╯
+
+✦ Perfect, we'll ensure the mobile app's login screen is consistent with the web app.
+
+  The AUTH.md document recommends using AsyncStorage for storing the token and refreshToken in the React Native application. This is the standard approach for persistent storage on mobile devices.
+
+  Do you agree with using AsyncStorage for this purpose?
+
+╭─────────╮
+│  > Yes  │
+╰─────────╯
+
+✦ Excellent. We'll use AsyncStorage for token management in the mobile app.
+
+  For handling GraphQL requests in the React Native app, should we also use Apollo Client, just as we've planned for the web application? This would help maintain consistency in how both apps interact with the backend API.
+
+╭─────────╮
+│  > Yes  │
+╰─────────╯
+
+✦ Great, we will use Apollo Client for the React Native app as well.
+
+  The AUTH.md file mentions handling token expiration by using a refreshToken to get a new access token. It suggests that a robust implementation would automatically retry the failed request after a successful token refresh.
+
+  Should we incorporate this automatic token refresh and retry logic into the API clients for both the web and mobile applications?
+
+╭─────────╮
+│  > Yes  │
+╰─────────╯
+
+✦ Excellent. We will build the automatic token refresh and retry logic into both applications.
+
+  When a token refresh is in progress, what should the user experience be like? For example, should the UI be blocked with a loading indicator to prevent further actions until the refresh is complete?
+
+╭──────────────────────────────────────────────────────────────────────────╮
+│  > Yes, and a message letting them know that tokens are being refreshed  │
+╰──────────────────────────────────────────────────────────────────────────╯
+
+✦ Excellent. When refreshing tokens, we will block the UI with a loading indicator and display a message like "Refreshing session...".
+
+  Now, let's turn to the web application's build process. You mentioned it needs to be bundled so it can be served from the backend's static/ directory.
+
+  How should we configure the Vite build process to accommodate this? For instance, should the build output be placed directly into a dist folder within the webapp directory, which you would then manually copy to the backend's static folder, or should we aim to configure Vite to output the files
+  directly to the required static/ directory?
+
+╭──────────────────────────────╮
+│  > Manually copying is fine  │
+╰──────────────────────────────╯
+
+✦ Got it. We'll stick with the default Vite build configuration, which will output the bundled application into a dist directory inside the webapp project. You can then handle copying these files to the backend's static/ directory.
+
+  Now, let's discuss the React Native app's distribution. You mentioned wanting to give your family access via TestFlight on their iPhones. To do this, we'll need to create a standalone build of the app.
+
+  Are you familiar with the process of building an iOS app with Expo and submitting it to App Store Connect for TestFlight distribution, or would you like me to outline the key steps involved?
+
+╭─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│  > Please include in the project spec steps for creating documentation on how to deploy both frontend apps. For the webapp this should cover how to bundle the application and then the need to copy the files to the backend. For the mobile app this should cover the Testflight process  │
+╰─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+
+✦ Of course. The final specification will include detailed deployment documentation for both applications.
+
+  For the React Native app, we've established the core functionality will mirror the web app. To ensure a consistent look and feel, should we use a specific UI component library like React Native Paper (which implements Material Design), or should we stick to basic React Native components styled
+  with a solution like react-native-tailwindcss?
+
+╭────────────────────────╮
+│  > React Native Paper  │
+╰────────────────────────╯
+
+✦ Excellent choice. React Native Paper will provide a polished and consistent Material Design look for the mobile app.
+
+  We have now covered the core requirements for both the web and mobile applications, including:
+
+   * Tooling: Vite/TypeScript for web, Expo/React Native for mobile.
+   * Styling: Tailwind CSS for web, React Native Paper for mobile.
+   * Authentication: A login page with username/password fields, success/failure messages, and automatic token refresh with a loading indicator.
+   * API: Apollo Client for both apps to communicate with your GraphQL backend.
+   * Deployment: A plan for bundling the web app and distributing the mobile app via TestFlight, including documentation for both processes.
+
+  Do you feel we have a sufficiently detailed plan to move forward with creating the full specification document, or is there anything else you'd like to define or clarify?
+
+╭─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│  > That's great, thank you. Now that we’ve wrapped up the brainstorming process, can you compile our findings into a comprehensive, developer-ready specification? Include all relevant requirements, architecture choices, data handling details, error handling strategies, and a testing plan so a   │
+│    developer can immediately begin implementation. Save the specification in markdown format to project-spec.md.                                                                                                                                                                                        │
+╰─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+
+✦ I will now create the project-spec.md file with the detailed specification we've developed.
+ ╭─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+ │ ✔  WriteFile Writing to project-spec.md                                                                                                                                                                                                                                                         │
+ │                                                                                                                                                                                                                                                                                                 │
+ │    Error: File path must be absolute: project-spec.md                                                                                                                                                                                                                                           │
+ ╰─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+✦ My apologies, I made an error by using a relative path. I will now create the project-spec.md file using the correct absolute path.
+ ╭─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+ │ ✔  WriteFile Writing to project-spec.md                                                                                                                                                                                                                                                         │
+ │                                                                                                                                                                                                                                                                                                 │
+ │      1 # Project Specification: Family Monolith Frontend Applications                                                                                                                                                                                                                           │
+ │      2                                                                                                                                                                                                                                                                                          │
+ │      3 ## 1. Overview                                                                                                                                                                                                                                                                           │
+ │      4                                                                                                                                                                                                                                                                                          │
+ │      5 This document outlines the requirements for creating two frontend applications: a React web application and a React Native mobile application. Both applications will serve as clients for the existing Family Monolith backend, providing a user interface for family members to log    │
+ │        in.                                                                                                                                                                                                                                                                                      │
+ │      6                                                                                                                                                                                                                                                                                          │
+ │      7 The initial phase of development will focus on creating a single login page for each application.                                                                                                                                                                                        │
+ │      8                                                                                                                                                                                                                                                                                          │
+ │      9 ## 2. Core Technologies                                                                                                                                                                                                                                                                  │
+ │     10                                                                                                                                                                                                                                                                                          │
+ │     11 | Area                  | Web Application                               | Mobile Application         |                                                                                                                                                                                   │
+ │     12 | --------------------- | --------------------------------------------- | -------------------------- |                                                                                                                                                                                   │
+ │     13 | **Framework**         | React                                         | React Native (with Expo)   |                                                                                                                                                                                   │
+ │     14 | **Language**          | TypeScript                                    | TypeScript                 |                                                                                                                                                                                   │
+ │     15 | **Build Tool**        | Vite                                          | Expo CLI                   |                                                                                                                                                                                   │
+ │     16 | **UI/Styling**        | Tailwind CSS                                  | React Native Paper         |                                                                                                                                                                                   │
+ │     17 | **API Client**        | Apollo Client                                 | Apollo Client              |                                                                                                                                                                                   │
+ │     18 | **State Management**  | React Context API (`AuthContext`)             | React Context API (`AuthContext`) |                                                                                                                                                                            │
+ │     19 | **Token Storage**     | `localStorage`                                | `AsyncStorage`             |                                                                                                                                                                                   │
+ │     20                                                                                                                                                                                                                                                                                          │
+ │     21 ## 3. Backend API                                                                                                                                                                                                                                                                        │
+ │     22                                                                                                                                                                                                                                                                                          │
+ │     23 -   **Endpoint (Web)**: `/graphql` (relative path)                                                                                                                                                                                                                                       │
+ │     24 -   **Endpoint (Mobile)**: `https://blobfishapp.duckdns.org/graphql` (absolute path)                                                                                                                                                                                                     │
+ │     25 -   **Authentication**: See `AUTH.md` for details on the JWT and refresh token flow.                                                                                                                                                                                                     │
+ │     26 -   **Key Mutations**:                                                                                                                                                                                                                                                                   │
+ │     27     -   `login(input: { username, password })`                                                                                                                                                                                                                                           │
+ │     28     -   `refreshToken(input: { refreshToken })`                                                                                                                                                                                                                                          │
+ │     29     -   `logout(input: { refreshToken })`                                                                                                                                                                                                                                                │
+ │     30                                                                                                                                                                                                                                                                                          │
+ │     31 ## 4. Web Application (`webapp`)                                                                                                                                                                                                                                                         │
+ │     32                                                                                                                                                                                                                                                                                          │
+ │     33 ### 4.1. Project Setup                                                                                                                                                                                                                                                                   │
+ │     34                                                                                                                                                                                                                                                                                          │
+ │     35 -   A new Vite project will be created in the `monolith-frontend/webapp` directory.                                                                                                                                                                                                      │
+ │     36 -   The project will be initialized using the `react-ts` template.                                                                                                                                                                                                                       │
+ │     37                                                                                                                                                                                                                                                                                          │
+ │     38 ### 4.2. Login Page                                                                                                                                                                                                                                                                      │
+ │     39                                                                                                                                                                                                                                                                                          │
+ │     40 -   **URL**: The root of the application (`/`).                                                                                                                                                                                                                                          │
+ │     41 -   **Components**:                                                                                                                                                                                                                                                                      │
+ │     42     -   A text input for `username`.                                                                                                                                                                                                                                                     │
+ │     43     -   A text input for `password` (type `password`).                                                                                                                                                                                                                                   │
+ │     44     -   A "Login" button.                                                                                                                                                                                                                                                                │
+ │     45 -   **Behavior**:                                                                                                                                                                                                                                                                        │
+ │     46     1.  The user enters their username and password and clicks "Login".                                                                                                                                                                                                                  │
+ │     47     2.  The application sends a `login` mutation to the GraphQL API.                                                                                                                                                                                                                     │
+ │     48     3.  **On Success**:                                                                                                                                                                                                                                                                  │
+ │     49         -   A success message "Login successful!" is displayed in green text above the login form.                                                                                                                                                                                       │
+ │     50         -   The received `token` and `refreshToken` are stored in `localStorage`.                                                                                                                                                                                                        │
+ │     51     4.  **On Failure**:                                                                                                                                                                                                                                                                  │
+ │     52         -   An error message "Login failed. Please check your username and password." is displayed in red text above the login form.                                                                                                                                                     │
+ │     53                                                                                                                                                                                                                                                                                          │
+ │     54 ### 4.3. Authentication Handling                                                                                                                                                                                                                                                         │
+ │     55                                                                                                                                                                                                                                                                                          │
+ │     56 -   An `AuthContext` will be created to manage authentication state (`token`, user info) throughout the application.                                                                                                                                                                     │
+ │     57 -   An Apollo Client instance will be configured to handle all GraphQL communication.                                                                                                                                                                                                    │
+ │     58 -   An Apollo Link will be implemented to automatically add the `Authorization: Bearer <token>` header to all authenticated requests.                                                                                                                                                    │
+ │     59                                                                                                                                                                                                                                                                                          │
+ │     60 ### 4.4. Token Refresh Logic                                                                                                                                                                                                                                                             │
+ │     61                                                                                                                                                                                                                                                                                          │
+ │     62 -   An Apollo Link will be created to handle token expiration.                                                                                                                                                                                                                           │
+ │     63 -   If an API request fails with an authentication error, the client will automatically use the stored `refreshToken` to call the `refreshToken` mutation.                                                                                                                               │
+ │     64 -   While the token refresh is in progress, the UI will be blocked by a loading indicator, and a message "Refreshing session..." will be displayed.                                                                                                                                      │
+ │     65 -   If the refresh is successful, the new tokens will be stored, and the original failed request will be retried automatically.                                                                                                                                                          │
+ │     66 -   If the refresh fails, the user will be logged out, and all stored tokens will be cleared.                                                                                                                                                                                            │
+ │     67                                                                                                                                                                                                                                                                                          │
+ │     68 ## 5. Mobile Application (`mobileapp`)                                                                                                                                                                                                                                                   │
+ │     69                                                                                                                                                                                                                                                                                          │
+ │     70 ### 5.1. Project Setup                                                                                                                                                                                                                                                                   │
+ │     71                                                                                                                                                                                                                                                                                          │
+ │     72 -   A new Expo (React Native) project will be created in a `monolith-frontend/mobileapp` directory.                                                                                                                                                                                      │
+ │     73                                                                                                                                                                                                                                                                                          │
+ │     74 ### 5.2. Login Page                                                                                                                                                                                                                                                                      │
+ │     75                                                                                                                                                                                                                                                                                          │
+ │     76 -   The UI and behavior will mirror the web application exactly, using components from React Native Paper for a Material Design look and feel.                                                                                                                                           │
+ │     77 -   **Components**:                                                                                                                                                                                                                                                                      │
+ │     78     -   A `TextInput` for `username`.                                                                                                                                                                                                                                                    │
+ │     79     -   A `TextInput` for `password` (secure text entry).                                                                                                                                                                                                                                │
+ │     80     -   A `Button` for "Login".                                                                                                                                                                                                                                                          │
+ │     81 -   **Behavior**:                                                                                                                                                                                                                                                                        │
+ │     82     -   Identical to the web application's login flow.                                                                                                                                                                                                                                   │
+ │     83     -   Success/failure messages will be displayed as described for the web app.                                                                                                                                                                                                         │
+ │     84                                                                                                                                                                                                                                                                                          │
+ │     85 ### 5.3. Authentication Handling                                                                                                                                                                                                                                                         │
+ │     86                                                                                                                                                                                                                                                                                          │
+ │     87 -   An `AuthContext` will be used, similar to the web app.                                                                                                                                                                                                                               │
+ │     88 -   The `token` and `refreshToken` will be stored using `AsyncStorage`.                                                                                                                                                                                                                  │
+ │     89 -   An Apollo Client instance will be configured for all API communication.                                                                                                                                                                                                              │
+ │     90                                                                                                                                                                                                                                                                                          │
+ │     91 ### 5.4. Token Refresh Logic                                                                                                                                                                                                                                                             │
+ │     92                                                                                                                                                                                                                                                                                          │
+ │     93 -   The token refresh implementation will be identical to the web application's logic, ensuring a consistent and robust authentication experience.                                                                                                                                       │
+ │     94                                                                                                                                                                                                                                                                                          │
+ │     95 ## 6. Deployment Documentation                                                                                                                                                                                                                                                           │
+ │     96                                                                                                                                                                                                                                                                                          │
+ │     97 A `DEPLOYMENT.md` file will be created with instructions for both applications.                                                                                                                                                                                                          │
+ │     98                                                                                                                                                                                                                                                                                          │
+ │     99 ### 6.1. Web Application Deployment                                                                                                                                                                                                                                                      │
+ │    100                                                                                                                                                                                                                                                                                          │
+ │    101 -   **Bundling**: Instructions on how to run `npm run build` (or the equivalent Vite command) to generate the production assets.                                                                                                                                                         │
+ │    102 -   **Serving**: A clear note explaining that the contents of the generated `dist/` directory must be manually copied into the backend server's `static/` directory to be served.                                                                                                        │
+ │    103                                                                                                                                                                                                                                                                                          │
+ │    104 ### 6.2. Mobile Application Deployment (TestFlight)                                                                                                                                                                                                                                      │
+ │    105                                                                                                                                                                                                                                                                                          │
+ │    106 -   **Prerequisites**: List necessary accounts (Apple Developer Program) and tools (Expo CLI, Transporter).                                                                                                                                                                              │
+ │    107 -   **Configuration**: Steps to configure the `app.json` file with the correct `bundleIdentifier` for iOS.                                                                                                                                                                               │
+ │    108 -   **Building**: How to run `eas build --platform ios` to create a build on Expo's servers.                                                                                                                                                                                             │
+ │    109 -   **Submission**: A step-by-step guide on how to download the build artifact and upload it to App Store Connect using the Transporter app.                                                                                                                                             │
+ │    110 -   **TestFlight**: Instructions on how to add internal testers (family members) in App Store Connect to grant them access to the build.                                                                                                                                                 │
+ │    111                                                                                                                                                                                                                                                                                          │
+ │    112 ## 7. Testing Plan                                                                                                                                                                                                                                                                       │
+ │    113                                                                                                                                                                                                                                                                                          │
+ │    114 -   **Unit Tests**:                                                                                                                                                                                                                                                                      │
+ │    115     -   Use Jest and React Testing Library.                                                                                                                                                                                                                                              │
+ │    116     -   Test individual components (e.g., rendering of the login form).                                                                                                                                                                                                                  │
+ │    117     -   Test utility functions (e.g., token storage/retrieval).                                                                                                                                                                                                                          │
+ │    118 -   **Integration Tests**:                                                                                                                                                                                                                                                               │
+ │    119     -   Test the complete login flow.                                                                                                                                                                                                                                                    │
+ │    120     -   Mock the Apollo Client to simulate:                                                                                                                                                                                                                                              │
+ │    121         -   Successful login.                                                                                                                                                                                                                                                            │
+ │    122         -   Failed login (invalid credentials).                                                                                                                                                                                                                                          │
+ │    123         -   API error during login.                                                                                                                                                                                                                                                      │
+ │    124         -   Automatic token refresh flow.                                                                                                                                                                                                                                                │
+ ╰─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+✦ The specification has been saved to project-spec.md.

@@ -1,0 +1,3 @@
+- Run prompts sequentially; each produces code, tests, and a commit that compiles.
+- Review and tweak constant values (ports, secrets) before production.
+- When finished, the monolith is ready to push to the Raspberry Pi and serve family traffic over HTTPS.

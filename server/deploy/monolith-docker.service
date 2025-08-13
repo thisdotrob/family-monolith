@@ -1,0 +1,30 @@
+[Unit]
+Description=Monolith backend service using Docker
+Requires=docker.service
+After=docker.service
+
+[Service]
+Restart=on-failure
+
+# Clean up old containers
+ExecStartPre=-/usr/bin/docker stop monolith-backend
+ExecStartPre=-/usr/bin/docker rm monolith-backend
+
+# Pull the latest image
+ExecStartPre=/usr/bin/docker pull ghcr.io/thisdotrob/family-monolith/monolith-backend:latest
+
+# Run the container
+ExecStart=/usr/bin/docker run --name monolith-backend \
+  -p 443:8443 \
+  -v /etc/letsencrypt/live/blobfishapp.duckdns.org:/certs:ro \
+  -e RUST_LOG=info \
+  -e TLS_CERT_PATH=/certs/fullchain.pem \
+  -e TLS_KEY_PATH=/certs/privkey.pem \
+  ghcr.io/thisdotrob/family-monolith/monolith-backend:latest
+
+# Stop the container
+ExecStop=/usr/bin/docker stop monolith-backend
+
+[Install]
+WantedBy=multi-user.target
+

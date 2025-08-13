@@ -1,0 +1,10 @@
+[Unit]
+Description=Monolith backend
+After=network.target
+
+[Service]
+ExecStart=/usr/bin/monolith-backend
+Restart=on-failure
+User=pi
+WorkingDirectory=/home/pi/monolith
+Environment=RUST_LOG=info
