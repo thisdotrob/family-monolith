@@ -9,5 +9,10 @@
       "mobileapp/node_modules/**"
     ]
   },
-  "vimMode": true
+  "vimMode": true,
+  "workspaces": [
+    "webapp",
+    "mobileapp",
+    "server"
+  ]
 }
