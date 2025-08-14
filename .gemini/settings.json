@@ -1,6 +1,13 @@
 {
   "fileFiltering": {
-    "respectGitIgnore": true
+    "respectGitIgnore": true,
+    "exclude": [
+      "server/target",
+      "**/*.lock",
+      "server/blobfishapp.sqlite",
+      "webapp/node_modules/**",
+      "mobileapp/node_modules/**"
+    ]
   },
   "vimMode": true
 }
