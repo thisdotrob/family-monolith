@@ -17,7 +17,7 @@ const LoginPage = () => {
         setMessage({ text: 'Login successful!', type: 'success' });
         await saveTokens(data.login.token, data.login.refreshToken);
       } else {
-        setMessage({ text: data.login.message || 'Login failed', type: 'error' });
+        setMessage({ text: 'Login failed', type: 'error' });
       }
     },
     onError: (error) => {
@@ -26,7 +26,7 @@ const LoginPage = () => {
   });
 
   const handleLogin = () => {
-    login({ variables: { username, password } });
+    login({ variables: { input: { username, password } } });
   };
 
   return (
