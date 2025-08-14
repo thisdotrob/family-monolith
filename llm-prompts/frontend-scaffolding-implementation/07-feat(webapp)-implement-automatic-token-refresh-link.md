@@ -1,4 +1,4 @@
-You are an expert software engineer. This is a complex but crucial step. Your task is to implement the automatic token refresh logic using an Apollo Link.
+You are an expert software engineer. This is a complex but crucial step. Your task is to implement the automatic token refresh logic in the webapp using an Apollo Link.
 
 **Commit Title:** `feat(webapp): implement automatic token refresh link`
 
