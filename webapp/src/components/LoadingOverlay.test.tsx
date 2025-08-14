@@ -3,6 +3,8 @@ import { render, screen } from '@testing-library/react';
 import { AuthProvider } from '../contexts/AuthContext';
 import LoadingOverlay from './LoadingOverlay';
 import { describe, it, expect, vi } from 'vitest';
+import { ApolloProvider } from '@apollo/client';
+import client from '../api/apollo';
 
 // Mock useAuth
 vi.mock('../contexts/AuthContext', async () => {
@@ -26,9 +28,11 @@ describe('LoadingOverlay', () => {
     });
 
     render(
-      <AuthProvider>
-        <LoadingOverlay />
-      </AuthProvider>
+      <ApolloProvider client={client}>
+        <AuthProvider>
+          <LoadingOverlay />
+        </AuthProvider>
+      </ApolloProvider>
     );
     expect(screen.queryByTestId('loading-overlay')).not.toBeInTheDocument();
   });
@@ -43,9 +47,11 @@ describe('LoadingOverlay', () => {
     });
 
     render(
-      <AuthProvider>
-        <LoadingOverlay />
-      </AuthProvider>
+      <ApolloProvider client={client}>
+        <AuthProvider>
+          <LoadingOverlay />
+        </AuthProvider>
+      </ApolloProvider>
     );
     const overlay = screen.getByTestId('loading-overlay');
     expect(overlay).toBeInTheDocument();

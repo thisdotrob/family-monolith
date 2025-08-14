@@ -1,5 +1,7 @@
-import React, { createContext, useState, useContext, ReactNode } from 'react';
-import client from '../api/apollo';
+import React, { createContext, useState, useContext, ReactNode, useEffect } from 'react';
+import { useReactiveVar, useApolloClient } from '@apollo/client';
+import { isRefreshingTokenVar } from '../api/state';
+import { saveTokens as saveTokensToStorage, logout as logoutUser } from '../auth';
 
 interface AuthContextType {
   token: string | null;
@@ -12,28 +14,35 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | null>(null);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
+  const client = useApolloClient();
   const [token, setToken] = useState<string | null>(() => localStorage.getItem('token'));
-  const [isRefreshingToken, setIsRefreshingToken] = useState<boolean>(false);
-
+  const isRefreshingToken = useReactiveVar(isRefreshingTokenVar);
 
   const saveTokens = (newToken: string, newRefreshToken: string) => {
-    localStorage.setItem('token', newToken);
-    localStorage.setItem('refreshToken', newRefreshToken);
+    saveTokensToStorage(client, newToken, newRefreshToken);
     setToken(newToken);
-    client.resetStore();
   };
 
   const logout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('refreshToken');
+    logoutUser(client);
     setToken(null);
-    client.resetStore();
   };
+  
+  useEffect(() => {
+    const handleStorageChange = () => {
+      setToken(localStorage.getItem('token'));
+    };
+    window.addEventListener('storage', handleStorageChange);
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+    };
+  }, []);
+
 
   const authContextValue = {
     token,
     isRefreshingToken,
-    setIsRefreshingToken,
+    setIsRefreshingToken: isRefreshingTokenVar,
     saveTokens,
     logout,
   };
