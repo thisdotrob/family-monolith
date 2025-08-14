@@ -43,7 +43,9 @@ Update the webapp's Apollo client to perform the `refreshToken` mutation when a 
 
 Set it to `true` whilst the `refreshToken` mutation is being made, and back to `false` once it has succeeded.
 
-## 6. Verification
+## 6. Write some unit tests that cover steps 1-5.
+
+## 7. Manual verification
 
 This is the most difficult part to test.
 
