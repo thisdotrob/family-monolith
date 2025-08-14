@@ -30,7 +30,7 @@ impl UnauthenticatedMutation {
 
         if let Ok(user) = user_result {
             if crate::auth::verify(&user.2, &input.password).await {
-                let token = crate::auth::encode(&user.1, 24 * 60 * 60).unwrap();
+                let token = crate::auth::encode(&user.1, 30).unwrap();
                 let refresh = crate::auth::refresh::create(pool, &user.0).await.unwrap();
                 return LoginPayload {
                     success: true,
@@ -82,7 +82,7 @@ impl UnauthenticatedMutation {
                 )
                 .await
                 {
-                    let token = crate::auth::encode(&username, 24 * 60 * 60).unwrap();
+                    let token = crate::auth::encode(&username, 30).unwrap();
                     return RefreshPayload {
                         success: true,
                         token: Some(token),
