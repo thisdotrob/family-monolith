@@ -1,4 +1,4 @@
-You are an expert software engineer. This is a complex but crucial step. Your task is to implement the automatic token refresh logic in the `@webapp` workspace. When a token has expired, this monolith's @server responds with 401 and the following in the response body:
+You are an expert software engineer. This is a complex but crucial step. Your task is to implement the automatic token refresh logic in the `webapp` workspace. When a token has expired, this monolith's server responds with 401 and the following in the response body:
 
 ```
 {
@@ -12,9 +12,9 @@ You are an expert software engineer. This is a complex but crucial step. Your ta
 }
 ```
 
-When this occurs, the @webapp should refresh the jwt using a refresh token graphql mutation sent to the @server's unauthenticated graphql schema at http://localhost:4173/v1/graphql/auth
+When this occurs, the webapp should refresh the jwt using a refresh token graphql mutation sent to the server's unauthenticated graphql schema at http://localhost:4173/v1/graphql/auth
 
-The refresh token mutation is implemented on the @server in @server/src/graphql/auth.rs
+The refresh token mutation is implemented on the server in @server/src/graphql/auth.rs
 
 
 **Commit Title:** `feat(webapp): implement automatic token refresh`
@@ -33,11 +33,11 @@ Create a component to block the UI during the refresh. It should use the `isRefr
 ## 3. Implement the `refreshToken` mutation
 
 **`@webapp/src/graphql/mutations.ts`:**
-Add the `refreshToken` mutation to the @webapp. Check for compatibility with the backend schema in `@server/src/graphql`.
+Add the `refreshToken` mutation to the webapp. Check for compatibility with the backend schema in `@server/src/graphql`.
 
-## 4. Update @webapp `client` to refresh token and resend original request
+## 4. Update webapp `client` to refresh token and resend original request
 
-Update the @webapp's Apollo client to perform the `refreshToken` mutation when a `TOKEN_EXPIRED` response is received for a query. After refreshing the token, the original request should be attempted again.
+Update the webapp's Apollo client to perform the `refreshToken` mutation when a `TOKEN_EXPIRED` response is received for a query. After refreshing the token, the original request should be attempted again.
 
 ## 5. Set `isRefreshingToken`
 
