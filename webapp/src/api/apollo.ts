@@ -7,18 +7,16 @@ import {
 import { setContext } from "@apollo/client/link/context";
 import { getMainDefinition } from "@apollo/client/utilities";
 
-const authHttpLink = createHttpLink({
+const unauthenticatedSchemaHttpLink = createHttpLink({
   uri: "http://localhost:4173/v1/graphql/auth",
 });
 
-const appHttpLink = createHttpLink({
+const authenticatedSchemaHttpLink = createHttpLink({
   uri: "http://localhost:4173/v1/graphql/app",
 });
 
-const authLink = setContext((_, { headers }) => {
-  // get the authentication token from local storage if it exists
+const setAuthHeaderLink = setContext((_, { headers }) => {
   const token = localStorage.getItem("token");
-  // return the headers to the context so httpLink can read them
   return {
     headers: {
       ...headers,
@@ -32,8 +30,8 @@ const splitLink = split(
     const { unauthenticated } = getContext();
     return unauthenticated;
   },
-  authHttpLink,
-  authLink.concat(appHttpLink)
+  unauthenticatedSchemaHttpLink,
+  setAuthHeaderLink.concat(authenticatedSchemaHttpLink)
 );
 
 const client = new ApolloClient({
