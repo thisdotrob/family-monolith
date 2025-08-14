@@ -3,6 +3,8 @@ import client from '../api/apollo';
 
 interface AuthContextType {
   token: string | null;
+  isRefreshingToken: boolean;
+  setIsRefreshingToken: (isRefreshing: boolean) => void;
   saveTokens: (newToken: string, newRefreshToken: string) => void;
   logout: () => void;
 }
@@ -11,6 +13,8 @@ const AuthContext = createContext<AuthContextType | null>(null);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [token, setToken] = useState<string | null>(() => localStorage.getItem('token'));
+  const [isRefreshingToken, setIsRefreshingToken] = useState<boolean>(false);
+
 
   const saveTokens = (newToken: string, newRefreshToken: string) => {
     localStorage.setItem('token', newToken);
@@ -28,6 +32,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const authContextValue = {
     token,
+    isRefreshingToken,
+    setIsRefreshingToken,
     saveTokens,
     logout,
   };
