@@ -1,16 +1,15 @@
-use crate::{config, graphql};
+use crate::{config, error::AppError, error_codes::ErrorCode, graphql};
 use axum::body::Bytes;
 use axum::extract::{ConnectInfo, Extension, Request};
 use axum::http::{HeaderMap, Method, StatusCode};
 use axum::middleware::{self, Next};
 use axum::{
-    Json, Router,
-    extract::State,
-    response::IntoResponse,
-    routing::{get, post},
+    response::Response, Json, Router, extract::State, response::IntoResponse, routing::get,
+    routing::post,
 };
 use axum_server;
 use axum_server::tls_rustls::RustlsConfig;
+use jsonwebtoken::errors::ErrorKind;
 use sqlx::SqlitePool;
 use std::net::SocketAddr;
 use std::path::PathBuf;
@@ -165,14 +164,14 @@ async fn content_type_middleware(request: Request, next: Next) -> impl IntoRespo
     // Skip content-type check for health check, version endpoints and GET requests
     let path = request.uri().path();
     if path == "/v1/healthz" || path == "/v1/version" || request.method() == Method::GET {
-        return next.run(request).await;
+        return next.run(request).await.into_response();
     }
 
     // Check content-type header
     if let Some(content_type) = request.headers().get("content-type") {
         if let Ok(content_type_str) = content_type.to_str() {
             if content_type_str.starts_with("application/json") {
-                return next.run(request).await;
+                return next.run(request).await.into_response();
             }
         }
     }
@@ -185,7 +184,7 @@ async fn content_type_middleware(request: Request, next: Next) -> impl IntoRespo
         .into_response()
 }
 
-async fn jwt_middleware(mut request: Request, next: Next) -> impl IntoResponse {
+async fn jwt_middleware(mut request: Request, next: Next) -> Result<Response, AppError> {
     let auth_header = request
         .headers()
         .get("Authorization")
@@ -195,14 +194,26 @@ async fn jwt_middleware(mut request: Request, next: Next) -> impl IntoResponse {
         if auth_str.starts_with("Bearer ") {
             let token = &auth_str[7..];
 
-            if let Ok(claims) = crate::auth::decode(token) {
-                request.extensions_mut().insert(Arc::new(claims));
-            } else {
-                tracing::debug!("JWT validation failed");
+            match crate::auth::decode(token) {
+                Ok(claims) => {
+                    request.extensions_mut().insert(Arc::new(claims));
+                }
+                Err(e) => {
+                    tracing::debug!("JWT validation failed");
+                    match e.kind() {
+                        ErrorKind::ExpiredSignature => {
+                            return Err(AppError {
+                                code: ErrorCode::TokenExpired,
+                                msg: "token has expired".to_string(),
+                            });
+                        }
+                        _ => {}
+                    }
+                }
             }
         }
     }
-    next.run(request).await
+    Ok(next.run(request).await)
 }
 
 async fn graphql_unauthenticated_handler(
