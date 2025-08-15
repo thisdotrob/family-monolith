@@ -1,10 +1,26 @@
 import React from 'react';
 import { PaperProvider } from 'react-native-paper';
+import { SafeAreaView, StyleSheet, View, ActivityIndicator } from 'react-native';
 import { ApolloProvider } from '@apollo/client';
-import { AuthProvider } from '../src/contexts/AuthContext';
-import LoginPage from '../src/pages/LoginPage';
+import { AuthProvider, useAuth } from '../src/contexts/AuthContext';
 import client from './api/apollo';
-import { SafeAreaView, StyleSheet } from 'react-native';
+import HomePage from '../src/pages/HomePage';
+import LoginPage from '../src/pages/LoginPage';
+
+// We need a component that is a child of AuthProvider to use the useAuth hook.
+const AppContent = () => {
+  const { token, isLoading } = useAuth();
+
+  if (isLoading) {
+    return (
+      <View style={styles.centered}>
+        <ActivityIndicator size="large" />
+      </View>
+    );
+  }
+
+  return token ? <HomePage /> : <LoginPage />;
+}
 
 export default function RootLayout() {
   return (
@@ -12,7 +28,7 @@ export default function RootLayout() {
       <ApolloProvider client={client}>
         <PaperProvider>
           <SafeAreaView style={styles.container}>
-            <LoginPage />
+            <AppContent />
           </SafeAreaView>
         </PaperProvider>
       </ApolloProvider>
@@ -23,5 +39,10 @@ export default function RootLayout() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  centered: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });

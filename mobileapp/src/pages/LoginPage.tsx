@@ -4,6 +4,7 @@ import { TextInput, Button, Text } from 'react-native-paper';
 import { useMutation } from '@apollo/client';
 import { useAuth } from '../contexts/AuthContext';
 import { LOGIN_MUTATION } from '../../graphql/mutations';
+import { ME_QUERY } from '../../graphql/queries';
 
 const LoginPage = () => {
   const { saveTokens } = useAuth();
@@ -23,10 +24,11 @@ const LoginPage = () => {
     onError: (error) => {
       setMessage({ text: error.message, type: 'error' });
     },
+    refetchQueries: [{ query: ME_QUERY }],
   });
 
   const handleLogin = () => {
-    login({ variables: { input: { username, password } } });
+    login({ variables: { username, password }, context: { unauthenticated: true } });
   };
 
   return (

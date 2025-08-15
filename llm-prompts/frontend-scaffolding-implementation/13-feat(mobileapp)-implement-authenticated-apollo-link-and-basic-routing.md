@@ -83,35 +83,54 @@ export default HomePage;
 
 ## 2. Implement the Authenticated Apollo Link
 
-Update `src/api/apollo.ts` to include an `authLink` that retrieves the token from `AsyncStorage`.
+Update `src/api/apollo.ts` to include an `authLink` that retrieves the token from `AsyncStorage`. We'll need a `splitLink` now because authenticated GraphQL requests must be sent to `/v1/graphql/app` not `/v1/graphql/auth`. Make sure host is set to `192.168.1.53` so developing with expo works.
 
 **`src/api/apollo.ts`:**
 ```ts
-import { ApolloClient, InMemoryCache, createHttpLink } from '@apollo/client';
-import { setContext } from '@apollo/client/link/context';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import {
+  ApolloClient,
+  InMemoryCache,
+  createHttpLink,
+  split,
+} from "@apollo/client";
+import { setContext } from "@apollo/client/link/context";
+import { getMainDefinition } from "@apollo/client/utilities";
 
-const httpLink = createHttpLink({
-  uri: 'https://blobfishapp.duckdns.org/graphql',
+const authHttpLink = createHttpLink({
+  uri: "http://192.168.1.53:4173/v1/graphql/auth",
 });
 
-const authLink = setContext(async (_, { headers }) => {
+const appHttpLink = createHttpLink({
+  uri: "http://192.168.1.53:4173/v1/graphql/app",
+});
+
+const authLink = setContext((_, { headers }) => {
   const token = await AsyncStorage.getItem('token');
   return {
     headers: {
       ...headers,
-      authorization: token ? `Bearer ${token}` : '',
+      authorization: token ? `Bearer ${token}` : "",
     },
   };
 });
 
+const splitLink = split(
+  ({ getContext }) => {
+    const { unauthenticated } = getContext();
+    return unauthenticated;
+  },
+  authHttpLink,
+  authLink.concat(appHttpLink)
+);
+
 const client = new ApolloClient({
-  link: authLink.concat(httpLink),
+  link: splitLink,
   cache: new InMemoryCache(),
 });
 
 export default client;
 ```
+
 
 ## 3. Implement Basic Routing
 
