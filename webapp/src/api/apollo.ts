@@ -47,49 +47,47 @@ const createErrorLink = (
 ) => {
   return onError(({ graphQLErrors, networkError, operation, forward }) => {
     if (graphQLErrors) {
-      for (let err of graphQLErrors) {
-        if (err.message.includes("TOKEN_EXPIRED")) {
-          const refreshToken = localStorage.getItem("refreshToken");
-          if (!refreshToken) {
-            logout();
-            return;
-          }
-
-          setIsRefreshingToken(true);
-
-          client
-            .mutate({
-              mutation: REFRESH_TOKEN_MUTATION,
-              variables: { refreshToken },
-              context: {
-                unauthenticated: true,
-              },
-            })
-            .then(({ data }) => {
-              const { success, token, refreshToken: newRefreshToken } =
-                data.refreshToken;
-              if (success && token && newRefreshToken) {
-                saveTokens(token, newRefreshToken);
-                const oldHeaders = operation.getContext().headers;
-                operation.setContext({
-                  headers: {
-                    ...oldHeaders,
-                    authorization: `Bearer ${token}`,
-                  },
-                });
-                // Retry the request
-                return forward(operation);
-              } else {
-                logout();
-              }
-            })
-            .catch(() => {
-              logout();
-            })
-            .finally(() => {
-              setIsRefreshingToken(false);
-            });
+      if (graphQLErrors.some(error => error.includes("TOKEN_EXPIRED"))) {
+        const refreshToken = localStorage.getItem("refreshToken");
+        if (!refreshToken) {
+          logout();
+          return;
         }
+
+        setIsRefreshingToken(true);
+
+        client
+          .mutate({
+            mutation: REFRESH_TOKEN_MUTATION,
+            variables: { refreshToken },
+            context: {
+              unauthenticated: true,
+            },
+          })
+          .then(({ data }) => {
+            const { success, token, refreshToken: newRefreshToken } =
+              data.refreshToken;
+            if (success && token && newRefreshToken) {
+              saveTokens(token, newRefreshToken);
+              const oldHeaders = operation.getContext().headers;
+              operation.setContext({
+                headers: {
+                  ...oldHeaders,
+                  authorization: `Bearer ${token}`,
+                },
+              });
+              // Retry the request
+              return forward(operation);
+            } else {
+              logout();
+            }
+          })
+          .catch(() => {
+            logout();
+          })
+          .finally(() => {
+            setIsRefreshingToken(false);
+          });
       }
     }
 
