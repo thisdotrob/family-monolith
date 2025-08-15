@@ -6,6 +6,18 @@ export const LOGIN_MUTATION = gql`
       success
       token
       refreshToken
+      errors
+    }
+  }
+`;
+
+export const REFRESH_TOKEN_MUTATION = gql`
+  mutation RefreshToken($refreshToken: String!) {
+    refreshToken(input: { refreshToken: $refreshToken }) {
+      success
+      token
+      refreshToken
+      errors
     }
   }
 `;

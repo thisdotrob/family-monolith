@@ -1,9 +1,11 @@
 import React, { createContext, useState, useContext, ReactNode, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { refreshTokenStateManager } from '../api/refreshTokenState';
 
 interface AuthContextType {
   token: string | null;
   isLoading: boolean; // To handle async storage loading
+  isRefreshingToken: boolean;
   saveTokens: (newToken: string, newRefreshToken: string) => Promise<void>;
   logout: () => Promise<void>;
 }
@@ -13,6 +15,7 @@ const AuthContext = createContext<AuthContextType | null>(null);
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isRefreshingToken, setIsRefreshingToken] = useState(false);
 
   useEffect(() => {
     const loadToken = async () => {
@@ -27,6 +30,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     };
 
     loadToken();
+
+    const unsubscribe = refreshTokenStateManager.subscribe(setIsRefreshingToken);
+    return unsubscribe;
   }, []);
 
   const saveTokens = async (newToken: string, newRefreshToken: string) => {
@@ -52,6 +58,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const authContextValue = {
     token,
     isLoading,
+    isRefreshingToken,
     saveTokens,
     logout,
   };
