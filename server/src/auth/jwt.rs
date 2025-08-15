@@ -1,5 +1,5 @@
 use crate::config::JWT_SECRET;
-use jsonwebtoken::{DecodingKey, EncodingKey, Header, Validation};
+use jsonwebtoken::{DecodingKey, EncodingKey, Header, Validation, Algorithm};
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize)]
@@ -22,10 +22,13 @@ pub fn encode(username: &str, exp_seconds: usize) -> Result<String, jsonwebtoken
 
 #[allow(dead_code)]
 pub fn decode(token: &str) -> Result<Claims, jsonwebtoken::errors::Error> {
+    let mut validation = Validation::new(Algorithm::HS256);
+    validation.leeway = 0;
+
     jsonwebtoken::decode::<Claims>(
         token,
         &DecodingKey::from_secret(JWT_SECRET.as_bytes()),
-        &Validation::default(),
+        &validation,
     )
     .map(|data| data.claims)
 }
