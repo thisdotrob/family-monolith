@@ -6,6 +6,7 @@ import { AuthProvider, useAuth } from '../src/contexts/AuthContext';
 import client from './api/apollo';
 import HomePage from '../src/pages/HomePage';
 import LoginPage from '../src/pages/LoginPage';
+import GlobalLoading from '../src/components/GlobalLoading';
 
 // We need a component that is a child of AuthProvider to use the useAuth hook.
 const AppContent = () => {
@@ -29,6 +30,7 @@ export default function RootLayout() {
         <PaperProvider>
           <SafeAreaView style={styles.container}>
             <AppContent />
+            <GlobalLoading />
           </SafeAreaView>
         </PaperProvider>
       </ApolloProvider>

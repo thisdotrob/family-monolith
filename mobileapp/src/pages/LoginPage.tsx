@@ -39,6 +39,7 @@ const LoginPage = () => {
         onChangeText={setUsername}
         style={styles.input}
         autoCapitalize="none"
+        testID="username-input"
       />
       <TextInput
         label="Password"
