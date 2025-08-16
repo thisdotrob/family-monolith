@@ -5,6 +5,7 @@ import {
   split,
   from,
   gql,
+  Observable,
 } from "@apollo/client";
 import { setContext } from "@apollo/client/link/context";
 import { onError } from "@apollo/client/link/error";
@@ -39,6 +40,25 @@ const setAuthHeaderLink = setContext((_, { headers }) => {
   };
 });
 
+// Global variables to handle refresh state and queuing
+let isRefreshing = false;
+let failedQueue: Array<{
+  resolve: (value?: any) => void;
+  reject: (reason?: any) => void;
+}> = [];
+
+const processQueue = (error: any, token: string | null = null) => {
+  failedQueue.forEach(({ resolve, reject }) => {
+    if (error) {
+      reject(error);
+    } else {
+      resolve(token);
+    }
+  });
+  
+  failedQueue = [];
+};
+
 const createErrorLink = (
   client: ApolloClient<any>,
   setIsRefreshingToken: (isRefreshing: boolean) => void,
@@ -54,40 +74,77 @@ const createErrorLink = (
           return;
         }
 
-        setIsRefreshingToken(true);
+        // Return an Observable to properly handle the async refresh
+        return new Observable(observer => {
+          if (isRefreshing) {
+            // If already refreshing, queue this request
+            failedQueue.push({
+              resolve: (token: string) => {
+                // Update the operation with the new token
+                const oldHeaders = operation.getContext().headers;
+                operation.setContext({
+                  headers: {
+                    ...oldHeaders,
+                    authorization: `Bearer ${token}`,
+                  },
+                });
+                // Retry the request
+                forward(operation).subscribe(observer);
+              },
+              reject: (error: any) => {
+                observer.error(error);
+              }
+            });
+            return;
+          }
 
-        client
-          .mutate({
-            mutation: REFRESH_TOKEN_MUTATION,
-            variables: { refreshToken },
-            context: {
-              unauthenticated: true,
-            },
-          })
-          .then(({ data }) => {
-            const { success, token, refreshToken: newRefreshToken } =
-              data.refreshToken;
-            if (success && token && newRefreshToken) {
-              saveTokens(token, newRefreshToken);
-              const oldHeaders = operation.getContext().headers;
-              operation.setContext({
-                headers: {
-                  ...oldHeaders,
-                  authorization: `Bearer ${token}`,
-                },
-              });
-              // Retry the request
-              return forward(operation);
-            } else {
+          isRefreshing = true;
+          setIsRefreshingToken(true);
+
+          client
+            .mutate({
+              mutation: REFRESH_TOKEN_MUTATION,
+              variables: { refreshToken },
+              context: {
+                unauthenticated: true,
+              },
+            })
+            .then(({ data }) => {
+              const { success, token, refreshToken: newRefreshToken } =
+                data.refreshToken;
+              if (success && token && newRefreshToken) {
+                saveTokens(token, newRefreshToken);
+                
+                // Update the current operation with the new token
+                const oldHeaders = operation.getContext().headers;
+                operation.setContext({
+                  headers: {
+                    ...oldHeaders,
+                    authorization: `Bearer ${token}`,
+                  },
+                });
+
+                // Process the queue with the new token
+                processQueue(null, token);
+                
+                // Retry the current request
+                forward(operation).subscribe(observer);
+              } else {
+                processQueue(new Error('Token refresh failed'), null);
+                logout();
+                observer.error(new Error('Token refresh failed'));
+              }
+            })
+            .catch((error) => {
+              processQueue(error, null);
               logout();
-            }
-          })
-          .catch(() => {
-            logout();
-          })
-          .finally(() => {
-            setIsRefreshingToken(false);
-          });
+              observer.error(error);
+            })
+            .finally(() => {
+              isRefreshing = false;
+              setIsRefreshingToken(false);
+            });
+        });
       }
     }
 
