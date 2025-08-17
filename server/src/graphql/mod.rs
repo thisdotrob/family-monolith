@@ -2,7 +2,7 @@ use sqlx::SqlitePool;
 mod auth;
 
 pub use crate::graphql::auth::{AuthenticatedMutation, UnauthenticatedMutation};
-use async_graphql::{Object, SimpleObject};
+use async_graphql::{MergedObject, Object, SimpleObject};
 use async_graphql::{Context, EmptySubscription, Schema};
 
 use crate::auth::Claims;
@@ -24,6 +24,7 @@ impl QueryRoot {
         let claims = match ctx.data_opt::<Arc<Claims>>() {
             Some(claims) => claims,
             None => {
+                dbg!("authentication required error in Me query");
                 return Err(async_graphql::Error::new("Authentication required"));
             }
         };
@@ -46,23 +47,20 @@ impl QueryRoot {
     }
 }
 
-pub type UnauthenticatedSchema = Schema<QueryRoot, UnauthenticatedMutation, EmptySubscription>;
-pub type AuthenticatedSchema = Schema<QueryRoot, AuthenticatedMutation, EmptySubscription>;
+#[derive(MergedObject, Default)]
+pub struct CombinedMutation(UnauthenticatedMutation, AuthenticatedMutation);
 
-pub fn build_unauthenticated(pool: SqlitePool) -> UnauthenticatedSchema {
-    Schema::build(QueryRoot, UnauthenticatedMutation, EmptySubscription)
-        .data(pool)
-        .limit_depth(5)
-        .limit_complexity(50)
-        .disable_introspection()
-        .finish()
-}
+pub type AppSchema = Schema<QueryRoot, CombinedMutation, EmptySubscription>;
 
-pub fn build_authenticated(pool: SqlitePool) -> AuthenticatedSchema {
-    Schema::build(QueryRoot, AuthenticatedMutation, EmptySubscription)
-        .data(pool)
-        .limit_depth(5)
-        .limit_complexity(50)
-        .disable_introspection()
-        .finish()
+pub fn build(pool: SqlitePool) -> AppSchema {
+    Schema::build(
+        QueryRoot,
+        CombinedMutation::default(),
+        EmptySubscription,
+    )
+    .data(pool)
+    .limit_depth(5)
+    .limit_complexity(50)
+    .disable_introspection()
+    .finish()
 }

@@ -12,18 +12,20 @@ const AuthContext = createContext<AuthContextType | null>(null);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [token, setToken] = useState<string | null>(() => localStorage.getItem('token'));
+  const [refreshToken, setRefreshToken] = useState<string | null>(() => localStorage.getItem('refreshToken'));
+
   const [isRefreshingToken, setIsRefreshingToken] = useState<boolean>(false);
 
   const saveTokens = (newToken: string, newRefreshToken: string) => {
+    setToken(newToken);
     localStorage.setItem('token', newToken);
     localStorage.setItem('refreshToken', newRefreshToken);
-    setToken(newToken);
   };
 
   const logout = () => {
+    setToken(null);
     localStorage.removeItem('token');
     localStorage.removeItem('refreshToken');
-    setToken(null);
   };
 
   const authContextValue = {
