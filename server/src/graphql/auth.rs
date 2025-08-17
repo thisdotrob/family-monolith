@@ -1,5 +1,7 @@
 use async_graphql::{Context, InputObject, Object, SimpleObject};
 use sqlx::SqlitePool;
+use std::sync::Arc;
+use crate::auth::Claims;
 
 #[derive(InputObject)]
 pub struct LoginInput {
@@ -15,6 +17,7 @@ pub struct LoginPayload {
     pub errors: Vec<String>,
 }
 
+#[derive(Default)]
 pub struct UnauthenticatedMutation;
 
 #[Object]
@@ -102,11 +105,20 @@ impl UnauthenticatedMutation {
     }
 }
 
+#[derive(Default)]
 pub struct AuthenticatedMutation;
 
 #[Object]
 impl AuthenticatedMutation {
     async fn logout(&self, ctx: &Context<'_>, input: LogoutInput) -> LogoutPayload {
+        // Require valid claims for logout
+        let _claims = match ctx.data_opt::<Arc<Claims>>() {
+            Some(c) => c,
+            None => {
+                return LogoutPayload { success: false };
+            }
+        };
+
         let pool = ctx.data::<SqlitePool>().unwrap();
         let rows = crate::auth::refresh::delete(pool, &input.refresh_token)
             .await

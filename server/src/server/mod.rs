@@ -1,7 +1,8 @@
-use crate::{config, error::AppError, error_codes::ErrorCode, graphql};
+use crate::{config, graphql, AppError};
+use crate::error_codes::ErrorCode;
 use axum::body::Bytes;
 use axum::extract::{ConnectInfo, Extension, Request};
-use axum::http::{HeaderMap, Method, StatusCode};
+use axum::http::{Method, StatusCode};
 use axum::middleware::{self, Next};
 use axum::{
     response::Response, Json, Router, extract::State, response::IntoResponse, routing::get,
@@ -26,8 +27,7 @@ pub mod rate_limit;
 
 #[derive(Clone)]
 struct AppState {
-    unauthenticated_schema: graphql::UnauthenticatedSchema,
-    authenticated_schema: graphql::AuthenticatedSchema,
+    schema: graphql::AppSchema,
     pool: SqlitePool,
 }
 
@@ -42,12 +42,10 @@ pub async fn run(port: u16) {
         }
     };
 
-    let unauthenticated_schema = graphql::build_unauthenticated(pool.clone());
-    let authenticated_schema = graphql::build_authenticated(pool.clone());
+    let schema = graphql::build(pool.clone());
 
     let app_state = AppState {
-        unauthenticated_schema,
-        authenticated_schema,
+        schema,
         pool: pool.clone(),
     };
 
@@ -61,20 +59,16 @@ pub async fn run(port: u16) {
         ])
         .max_age(std::time::Duration::from_secs(3600));
 
-    let authenticated_app = Router::new()
-        .route("/v1/graphql/app", post(graphql_authenticated_handler))
-        .layer(middleware::from_fn(jwt_middleware));
-
     let app = Router::new()
         .nest_service("/", ServeDir::new("static"))
         .route("/v1/healthz", get(health_check))
         .route("/v1/version", get(version))
         .route(
-            "/v1/graphql/auth",
-            post(graphql_unauthenticated_handler)
+            "/v1/graphql",
+            post(graphql_unified_handler)
                 .layer(middleware::from_fn(rate_limit::login_rate_limit)),
         )
-        .merge(authenticated_app)
+        .layer(middleware::from_fn(jwt_middleware))
         .layer(middleware::from_fn(content_type_middleware))
         .with_state(app_state)
         .layer(
@@ -184,7 +178,30 @@ async fn content_type_middleware(request: Request, next: Next) -> impl IntoRespo
         .into_response()
 }
 
-async fn jwt_middleware(mut request: Request, next: Next) -> Result<Response, AppError> {
+async fn jwt_middleware(request: Request, next: Next) -> Result<Response, AppError> {
+    // Read body so we can decide whether this is an unauthenticated mutation (login/refresh)
+    let (parts, body) = request.into_parts();
+    let bytes = match axum::body::to_bytes(body, usize::MAX).await {
+        Ok(bytes) => bytes,
+        Err(_) => Default::default(),
+    };
+
+    // Detect if mutation is one of the unauthenticated ones
+    let mut is_unauth_mutation = false;
+    if let Ok(json) = serde_json::from_slice::<serde_json::Value>(&bytes) {
+        if let Some(query) = json.get("query").and_then(|v| v.as_str()) {
+            let q = query;
+            let is_mutation = q.contains("mutation");
+            let is_login = q.contains("login");
+            let is_refresh = q.contains("refresh_token") || q.contains("refreshToken");
+            is_unauth_mutation = is_mutation && (is_login || is_refresh);
+        }
+    }
+
+    // Reconstruct the request so downstream handlers can read the body
+    let mut request = Request::from_parts(parts, axum::body::Body::from(bytes.clone()));
+
+    // Now handle JWT if provided
     let auth_header = request
         .headers()
         .get("Authorization")
@@ -202,10 +219,11 @@ async fn jwt_middleware(mut request: Request, next: Next) -> Result<Response, Ap
                     tracing::debug!("JWT validation failed");
                     match e.kind() {
                         ErrorKind::ExpiredSignature => {
-                            return Err(AppError {
-                                code: ErrorCode::TokenExpired,
-                                msg: "token has expired".to_string(),
-                            });
+                            if !is_unauth_mutation {
+                                // For expired tokens on authenticated operations, return 401 so the client can refresh.
+                                return Err(AppError { code: ErrorCode::TokenExpired, msg: "token has expired".into() });
+                            }
+                            // Otherwise allow unauthenticated mutations to proceed without claims
                         }
                         _ => {}
                     }
@@ -213,34 +231,16 @@ async fn jwt_middleware(mut request: Request, next: Next) -> Result<Response, Ap
             }
         }
     }
+
     Ok(next.run(request).await)
 }
 
-async fn graphql_unauthenticated_handler(
-    State(state): State<AppState>,
-    _headers: HeaderMap,
-    body: Bytes,
-) -> impl IntoResponse {
-    let query = match String::from_utf8(body.to_vec()) {
-        Ok(text) => text,
-        Err(_) => return (StatusCode::BAD_REQUEST, "Invalid UTF-8").into_response(),
-    };
-
-    let request = match serde_json::from_str::<async_graphql::Request>(&query) {
-        Ok(req) => req,
-        Err(_) => return (StatusCode::BAD_REQUEST, "Invalid GraphQL request").into_response(),
-    };
-
-    let response = state.unauthenticated_schema.execute(request).await;
-
-    (StatusCode::OK, Json(response)).into_response()
-}
-
-async fn graphql_authenticated_handler(
+async fn graphql_unified_handler(
     State(state): State<AppState>,
     claims: Option<Extension<Arc<crate::auth::Claims>>>,
     body: Bytes,
 ) -> impl IntoResponse {
+    dbg!("graphql_unified_handler");
     let query = match String::from_utf8(body.to_vec()) {
         Ok(text) => text,
         Err(_) => return (StatusCode::BAD_REQUEST, "Invalid UTF-8").into_response(),
@@ -253,9 +253,12 @@ async fn graphql_authenticated_handler(
 
     if let Some(Extension(claims_data)) = claims {
         request = request.data(claims_data);
+        dbg!("some claims");
+    } else {
+        dbg!("no claims");
     }
 
-    let response = state.authenticated_schema.execute(request).await;
+    let response = state.schema.execute(request).await;
 
     (StatusCode::OK, Json(response)).into_response()
 }

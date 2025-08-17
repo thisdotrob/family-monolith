@@ -16,7 +16,7 @@ function App() {
   // This effect will reset the store when the token changes
   // which is what we want after login/logout.
   useMemo(() => {
-    client.resetStore();
+    client.clearStore();
   }, [token, client]);
 
   return (
