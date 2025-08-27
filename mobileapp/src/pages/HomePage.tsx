@@ -2,7 +2,7 @@ import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import { useApolloClient, useQuery } from '@apollo/client';
 import { useAuth } from '../contexts/AuthContext';
-import { ME_QUERY } from '../../graphql/queries';
+import { ME_QUERY } from '../graphql/queries';
 import { Text, Button, ActivityIndicator } from 'react-native-paper';
 
 const HomePage = () => {

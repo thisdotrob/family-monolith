@@ -3,8 +3,8 @@ import { View, StyleSheet } from 'react-native';
 import { TextInput, Button, Text } from 'react-native-paper';
 import { useMutation } from '@apollo/client';
 import { useAuth } from '../contexts/AuthContext';
-import { LOGIN_MUTATION } from '../../graphql/mutations';
-import { ME_QUERY } from '../../graphql/queries';
+import { LOGIN_MUTATION } from '../graphql/mutations';
+import { ME_QUERY } from '../graphql/queries';
 
 const LoginPage = () => {
   const { saveTokens } = useAuth();

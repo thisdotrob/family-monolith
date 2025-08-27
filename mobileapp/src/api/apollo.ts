@@ -9,7 +9,7 @@ import { loadErrorMessages, loadDevMessages } from "@apollo/client/dev";
 import { setContext } from "@apollo/client/link/context";
 import { onError } from "@apollo/client/link/error";
 import { getMainDefinition } from "@apollo/client/utilities";
-import { REFRESH_TOKEN_MUTATION } from "../../graphql/mutations";
+import { REFRESH_TOKEN_MUTATION } from "../graphql/mutations";
 
 if (__DEV__) {
   // Adds messages only in a dev environment
