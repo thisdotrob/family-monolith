@@ -1,5 +1,5 @@
 import React, { createContext, useState, useContext, useEffect, ReactNode } from 'react';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import LocalStorage from '../LocalStorage';
 
 interface AuthContextType {
   isAuthenticating: boolean;
@@ -17,8 +17,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [isLoggedIn, setIsLoggedIn] = useState(true);
 
   const getTokens = async () => {
-    const token = await AsyncStorage.getItem('token');
-    const refreshToken = await AsyncStorage.getItem('refreshToken');
+    const token = await LocalStorage.getItem('token');
+    const refreshToken = await LocalStorage.getItem('refreshToken');
     return { token, refreshToken };
   };
 
@@ -26,7 +26,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     getTokens()
       .then(({ token }) => setIsLoggedIn(!!token))
       .catch((e) => {
-        console.error('Failed to load token from storage', e);
+        console.error('Failed to load token from LocalStorage', e);
         setIsLoggedIn(false);
       })
       .finally(() => setIsAuthenticating(false));
@@ -34,11 +34,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const saveTokens = async (newToken: string, newRefreshToken: string) => {
     try {
-      await AsyncStorage.setItem('token', newToken);
-      await AsyncStorage.setItem('refreshToken', newRefreshToken);
+      await LocalStorage.setItem('token', newToken);
+      await LocalStorage.setItem('refreshToken', newRefreshToken);
       setIsLoggedIn(true);
     } catch (e) {
-      console.error('Failed to save tokens to AsyncStorage', e);
+      console.error('Failed to save tokens to LocalStorage', e);
       setIsLoggedIn(false);
     } finally {
       setIsAuthenticating(false);
@@ -47,10 +47,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const logout = async () => {
     try {
-      await AsyncStorage.removeItem('token');
-      await AsyncStorage.removeItem('refreshToken');
+      await LocalStorage.removeItem('token');
+      await LocalStorage.removeItem('refreshToken');
     } catch (e) {
-      console.error('Failed to remove tokens from AsyncStorage', e);
+      console.error('Failed to remove tokens from LocalStorage', e);
     } finally {
       setIsLoggedIn(false);
       setIsAuthenticating(false);
