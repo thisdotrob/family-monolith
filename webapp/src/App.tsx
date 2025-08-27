@@ -6,23 +6,26 @@ import { useAuth } from './contexts/AuthContext';
 import HomePage from './pages/HomePage';
 import LoginPage from './pages/LoginPage';
 
-function App() {
-  const { token, saveTokens, logout, setIsRefreshingToken } = useAuth();
+const AppContent = ({ isAuthenticating, isLoggedIn }) => {
+  if (isAuthenticating) {
+    return (<GlobalLoading />);
+  } else if (isLoggedIn) {
+    return (<HomePage />);
+  } else {
+    return (<LoginPage />);
+  }
+}
+
+const App = () => {
+  const { isAuthenticating, isLoggedIn, setIsAuthenticating, getTokens, saveTokens, logout } = useAuth();
 
   const client = useMemo(() => {
-    return createApolloClient(setIsRefreshingToken, saveTokens, logout);
-  }, [saveTokens, logout, setIsRefreshingToken]);
-
-  // This effect will reset the store when the token changes
-  // which is what we want after login/logout.
-  useMemo(() => {
-    client.clearStore();
-  }, [token, client]);
+    return createApolloClient(setIsAuthenticating, getTokens, saveTokens, logout);
+  }, [setIsAuthenticating, getTokens, saveTokens, logout]);
 
   return (
     <ApolloProvider client={client}>
-      {token ? <HomePage /> : <LoginPage />}
-      <GlobalLoading />
+      <AppContent isAuthenticating={isAuthenticating} isLoggedIn={isLoggedIn} />
     </ApolloProvider>
   );
 }

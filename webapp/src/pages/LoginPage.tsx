@@ -13,20 +13,21 @@ const LoginPage = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [message, setMessage] = useState<MessageState>({ text: '', type: '' });
+
   const { saveTokens } = useAuth();
 
   const [login, { loading }] = useMutation(LOGIN_MUTATION, {
-    onCompleted: (data) => {
+    onCompleted: async (data) => {
       if (data.login.success) {
+        const { token, refreshToken } = data.login;
+        await saveTokens(token, refreshToken);
         setMessage({ text: 'Login successful!', type: 'success' });
-        saveTokens(data.login.token, data.login.refreshToken);
       } else {
-        const errorMessage = data.login.errors?.join(', ') || 'An unknown error occurred.';
-        setMessage({ text: `Login failed: ${errorMessage}`, type: 'error' });
+        setMessage({ text: 'Login failed', type: 'error' });
       }
     },
     onError: (error) => {
-      setMessage({ text: `An error occurred: ${error.message}`, type: 'error' });
+      setMessage({ text: error.message, type: 'error' });
     },
   });
 

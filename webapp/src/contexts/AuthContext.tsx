@@ -1,36 +1,67 @@
-import React, { createContext, useState, useContext, ReactNode } from 'react';
+import React, { createContext, useState, useContext, useEffect, ReactNode } from 'react';
+import LocalStorage from '../LocalStorage';
 
 interface AuthContextType {
-  token: string | null;
-  isRefreshingToken: boolean;
-  saveTokens: (newToken: string, newRefreshToken: string) => void;
-  logout: () => void;
-  setIsRefreshingToken: (isRefreshing: boolean) => void;
+  isAuthenticating: boolean;
+  setIsAuthenticating: (isAuthenticating: boolean) => void;
+  isLoggedIn: boolean;
+  getTokens: () => Promise<void>;
+  saveTokens: (token: string, refreshToken: string) => Promise<void>;
+  logout: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [token, setToken] = useState<string | null>(() => localStorage.getItem('token'));
+  const [isAuthenticating, setIsAuthenticating] = useState(true);
+  const [isLoggedIn, setIsLoggedIn] = useState(true);
 
-  const [isRefreshingToken, setIsRefreshingToken] = useState<boolean>(false);
-
-  const saveTokens = (newToken: string, newRefreshToken: string) => {
-    setToken(newToken);
-    localStorage.setItem('token', newToken);
-    localStorage.setItem('refreshToken', newRefreshToken);
+  const getTokens = async () => {
+    const token = await LocalStorage.getItem('token');
+    const refreshToken = await LocalStorage.getItem('refreshToken');
+    return { token, refreshToken };
   };
 
-  const logout = () => {
-    setToken(null);
-    localStorage.removeItem('token');
-    localStorage.removeItem('refreshToken');
+  useEffect(() => {
+    getTokens()
+      .then(({ token }) => setIsLoggedIn(!!token))
+      .catch((e) => {
+        console.error('Failed to load token from LocalStorage', e);
+        setIsLoggedIn(false);
+      })
+      .finally(() => setIsAuthenticating(false));
+  }, []);
+
+  const saveTokens = async (newToken: string, newRefreshToken: string) => {
+    try {
+      await LocalStorage.setItem('token', newToken);
+      await LocalStorage.setItem('refreshToken', newRefreshToken);
+      setIsLoggedIn(true);
+    } catch (e) {
+      console.error('Failed to save tokens to LocalStorage', e);
+      setIsLoggedIn(false);
+    } finally {
+      setIsAuthenticating(false);
+    }
+  };
+
+  const logout = async () => {
+    try {
+      await LocalStorage.removeItem('token');
+      await LocalStorage.removeItem('refreshToken');
+    } catch (e) {
+      console.error('Failed to remove tokens from LocalStorage', e);
+    } finally {
+      setIsLoggedIn(false);
+      setIsAuthenticating(false);
+    }
   };
 
   const authContextValue = {
-    token,
-    isRefreshingToken,
-    setIsRefreshingToken,
+    isAuthenticating,
+    setIsAuthenticating,
+    isLoggedIn,
+    getTokens,
     saveTokens,
     logout,
   };
@@ -49,3 +80,4 @@ export const useAuth = () => {
   }
   return context;
 };
+
