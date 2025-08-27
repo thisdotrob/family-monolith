@@ -5,6 +5,7 @@ interface AuthContextType {
   isAuthenticating: boolean;
   setIsAuthenticating: (isAuthenticating: boolean) => void;
   isLoggedIn: boolean;
+  getTokens: () => Promise<void>;
   saveTokens: (token: string, refreshToken: string) => Promise<void>;
   logout: () => Promise<void>;
 }
@@ -15,9 +16,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [isAuthenticating, setIsAuthenticating] = useState(true);
   const [isLoggedIn, setIsLoggedIn] = useState(true);
 
+  const getTokens = async () => {
+    const token = await AsyncStorage.getItem('token');
+    const refreshToken = await AsyncStorage.getItem('refreshToken');
+    return { token, refreshToken };
+  };
+
   useEffect(() => {
-    AsyncStorage.getItem('token')
-      .then((token) => setIsLoggedIn(!!token))
+    getTokens()
+      .then(({ token }) => setIsLoggedIn(!!token))
       .catch((e) => {
         console.error('Failed to load token from storage', e);
         setIsLoggedIn(false);
@@ -54,6 +61,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     isAuthenticating,
     setIsAuthenticating,
     isLoggedIn,
+    getTokens,
     saveTokens,
     logout,
   };

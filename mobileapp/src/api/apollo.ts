@@ -2,16 +2,13 @@ import {
   ApolloClient,
   InMemoryCache,
   createHttpLink,
-  split,
   from,
-  gql,
   Observable,
 } from "@apollo/client";
 import { loadErrorMessages, loadDevMessages } from "@apollo/client/dev";
 import { setContext } from "@apollo/client/link/context";
 import { onError } from "@apollo/client/link/error";
 import { getMainDefinition } from "@apollo/client/utilities";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { REFRESH_TOKEN_MUTATION } from "../../graphql/mutations";
 
 if (__DEV__) {
@@ -24,8 +21,10 @@ const httpLink = createHttpLink({
   uri: "http://192.168.1.52:4173/v1/graphql",
 });
 
-const setAuthHeaderLink = setContext(async (request, prevContext) => {
-  const token = await AsyncStorage.getItem("token");
+const createAuthHeaderLink = (
+  getTokens: () => Promise<void>,
+) => setContext(async (request, prevContext) => {
+  const { token } = await getTokens();
   return {
     headers: {
       ...prevContext.headers,
@@ -37,6 +36,7 @@ const setAuthHeaderLink = setContext(async (request, prevContext) => {
 const createErrorLink = (
   client: ApolloClient<any>,
   setIsAuthenticating: (isAuthenticating: boolean) => void,
+  getTokens: () => Promise<void>,
   saveTokens: (token: string, refreshToken: string) => Promise<void>,
   logout: () => Promise<void>
 ) => onError(({ graphQLErrors, networkError, operation, forward }) => {
@@ -46,10 +46,10 @@ const createErrorLink = (
     return new Observable(observer => {
       (async () => {
         try {
-          const refreshToken = await AsyncStorage.getItem("refreshToken");
+          const { refreshToken } = await getTokens();
 
           if (!refreshToken) {
-            throw new Error('No refresh token in AsyncStorage');
+            throw new Error('No refresh token found');
           }
 
           const { data } = await client.mutate({ mutation: REFRESH_TOKEN_MUTATION, variables: { refreshToken }, context: { unauthenticated: true } });
@@ -81,6 +81,7 @@ let client; // Necessary to present multiple clients being created and then mult
 
 const createApolloClient = (
   setIsAuthenticating: (isAuthenticating: boolean) => void,
+  getTokens: () => Promise<void>,
   saveTokens: (token: string, refreshToken: string) => Promise<void>,
   logout: () => Promise<void>
 ) => {
@@ -90,15 +91,19 @@ const createApolloClient = (
     const errorLink = createErrorLink(
       client,
       setIsAuthenticating,
+      getTokens,
       saveTokens,
       logout
     );
 
-    client.setLink(from([errorLink, setAuthHeaderLink.concat(httpLink)]));
+    const authHeaderLink = createAuthHeaderLink(
+      getTokens,
+    );
+
+    client.setLink(from([errorLink, authHeaderLink.concat(httpLink)]));
   }
 
   return client;
 };
 
 export { createApolloClient };
-

@@ -9,11 +9,11 @@ import HomePage from './pages/HomePage';
 import LoginPage from './pages/LoginPage';
 
 function App() {
-  const { isLoggedIn, setIsAuthenticating, saveTokens, logout } = useAuth();
+  const { isLoggedIn, setIsAuthenticating, getTokens, saveTokens, logout } = useAuth();
 
   const client = useMemo(() => {
-    return createApolloClient(setIsAuthenticating, saveTokens, logout);
-  }, [setIsAuthenticating, saveTokens, logout]);
+    return createApolloClient(setIsAuthenticating, getTokens, saveTokens, logout);
+  }, [setIsAuthenticating, getTokens, saveTokens, logout]);
 
   return (
     <ApolloProvider client={client}>

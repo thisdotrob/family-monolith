@@ -15,7 +15,8 @@ const LoginPage = () => {
   const [login, { loading }] = useMutation(LOGIN_MUTATION, {
     onCompleted: async (data) => {
       if (data.login.success) {
-        await saveTokens(data.login.token, data.login.refreshToken);
+        const { token, refreshToken } = data.login;
+        await saveTokens(token, refreshToken);
         setMessage({ text: 'Login successful!', type: 'success' });
       } else {
         setMessage({ text: 'Login failed', type: 'error' });
