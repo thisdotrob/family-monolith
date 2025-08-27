@@ -12,7 +12,6 @@ const AuthContext = createContext<AuthContextType | null>(null);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [token, setToken] = useState<string | null>(() => localStorage.getItem('token'));
-  const [refreshToken, setRefreshToken] = useState<string | null>(() => localStorage.getItem('refreshToken'));
 
   const [isRefreshingToken, setIsRefreshingToken] = useState<boolean>(false);
 
@@ -31,9 +30,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const authContextValue = {
     token,
     isRefreshingToken,
+    setIsRefreshingToken,
     saveTokens,
     logout,
-    setIsRefreshingToken,
   };
 
   return (
