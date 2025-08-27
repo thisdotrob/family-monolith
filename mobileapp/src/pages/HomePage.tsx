@@ -1,12 +1,13 @@
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
-import { useQuery } from '@apollo/client';
+import { useApolloClient, useQuery } from '@apollo/client';
 import { useAuth } from '../contexts/AuthContext';
 import { ME_QUERY } from '../../graphql/queries';
 import { Text, Button, ActivityIndicator } from 'react-native-paper';
 
 const HomePage = () => {
   const { logout } = useAuth();
+  const client = useApolloClient();
   const { data, loading, error } = useQuery(ME_QUERY);
 
   if (loading) {
@@ -28,7 +29,7 @@ const HomePage = () => {
       <Text variant="bodyLarge" style={styles.username}>Your username is: {data?.me?.username}</Text>
       <Button
         mode="contained"
-        onPress={logout}
+        onPress={logoutOnPress}
         style={styles.button}
         icon="logout"
       >

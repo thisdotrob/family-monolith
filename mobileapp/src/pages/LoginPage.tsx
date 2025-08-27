@@ -15,8 +15,8 @@ const LoginPage = () => {
   const [login, { loading }] = useMutation(LOGIN_MUTATION, {
     onCompleted: async (data) => {
       if (data.login.success) {
-        setMessage({ text: 'Login successful!', type: 'success' });
         await saveTokens(data.login.token, data.login.refreshToken);
+        setMessage({ text: 'Login successful!', type: 'success' });
       } else {
         setMessage({ text: 'Login failed', type: 'error' });
       }
@@ -24,7 +24,7 @@ const LoginPage = () => {
     onError: (error) => {
       setMessage({ text: error.message, type: 'error' });
     },
-    refetchQueries: [{ query: ME_QUERY }],
+    // refetchQueries: [{ query: ME_QUERY }],
   });
 
   const handleLogin = () => {

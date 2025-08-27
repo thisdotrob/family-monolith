@@ -9,17 +9,17 @@ import HomePage from './pages/HomePage';
 import LoginPage from './pages/LoginPage';
 
 function App() {
-  const { token, setIsRefreshingToken, saveTokens, logout, } = useAuth();
+  const { isLoggedIn, setIsAuthenticating, saveTokens, logout } = useAuth();
 
   const client = useMemo(() => {
-    return createApolloClient(setIsRefreshingToken, saveTokens, logout);
-  }, [saveTokens, logout, setIsRefreshingToken]);
+    return createApolloClient(setIsAuthenticating, saveTokens, logout);
+  }, [setIsAuthenticating, saveTokens, logout]);
 
   return (
     <ApolloProvider client={client}>
       <PaperProvider>
         <SafeAreaView style={styles.container}>
-          {token ? <HomePage /> : <LoginPage />}
+          {isLoggedIn ? <HomePage /> : <LoginPage />}
           <GlobalLoading />
         </SafeAreaView>
       </PaperProvider>

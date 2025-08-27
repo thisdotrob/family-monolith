@@ -4,14 +4,14 @@ import { ActivityIndicator, Text } from 'react-native-paper';
 import { useAuth } from '../contexts/AuthContext';
 
 const GlobalLoading = () => {
-  const { isRefreshingToken } = useAuth();
+  const { isAuthenticating } = useAuth();
 
   return (
-    <Modal visible={isRefreshingToken} transparent={true} animationType="fade">
+    <Modal visible={isAuthenticating} transparent={true} animationType="fade">
       <View style={styles.container}>
         <View style={styles.content}>
           <ActivityIndicator animating={true} size="large" />
-          <Text style={styles.text}>Refreshing session...</Text>
+          <Text style={styles.text}>Authenticating...</Text>
         </View>
       </View>
     </Modal>

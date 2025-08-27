@@ -36,7 +36,7 @@ const setAuthHeaderLink = setContext(async (request, prevContext) => {
 
 const createErrorLink = (
   client: ApolloClient<any>,
-  setIsRefreshingToken: (isRefreshing: boolean) => void,
+  setIsAuthenticating: (isAuthenticating: boolean) => void,
   saveTokens: (token: string, refreshToken: string) => Promise<void>,
   logout: () => Promise<void>
 ) => {
@@ -44,6 +44,7 @@ const createErrorLink = (
     if (graphQLErrors) {
       if (graphQLErrors.some(error => Array.isArray(error) && error.includes("TOKEN_EXPIRED"))) {
         return new Observable(observer => {
+          setIsAuthenticating(true);
           AsyncStorage.getItem("refreshToken")
             .then((refreshToken) => {
               if (!refreshToken) {
@@ -51,7 +52,6 @@ const createErrorLink = (
                   .then(() => { observer.error(new Error('No refresh token in AsyncStorage')); })
                   .catch((error) => { observer.error(error); });
               } else {
-                setIsRefreshingToken(true);
                 client
                   .mutate({
                     mutation: REFRESH_TOKEN_MUTATION,
@@ -76,9 +76,6 @@ const createErrorLink = (
                           logout()
                             .then(() => { observer.error(error); })
                             .catch((e) => { observer.error(e); });
-                        })
-                        .finally(() => {
-                          setIsRefreshingToken(false);
                         });
                     } else {
                       logout()
@@ -87,13 +84,16 @@ const createErrorLink = (
                     }
                   })
                   .catch((error) => {
-                    logout();
-                    observer.error(error);
+                    logout()
+                      .then(() => { observer.error(error); })
+                      .catch((e) => { observer.error(e); });
                   });
               }
             })
             .catch((error) => {
-              observer.error(error);
+              logout()
+                .then(() => { observer.error(error); })
+                .catch((e) => { observer.error(e); });
             });
 
         });
@@ -105,7 +105,7 @@ const createErrorLink = (
 let client; // Necessary to present multiple clients being created and then multiple request and refresh attempts made on token expiry.
 
 const createApolloClient = (
-  setIsRefreshingToken: (isRefreshing: boolean) => void,
+  setIsAuthenticating: (isAuthenticating: boolean) => void,
   saveTokens: (token: string, refreshToken: string) => Promise<void>,
   logout: () => Promise<void>
 ) => {
@@ -114,7 +114,7 @@ const createApolloClient = (
 
     const errorLink = createErrorLink(
       client,
-      setIsRefreshingToken,
+      setIsAuthenticating,
       saveTokens,
       logout
     );
