@@ -12,10 +12,15 @@ const HomePage = () => {
   if (loading) {
     return <ActivityIndicator animating={true} style={styles.centered} />;
   }
-  
+
   if (error) {
-    return <Text style={styles.centered}>Error: {error.message}</Text>;
+    return <View style={styles.container}><Text style={styles.centered}>Error: {error.message}</Text></View>;
   }
+
+  const logoutOnPress = () => {
+    logout().then(() => client.clearStore())
+      .catch((error) => console.log(error));
+  };
 
   return (
     <View style={styles.container}>

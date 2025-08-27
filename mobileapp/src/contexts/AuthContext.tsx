@@ -1,64 +1,54 @@
-import React, { createContext, useState, useContext, ReactNode, useEffect } from 'react';
+import React, { createContext, useState, useContext, useEffect, ReactNode } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { refreshTokenStateManager } from '../api/refreshTokenState';
 
 interface AuthContextType {
   token: string | null;
-  isLoading: boolean; // To handle async storage loading
   isRefreshingToken: boolean;
   saveTokens: (newToken: string, newRefreshToken: string) => Promise<void>;
   logout: () => Promise<void>;
+  setIsRefreshingToken: (isRefreshing: boolean) => void;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [token, setToken] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isRefreshingToken, setIsRefreshingToken] = useState(false);
+  const [isLoadingToken, setIsLoadingToken] = useState(true);
 
   useEffect(() => {
-    const loadToken = async () => {
-      try {
-        const storedToken = await AsyncStorage.getItem('token');
-        setToken(storedToken);
-      } catch (e) {
-        console.error('Failed to load token from storage', e);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    loadToken();
-
-    const unsubscribe = refreshTokenStateManager.subscribe(setIsRefreshingToken);
-    return unsubscribe;
+    AsyncStorage.getItem('token')
+      .then(setToken)
+      .catch((e) => console.error('Failed to load token from storage', e))
+      .finally(() => setIsLoadingToken(false));
   }, []);
 
+  const [isRefreshingToken, setIsRefreshingToken] = useState<boolean>(false);
+
   const saveTokens = async (newToken: string, newRefreshToken: string) => {
+    setToken(newToken);
     try {
       await AsyncStorage.setItem('token', newToken);
       await AsyncStorage.setItem('refreshToken', newRefreshToken);
-      setToken(newToken);
     } catch (e) {
-      console.error('Failed to save tokens to storage', e);
+      console.error('Failed to save tokens to AsyncStorage', e);
     }
   };
 
   const logout = async () => {
+    setToken(null);
     try {
       await AsyncStorage.removeItem('token');
       await AsyncStorage.removeItem('refreshToken');
-      setToken(null);
     } catch (e) {
-      console.error('Failed to remove tokens from storage', e);
+      console.error('Failed to remove tokens from AsyncStorage', e);
     }
   };
 
   const authContextValue = {
     token,
-    isLoading,
+    isLoadingToken,
     isRefreshingToken,
+    setIsRefreshingToken,
     saveTokens,
     logout,
   };
