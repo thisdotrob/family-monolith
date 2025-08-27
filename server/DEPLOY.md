@@ -30,7 +30,11 @@ This method involves compiling the application on the target machine (e.g., a Ra
     ```bash
     sudo cp deploy/monolith.service /etc/systemd/system/
     ```
-4.  **Enable the service**:
+4.  **Reload systemd to pick up the new unit**:
+    ```bash
+    sudo systemctl daemon-reload
+    ```
+5.  **Enable and start the service**:
     ```bash
     sudo systemctl enable --now monolith
     ```
