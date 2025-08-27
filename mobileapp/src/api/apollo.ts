@@ -39,68 +39,43 @@ const createErrorLink = (
   setIsAuthenticating: (isAuthenticating: boolean) => void,
   saveTokens: (token: string, refreshToken: string) => Promise<void>,
   logout: () => Promise<void>
-) => {
-  return onError(({ graphQLErrors, networkError, operation, forward }) => {
-    if (graphQLErrors) {
-      if (graphQLErrors.some(error => Array.isArray(error) && error.includes("TOKEN_EXPIRED"))) {
-        return new Observable(observer => {
-          setIsAuthenticating(true);
-          AsyncStorage.getItem("refreshToken")
-            .then((refreshToken) => {
-              if (!refreshToken) {
-                logout()
-                  .then(() => { observer.error(new Error('No refresh token in AsyncStorage')); })
-                  .catch((error) => { observer.error(error); });
-              } else {
-                client
-                  .mutate({
-                    mutation: REFRESH_TOKEN_MUTATION,
-                    variables: { refreshToken },
-                    context: { unauthenticated: true },
-                  })
-                  .then(({ data }) => {
-                    const { success, token, refreshToken: newRefreshToken } = data.refreshToken;
-                    if (success && token && newRefreshToken) {
-                      saveTokens(token, newRefreshToken)
-                        .then(() => {
-                          const oldHeaders = operation.getContext().headers;
-                          operation.setContext({
-                            headers: {
-                              ...oldHeaders,
-                              authorization: `Bearer ${token}`,
-                            },
-                          });
-                          forward(operation).subscribe(observer);
-                        })
-                        .catch((error) => {
-                          logout()
-                            .then(() => { observer.error(error); })
-                            .catch((e) => { observer.error(e); });
-                        });
-                    } else {
-                      logout()
-                        .then(() => { observer.error(new Error('Refresh token mutation failed')); })
-                        .catch((error) => { observer.error(error); });
-                    }
-                  })
-                  .catch((error) => {
-                    logout()
-                      .then(() => { observer.error(error); })
-                      .catch((e) => { observer.error(e); });
-                  });
-              }
-            })
-            .catch((error) => {
-              logout()
-                .then(() => { observer.error(error); })
-                .catch((e) => { observer.error(e); });
-            });
+) => onError(({ graphQLErrors, networkError, operation, forward }) => {
+  if (graphQLErrors && graphQLErrors.some(error => Array.isArray(error) && error.includes("TOKEN_EXPIRED"))) {
+    setIsAuthenticating(true);
 
-        });
-      }
-    }
-  });
-};
+    return new Observable(observer => {
+      (async () => {
+        try {
+          const refreshToken = await AsyncStorage.getItem("refreshToken");
+
+          if (!refreshToken) {
+            throw new Error('No refresh token in AsyncStorage');
+          }
+
+          const { data } = await client.mutate({ mutation: REFRESH_TOKEN_MUTATION, variables: { refreshToken }, context: { unauthenticated: true } });
+
+          const { success, token, refreshToken: newRefreshToken } = data.refreshToken;
+
+          if (!success) {
+            throw new Error('Refresh token mutation failed');
+          }
+
+          await saveTokens(token, newRefreshToken);
+
+          const oldHeaders = operation.getContext().headers;
+
+          operation.setContext({ headers: { ...oldHeaders, authorization: `Bearer ${token}` } });
+
+          forward(operation).subscribe(observer);
+        } catch (err) {
+          await logout();
+
+          observer.error(err);
+        }
+      })();
+    });
+  }
+});
 
 let client; // Necessary to present multiple clients being created and then multiple request and refresh attempts made on token expiry.
 
