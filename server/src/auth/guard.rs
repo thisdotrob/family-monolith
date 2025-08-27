@@ -27,7 +27,6 @@ impl Extension for AuthGuard {
     {
         Box::pin(async move {
             if ctx.data_opt::<Arc<Claims>>().is_none() {
-                dbg!("authentication required error in authguard");
                 return Response::from_errors(vec![ServerError::new(
                     "Authentication required",
                     None,

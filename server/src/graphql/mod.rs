@@ -24,7 +24,6 @@ impl QueryRoot {
         let claims = match ctx.data_opt::<Arc<Claims>>() {
             Some(claims) => claims,
             None => {
-                dbg!("authentication required error in Me query");
                 return Err(async_graphql::Error::new("Authentication required"));
             }
         };

@@ -240,7 +240,6 @@ async fn graphql_unified_handler(
     claims: Option<Extension<Arc<crate::auth::Claims>>>,
     body: Bytes,
 ) -> impl IntoResponse {
-    dbg!("graphql_unified_handler");
     let query = match String::from_utf8(body.to_vec()) {
         Ok(text) => text,
         Err(_) => return (StatusCode::BAD_REQUEST, "Invalid UTF-8").into_response(),
@@ -253,9 +252,6 @@ async fn graphql_unified_handler(
 
     if let Some(Extension(claims_data)) = claims {
         request = request.data(claims_data);
-        dbg!("some claims");
-    } else {
-        dbg!("no claims");
     }
 
     let response = state.schema.execute(request).await;
