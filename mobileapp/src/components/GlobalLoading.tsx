@@ -1,13 +1,10 @@
 import React from 'react';
 import { View, Modal, StyleSheet } from 'react-native';
 import { ActivityIndicator, Text } from 'react-native-paper';
-import { useAuth } from '../contexts/AuthContext';
 
 const GlobalLoading = () => {
-  const { isAuthenticating } = useAuth();
-
   return (
-    <Modal visible={isAuthenticating} transparent={true} animationType="fade">
+    <Modal transparent={true} animationType="fade">
       <View style={styles.container}>
         <View style={styles.content}>
           <ActivityIndicator animating={true} size="large" />

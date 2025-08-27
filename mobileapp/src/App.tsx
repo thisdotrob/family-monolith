@@ -8,8 +8,18 @@ import { useAuth } from './contexts/AuthContext';
 import HomePage from './pages/HomePage';
 import LoginPage from './pages/LoginPage';
 
-function App() {
-  const { isLoggedIn, setIsAuthenticating, getTokens, saveTokens, logout } = useAuth();
+const AppContent = ({ isAuthenticating, isLoggedIn }) => {
+  if (isAuthenticating) {
+    return (<GlobalLoading />);
+  } else if (isLoggedIn) {
+    return (<HomePage />);
+  } else {
+    return (<LoginPage />);
+  }
+}
+
+const App = () => {
+  const { isAuthenticating, isLoggedIn, setIsAuthenticating, getTokens, saveTokens, logout } = useAuth();
 
   const client = useMemo(() => {
     return createApolloClient(setIsAuthenticating, getTokens, saveTokens, logout);
@@ -19,8 +29,7 @@ function App() {
     <ApolloProvider client={client}>
       <PaperProvider>
         <SafeAreaView style={styles.container}>
-          {isLoggedIn ? <HomePage /> : <LoginPage />}
-          <GlobalLoading />
+          <AppContent isAuthenticating={isAuthenticating} isLoggedIn={isLoggedIn} />
         </SafeAreaView>
       </PaperProvider>
     </ApolloProvider>

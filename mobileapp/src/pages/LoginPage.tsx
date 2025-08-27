@@ -7,10 +7,11 @@ import { LOGIN_MUTATION } from '../graphql/mutations';
 import { ME_QUERY } from '../graphql/queries';
 
 const LoginPage = () => {
-  const { saveTokens } = useAuth();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [message, setMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
+
+  const { saveTokens } = useAuth();
 
   const [login, { loading }] = useMutation(LOGIN_MUTATION, {
     onCompleted: async (data) => {
@@ -25,7 +26,6 @@ const LoginPage = () => {
     onError: (error) => {
       setMessage({ text: error.message, type: 'error' });
     },
-    // refetchQueries: [{ query: ME_QUERY }],
   });
 
   const handleLogin = () => {
