@@ -75,3 +75,59 @@ The certificate and key files are expected to be at:
 - `/etc/letsencrypt/live/blobfishapp.duckdns.org/privkey.pem`
 
 You can obtain these using `certbot`. For the Docker deployment, these files are mounted into the container.
+
+### TLS file permissions when running as non-root
+If the service runs as a non-root user, it must be able to traverse `/etc/letsencrypt/...` and read the key. Two supported approaches:
+
+1) Group-based access
+- Create a group for TLS readers and add the service user to it (replace `monolith` user/group as appropriate):
+  ```bash
+  sudo groupadd monolith-tls || true
+  sudo usermod -aG monolith-tls <service-user>
+  ```
+- Grant group traversal and read access:
+  ```bash
+  # allow group traversal into /etc/letsencrypt
+  sudo chgrp monolith-tls /etc/letsencrypt
+  sudo chmod 710 /etc/letsencrypt
+
+  # set group on the relevant trees
+  sudo chgrp -R monolith-tls /etc/letsencrypt/live /etc/letsencrypt/archive
+
+  # directories 750, private keys 640
+  sudo find /etc/letsencrypt/live /etc/letsencrypt/archive -type d -exec chmod 750 {} \;
+  sudo find /etc/letsencrypt/archive -type f -name 'privkey*.pem' -exec chmod 640 {} \;
+  sudo find /etc/letsencrypt/archive -type f -name 'fullchain*.pem' -exec chmod 640 {} \;
+  ```
+- In the systemd unit, add under `[Service]`:
+  ```
+  SupplementaryGroups=monolith-tls
+  ```
+- Reload and restart:
+  ```bash
+  sudo systemctl daemon-reload
+  sudo systemctl restart monolith
+  ```
+
+Note: certbot renewals may create new key files with restrictive permissions. Consider a certbot deploy-hook to reapply the `chgrp/chmod` above after each renewal.
+
+2) Copy certs to a service-specific path
+- This repo includes a helper at `deploy/monolith_copy.sh` to copy certs into `/etc/monolith/tls` with correct permissions and restart the service.
+- You can use it either as a certbot deploy-hook or run it manually.
+
+Run it once manually (as root) after obtaining certs:
+```bash
+sudo bash deploy/monolith_copy.sh
+```
+
+Install as a certbot deploy-hook so renewals update the copies automatically:
+```bash
+sudo install -m 0755 deploy/monolith_copy.sh /etc/letsencrypt/renewal-hooks/deploy/monolith_copy.sh
+```
+
+Advanced: customize variables when running manually:
+```bash
+sudo SERVICE_USER=rs SERVICE_NAME=monolith DEST_DIR=/etc/monolith/tls \
+  LINEAGE=/etc/letsencrypt/live/blobfishapp.duckdns.org \
+  bash deploy/monolith_copy.sh
+```
