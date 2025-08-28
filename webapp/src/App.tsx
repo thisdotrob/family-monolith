@@ -6,7 +6,8 @@ import { useAuth } from './contexts/AuthContext';
 import HomePage from './pages/HomePage';
 import LoginPage from './pages/LoginPage';
 
-const AppContent = ({ isAuthenticating, isLoggedIn }) => {
+type AppContentProps = { isAuthenticating: boolean; isLoggedIn: boolean };
+const AppContent = ({ isAuthenticating, isLoggedIn }: AppContentProps) => {
   if (isAuthenticating) {
     return (<GlobalLoading />);
   } else if (isLoggedIn) {

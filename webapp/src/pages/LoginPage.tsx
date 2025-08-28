@@ -2,8 +2,6 @@ import React, { useState } from 'react';
 import { useMutation } from '@apollo/client';
 import { LOGIN_MUTATION } from '../graphql/mutations';
 import { useAuth } from '../contexts/AuthContext';
-import { ME_QUERY } from '../graphql/queries';
-
 interface MessageState {
   text: string;
   type: 'success' | 'error' | '';

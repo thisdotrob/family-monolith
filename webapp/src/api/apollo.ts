@@ -8,7 +8,6 @@ import {
 import { loadErrorMessages, loadDevMessages } from "@apollo/client/dev";
 import { setContext } from "@apollo/client/link/context";
 import { onError } from "@apollo/client/link/error";
-import { getMainDefinition } from "@apollo/client/utilities";
 import { REFRESH_TOKEN_MUTATION } from "../graphql/mutations";
 
 if (import.meta.env.DEV) {
@@ -18,12 +17,12 @@ if (import.meta.env.DEV) {
 }
 
 const httpLink = createHttpLink({
-  uri: "http://192.168.1.52:4173/v1/graphql",
+  uri: "https://blobfishapp.duckdns.org/v1/graphql",
 });
 
 const createAuthHeaderLink = (
-  getTokens: () => Promise<void>,
-) => setContext(async (request, prevContext) => {
+  getTokens: () => Promise<{ token: string | null; refreshToken: string | null }>,
+) => setContext(async (_request, prevContext) => {
   const { token } = await getTokens();
   return {
     headers: {
@@ -36,10 +35,10 @@ const createAuthHeaderLink = (
 const createErrorLink = (
   client: ApolloClient<any>,
   setIsAuthenticating: (isAuthenticating: boolean) => void,
-  getTokens: () => Promise<void>,
+  getTokens: () => Promise<{ token: string | null; refreshToken: string | null }>,
   saveTokens: (token: string, refreshToken: string) => Promise<void>,
   logout: () => Promise<void>
-) => onError(({ graphQLErrors, networkError, operation, forward }) => {
+) => onError(({ graphQLErrors, operation, forward }) => {
   if (graphQLErrors && graphQLErrors.some(error => Array.isArray(error) && error.includes("TOKEN_EXPIRED"))) {
     setIsAuthenticating(true);
 
@@ -77,11 +76,11 @@ const createErrorLink = (
   }
 });
 
-let client; // Necessary to present multiple clients being created and then multiple request and refresh attempts made on token expiry.
+let client: ApolloClient<any> | undefined; // cache a single client instance
 
 const createApolloClient = (
   setIsAuthenticating: (isAuthenticating: boolean) => void,
-  getTokens: () => Promise<void>,
+  getTokens: () => Promise<{ token: string | null; refreshToken: string | null }>,
   saveTokens: (token: string, refreshToken: string) => Promise<void>,
   logout: () => Promise<void>
 ) => {

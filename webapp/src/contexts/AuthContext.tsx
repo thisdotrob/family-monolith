@@ -1,11 +1,12 @@
-import React, { createContext, useState, useContext, useEffect, ReactNode } from 'react';
+import { createContext, useState, useContext, useEffect } from 'react';
+import type { ReactNode } from 'react';
 import LocalStorage from '../LocalStorage';
 
 interface AuthContextType {
   isAuthenticating: boolean;
   setIsAuthenticating: (isAuthenticating: boolean) => void;
   isLoggedIn: boolean;
-  getTokens: () => Promise<void>;
+  getTokens: () => Promise<{ token: string | null; refreshToken: string | null }>;
   saveTokens: (token: string, refreshToken: string) => Promise<void>;
   logout: () => Promise<void>;
 }
