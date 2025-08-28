@@ -8,7 +8,10 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "test": "vitest"
+    "test": "vitest",
+    "predeploy:pi": "ssh rs@raspberrypi.local 'mkdir -p /home/rs/monolith/static'",
+    "deploy:pi": "rsync -avz --delete dist/ rs@raspberrypi.local:/home/rs/monolith/static/",
+    "build:deploy:pi": "npm run build && npm run deploy:pi"
   },
   "dependencies": {
     "@apollo/client": "^3.13.9",
