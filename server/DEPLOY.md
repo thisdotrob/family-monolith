@@ -64,6 +64,14 @@ This method uses the Docker image built by the CI pipeline. It is the recommende
     ```
 The service will automatically pull the latest image from `ghcr.io` and run it.
 
+### Database Setup
+
+No manual database setup is required. On server startup, the application will:
+- Create the SQLite database file if it does not exist (default: `./blobfishapp.sqlite`).
+- Apply all pending migrations from the `migrations/` directory automatically.
+
+This applies to both native and Docker deployments.
+
 ---
 
 ## Common Configuration: Let's Encrypt

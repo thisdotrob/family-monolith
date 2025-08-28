@@ -22,13 +22,11 @@ The `auth` module is responsible for all authentication and authorization logic.
 This directory contains the executable binaries for the project.
 
 - **`dev.rs`**: The main entry point for running the development server. It initializes the logger, database, and starts the Axum server.
-- **`migrate.rs`**: A utility for running SQL database migrations located in the `/migrations` directory.
 
 ### `config`
 
 The `config` module centralizes application configuration. It defines constants for:
 
-- Server port
 - Database file path (`DB_PATH`)
 - JWT secret key
 - Frontend origin URL for CORS
