@@ -251,7 +251,7 @@ The logic for handling token expiration is the same as in a web application. Whe
 To access the database for manual queries, you can use the following command. This will open a console to the SQLite database.
 
 ```bash
-DATABASE_URL="sqlite:./blobfishapp.sqlite" sqlx database console
+sqlite3 ./blobfishapp.sqlite
 ```
 
 ## Manually Adding a User
