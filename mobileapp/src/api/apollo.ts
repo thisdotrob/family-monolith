@@ -18,7 +18,7 @@ if (__DEV__) {
 }
 
 const httpLink = createHttpLink({
-  uri: "http://192.168.1.52:4173/v1/graphql",
+  uri: "https://blobfishapp.duckdns.org/v1/graphql",
 });
 
 type AuthTokens = { token: string | null; refreshToken: string | null };
