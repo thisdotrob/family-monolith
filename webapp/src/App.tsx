@@ -1,6 +1,6 @@
 import { ApolloProvider } from '@apollo/client';
 import { useMemo } from 'react';
-import { createApolloClient } from './api/apollo';
+import { createApolloClient } from '../../shared/apollo/createApolloClient';
 import GlobalLoading from './components/GlobalLoading';
 import { useAuth } from './contexts/AuthContext';
 import HomePage from './pages/HomePage';
@@ -21,7 +21,13 @@ const App = () => {
   const { isAuthenticating, isLoggedIn, setIsAuthenticating, getTokens, saveTokens, logout } = useAuth();
 
   const client = useMemo(() => {
-    return createApolloClient(setIsAuthenticating, getTokens, saveTokens, logout);
+    return createApolloClient({
+      isDev: import.meta.env.DEV,
+      setIsAuthenticating,
+      getTokens,
+      saveTokens,
+      logout,
+    });
   }, [setIsAuthenticating, getTokens, saveTokens, logout]);
 
   return (

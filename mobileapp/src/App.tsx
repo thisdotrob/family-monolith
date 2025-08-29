@@ -2,7 +2,7 @@ import { ApolloProvider } from '@apollo/client';
 import { useMemo } from 'react';
 import { SafeAreaView, StyleSheet } from 'react-native';
 import { PaperProvider } from 'react-native-paper';
-import { createApolloClient } from './api/apollo';
+import { createApolloClient } from '../../shared/apollo/createApolloClient';
 import GlobalLoading from './components/GlobalLoading';
 import { useAuth } from './contexts/AuthContext';
 import HomePage from './pages/HomePage';
@@ -23,7 +23,13 @@ const App: React.FC = () => {
   const { isAuthenticating, isLoggedIn, setIsAuthenticating, getTokens, saveTokens, logout } = useAuth();
 
   const client = useMemo(() => {
-    return createApolloClient(setIsAuthenticating, getTokens, saveTokens, logout);
+    return createApolloClient({
+      isDev: __DEV__,
+      setIsAuthenticating,
+      getTokens,
+      saveTokens,
+      logout,
+    });
   }, [setIsAuthenticating, getTokens, saveTokens, logout]);
 
   return (

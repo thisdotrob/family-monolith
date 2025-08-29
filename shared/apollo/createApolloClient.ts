@@ -4,28 +4,29 @@ import {
   createHttpLink,
   from,
   Observable,
+  type NormalizedCacheObject,
 } from "@apollo/client";
 import { loadErrorMessages, loadDevMessages } from "@apollo/client/dev";
 import { setContext } from "@apollo/client/link/context";
 import { onError } from "@apollo/client/link/error";
-import { getMainDefinition } from "@apollo/client/utilities";
-import { REFRESH_TOKEN_MUTATION } from "../graphql/mutations";
+import { REFRESH_TOKEN_MUTATION } from "../graphql/auth";
 
-if (__DEV__) {
-  // Adds messages only in a dev environment
-  loadDevMessages();
-  loadErrorMessages();
-}
+export type AuthTokens = { token: string | null; refreshToken: string | null };
 
-const httpLink = createHttpLink({
-  uri: "https://blobfishapp.duckdns.org/v1/graphql",
-});
+export type CreateApolloClientDeps = {
+  isDev: boolean;
+  setIsAuthenticating: (isAuthenticating: boolean) => void;
+  getTokens: () => Promise<AuthTokens>;
+  saveTokens: (token: string, refreshToken: string) => Promise<void>;
+  logout: () => Promise<void>;
+  uri?: string;
+};
 
-type AuthTokens = { token: string | null; refreshToken: string | null };
+const DEFAULT_GRAPHQL_URI = "https://blobfishapp.duckdns.org/v1/graphql";
 
 const createAuthHeaderLink = (
   getTokens: () => Promise<AuthTokens>,
-) => setContext(async (request, prevContext) => {
+) => setContext(async (_request: any, prevContext: { headers?: Record<string, string> }) => {
   const { token } = await getTokens();
   return {
     headers: {
@@ -41,11 +42,15 @@ const createErrorLink = (
   getTokens: () => Promise<AuthTokens>,
   saveTokens: (token: string, refreshToken: string) => Promise<void>,
   logout: () => Promise<void>
-) => onError(({ graphQLErrors, networkError, operation, forward }) => {
-  if (graphQLErrors && graphQLErrors.some(error => Array.isArray(error) && error.includes("TOKEN_EXPIRED"))) {
+) => onError((input: any) => {
+  console.log(input);
+
+  const { graphQLErrors, operation, forward } = input;
+
+  if (graphQLErrors && graphQLErrors.some((error: any) => Array.isArray(error) && error.includes("TOKEN_EXPIRED"))) {
     setIsAuthenticating(true);
 
-    return new Observable(observer => {
+    return new Observable((observer: any) => {
       (async () => {
         try {
           const { refreshToken } = await getTokens();
@@ -69,7 +74,7 @@ const createErrorLink = (
           operation.setContext({ headers: { ...oldHeaders, authorization: `Bearer ${token}` } });
 
           forward(operation).subscribe(observer);
-        } catch (err) {
+        } catch (err: any) {
           await logout();
 
           observer.error(err);
@@ -79,40 +84,47 @@ const createErrorLink = (
   }
 });
 
-import type { NormalizedCacheObject } from '@apollo/client';
-
 let client: ApolloClient<NormalizedCacheObject> | null = null; // cache a single client instance
 
-const createApolloClient = (
-  setIsAuthenticating: (isAuthenticating: boolean) => void,
-  getTokens: () => Promise<AuthTokens>,
-  saveTokens: (token: string, refreshToken: string) => Promise<void>,
-  logout: () => Promise<void>
-) => {
-  if (!client) {
-    let localClient: ApolloClient<NormalizedCacheObject>;
+export const createApolloClient = ({
+  // Explicit types to keep TS happy when compiled from different projects
 
-    const errorLink = createErrorLink(
-      () => localClient,
-      setIsAuthenticating,
-      getTokens,
-      saveTokens,
-      logout
-    );
+  isDev,
+  setIsAuthenticating,
+  getTokens,
+  saveTokens,
+  logout,
+  uri = DEFAULT_GRAPHQL_URI,
+}: CreateApolloClientDeps) => {
+  if (client) return client;
 
-    const authHeaderLink = createAuthHeaderLink(
-      getTokens,
-    );
-
-    localClient = new ApolloClient({
-      cache: new InMemoryCache(),
-      link: from([errorLink, authHeaderLink.concat(httpLink)]),
-    });
-
-    client = localClient;
+  if (isDev) {
+    // Adds messages only in a dev environment
+    loadDevMessages();
+    loadErrorMessages();
   }
 
+  let localClient: ApolloClient<NormalizedCacheObject>;
+
+  const errorLink = createErrorLink(
+    () => localClient,
+    setIsAuthenticating,
+    getTokens,
+    saveTokens,
+    logout
+  );
+
+  const authHeaderLink = createAuthHeaderLink(
+    getTokens,
+  );
+
+  const httpLink = createHttpLink({ uri });
+
+  localClient = new ApolloClient({
+    cache: new InMemoryCache(),
+    link: from([errorLink, authHeaderLink.concat(httpLink)]),
+  });
+
+  client = localClient;
   return client;
 };
-
-export { createApolloClient };
