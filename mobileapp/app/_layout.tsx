@@ -1,6 +1,6 @@
 import React from 'react';
 import { AuthProvider } from '../src/contexts/AuthContext';
-import App from '../src/App.tsx';
+import App from '../src/App';
 
 export default function RootLayout() {
   return (

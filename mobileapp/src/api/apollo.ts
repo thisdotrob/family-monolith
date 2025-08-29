@@ -21,8 +21,10 @@ const httpLink = createHttpLink({
   uri: "http://192.168.1.52:4173/v1/graphql",
 });
 
+type AuthTokens = { token: string | null; refreshToken: string | null };
+
 const createAuthHeaderLink = (
-  getTokens: () => Promise<void>,
+  getTokens: () => Promise<AuthTokens>,
 ) => setContext(async (request, prevContext) => {
   const { token } = await getTokens();
   return {
@@ -34,9 +36,9 @@ const createAuthHeaderLink = (
 });
 
 const createErrorLink = (
-  client: ApolloClient<any>,
+  getClient: () => ApolloClient<any>,
   setIsAuthenticating: (isAuthenticating: boolean) => void,
-  getTokens: () => Promise<void>,
+  getTokens: () => Promise<AuthTokens>,
   saveTokens: (token: string, refreshToken: string) => Promise<void>,
   logout: () => Promise<void>
 ) => onError(({ graphQLErrors, networkError, operation, forward }) => {
@@ -52,7 +54,7 @@ const createErrorLink = (
             throw new Error('No refresh token found');
           }
 
-          const { data } = await client.mutate({ mutation: REFRESH_TOKEN_MUTATION, variables: { refreshToken }, context: { unauthenticated: true } });
+          const { data } = await getClient().mutate({ mutation: REFRESH_TOKEN_MUTATION, variables: { refreshToken }, context: { unauthenticated: true } });
 
           const { success, token, refreshToken: newRefreshToken } = data.refreshToken;
 
@@ -77,19 +79,21 @@ const createErrorLink = (
   }
 });
 
-let client; // Necessary to present multiple clients being created and then multiple request and refresh attempts made on token expiry.
+import type { NormalizedCacheObject } from '@apollo/client';
+
+let client: ApolloClient<NormalizedCacheObject> | null = null; // cache a single client instance
 
 const createApolloClient = (
   setIsAuthenticating: (isAuthenticating: boolean) => void,
-  getTokens: () => Promise<void>,
+  getTokens: () => Promise<AuthTokens>,
   saveTokens: (token: string, refreshToken: string) => Promise<void>,
   logout: () => Promise<void>
 ) => {
   if (!client) {
-    client = new ApolloClient({ cache: new InMemoryCache() });
+    let localClient: ApolloClient<NormalizedCacheObject>;
 
     const errorLink = createErrorLink(
-      client,
+      () => localClient,
       setIsAuthenticating,
       getTokens,
       saveTokens,
@@ -100,7 +104,12 @@ const createApolloClient = (
       getTokens,
     );
 
-    client.setLink(from([errorLink, authHeaderLink.concat(httpLink)]));
+    localClient = new ApolloClient({
+      cache: new InMemoryCache(),
+      link: from([errorLink, authHeaderLink.concat(httpLink)]),
+    });
+
+    client = localClient;
   }
 
   return client;
