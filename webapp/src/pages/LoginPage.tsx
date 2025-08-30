@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useMutation } from '@apollo/client';
 import { LOGIN_MUTATION } from '../../../shared/graphql/mutations';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../../../shared/contexts/AuthContext';
 interface MessageState {
   text: string;
   type: 'success' | 'error' | '';
@@ -64,7 +64,7 @@ const LoginPage = () => {
               type="text"
               placeholder="Username"
               value={username}
-              onChange={(e) => setUsername(e.target.value)}
+              onChange={(e: any) => setUsername(e.target.value)}
             />
           </div>
           <div className="mb-6">
@@ -77,7 +77,7 @@ const LoginPage = () => {
               type="password"
               placeholder="******************"
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={(e: any) => setPassword(e.target.value)}
             />
           </div>
           <div className="flex items-center justify-between">

@@ -1,5 +1,5 @@
 import { useApolloClient, useQuery } from '@apollo/client';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../../../shared/contexts/AuthContext';
 import { ME_QUERY } from '../../../shared/graphql/queries';
 
 const HomePage = () => {

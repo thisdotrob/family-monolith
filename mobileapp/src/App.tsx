@@ -4,7 +4,7 @@ import { SafeAreaView, StyleSheet } from 'react-native';
 import { PaperProvider } from 'react-native-paper';
 import { createApolloClient } from '../../shared/apollo/createApolloClient';
 import GlobalLoading from './components/GlobalLoading';
-import { useAuth } from './contexts/AuthContext';
+import { useAuth } from '../../shared/contexts/AuthContext';
 import HomePage from './pages/HomePage';
 import LoginPage from './pages/LoginPage';
 

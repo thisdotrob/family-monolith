@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { TextInput, Button, Text } from 'react-native-paper';
 import { useMutation } from '@apollo/client';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../../../shared/contexts/AuthContext';
 import { LOGIN_MUTATION } from '../../../shared/graphql/mutations';
 const LoginPage = () => {
   const [username, setUsername] = useState('');
