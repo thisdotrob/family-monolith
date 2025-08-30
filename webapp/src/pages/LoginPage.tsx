@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useMutation } from '@apollo/client';
-import { LOGIN_MUTATION } from '../graphql/mutations';
+import { LOGIN_MUTATION } from '../../../shared/graphql/mutations';
 import { useAuth } from '../contexts/AuthContext';
 interface MessageState {
   text: string;
