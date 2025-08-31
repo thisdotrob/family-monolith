@@ -1,0 +1,17 @@
+{
+  "name": "monorepo-tools",
+  "private": true,
+  "version": "0.0.0",
+  "scripts": {
+    "prepare": "husky"
+  },
+  "devDependencies": {
+    "husky": "^9.1.6",
+    "lint-staged": "^15.2.10"
+  },
+  "lint-staged": {
+    "*.{js,jsx,ts,tsx,css,md,yml,yaml,json}": [
+      "prettier --write"
+    ]
+  }
+}
