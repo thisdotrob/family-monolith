@@ -3,7 +3,13 @@
   "compilerOptions": {
     "composite": false,
     "noEmit": true,
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "baseUrl": ".",
+    "typeRoots": [
+      "../webapp/node_modules/@types",
+      "../mobileapp/node_modules/@types",
+      "./node_modules/@types"
+    ]
   },
   "include": [
     "**/*.ts",

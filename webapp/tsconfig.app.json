@@ -6,6 +6,7 @@
     "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "module": "ESNext",
     "skipLibCheck": true,
+    "typeRoots": ["./node_modules/@types"],
     "types": ["react", "react-dom"],
 
     /* Bundler mode */
@@ -21,6 +22,8 @@
       "@shared/*": ["../shared/*"],
       "@apollo/*": ["./node_modules/@apollo/*"],
       "graphql": ["./node_modules/graphql/*"],
+      "react": ["./node_modules/@types/react/index"],
+      "react/jsx-runtime": ["./node_modules/@types/react/jsx-runtime"],
       
     },
 

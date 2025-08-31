@@ -3,12 +3,9 @@
   "compilerOptions": {
     "strict": true,
     "baseUrl": ".",
-    "types": [
-      "react",
-      "react-native"
-    ],
     "jsx": "react-jsx",
     "skipLibCheck": true,
+    "typeRoots": ["./node_modules/@types"],
     "moduleResolution": "bundler",
     "paths": {
       "@/*": [
@@ -22,7 +19,9 @@
       ],
       "graphql": [
         "./node_modules/graphql/*"
-      ]
+      ],
+     "react": ["./node_modules/@types/react/index"],
+     "react/jsx-runtime": ["./node_modules/@types/react/jsx-runtime"]
     }
   },
   "include": [
