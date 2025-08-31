@@ -6,6 +6,7 @@
     "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "module": "ESNext",
     "skipLibCheck": true,
+    "types": ["react", "react-dom"],
 
     /* Bundler mode */
     "moduleResolution": "bundler",
@@ -19,7 +20,8 @@
     "paths": {
       "@shared/*": ["../shared/*"],
       "@apollo/*": ["./node_modules/@apollo/*"],
-      "graphql": ["./node_modules/graphql/*"]
+      "graphql": ["./node_modules/graphql/*"],
+      
     },
 
     /* Linting */
