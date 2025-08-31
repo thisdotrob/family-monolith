@@ -1,27 +1,15 @@
 {
-  "extends": "expo/tsconfig.base",
+  "extends": "../tsconfig.base.json",
   "compilerOptions": {
-    "strict": true,
     "baseUrl": ".",
-    "jsx": "react-jsx",
     "skipLibCheck": true,
     "typeRoots": ["./node_modules/@types"],
     "moduleResolution": "bundler",
     "paths": {
-      "@/*": [
-        "./*"
-      ],
-      "@shared/*": [
-        "../shared/*"
-      ],
-      "@apollo/*": [
-        "./node_modules/@apollo/*"
-      ],
-      "graphql": [
-        "./node_modules/graphql/*"
-      ],
-     "react": ["./node_modules/@types/react/index"],
-     "react/jsx-runtime": ["./node_modules/@types/react/jsx-runtime"]
+      "@/*": ["./*"],
+      "@shared/*": ["../shared/*"],
+      "@apollo/*": ["./node_modules/@apollo/*"],
+      "graphql": ["./node_modules/graphql/*"]
     }
   },
   "include": [
@@ -29,7 +17,6 @@
     "src/**/*.tsx",
     "app/**/*.ts",
     "app/**/*.tsx",
-    "src/**/*.d.ts",
     "../shared/**/*.ts",
     "../shared/**/*.tsx",
     ".expo/types/**/*.ts",

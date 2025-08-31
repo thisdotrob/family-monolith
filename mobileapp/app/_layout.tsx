@@ -1,4 +1,3 @@
-import React from 'react';
 import { AuthProvider } from '@shared/contexts/AuthContext';
 import App from '../src/App';
 import LocalStorage from '../src/LocalStorage';

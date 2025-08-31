@@ -1,18 +1,9 @@
 {
-  "extends": "../webapp/tsconfig.app.json",
+  "extends": "../tsconfig.base.json",
   "compilerOptions": {
     "composite": false,
     "noEmit": true,
-    "skipLibCheck": true,
-    "baseUrl": ".",
-    "typeRoots": [
-      "../webapp/node_modules/@types",
-      "../mobileapp/node_modules/@types",
-      "./node_modules/@types"
-    ]
+    "skipLibCheck": true
   },
-  "include": [
-    "**/*.ts",
-    "**/*.tsx"
-  ]
+  "include": ["**/*.ts", "**/*.tsx"]
 }
