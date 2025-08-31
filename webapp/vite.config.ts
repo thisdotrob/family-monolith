@@ -1,10 +1,10 @@
 /// <reference types="vitest" />
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
-import tailwindcss from '@tailwindcss/vite'
-import path from 'node:path'
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+import tailwindcss from '@tailwindcss/vite';
+import path from 'node:path';
 
-const rootDir = __dirname
+const rootDir = __dirname;
 
 // https://vite.dev/config/
 export default defineConfig({
@@ -13,7 +13,7 @@ export default defineConfig({
     alias: {
       '@shared': path.resolve(rootDir, '../shared'),
       '@apollo/client': path.resolve(rootDir, 'node_modules/@apollo/client'),
-      'graphql': path.resolve(rootDir, 'node_modules/graphql'),
+      graphql: path.resolve(rootDir, 'node_modules/graphql'),
     },
     preserveSymlinks: true,
   },
@@ -28,5 +28,4 @@ export default defineConfig({
     environment: 'jsdom',
     setupFiles: './vitest.setup.ts',
   },
-})
-
+});

@@ -1,0 +1,16 @@
+# General
+node_modules
+**/node_modules
+
+# Builds and caches
+webapp/dist
+webapp/coverage
+mobileapp/.expo
+mobileapp/dist
+**/.turbo
+**/.next
+**/.cache
+**/.tsbuildinfo
+
+# OS/Editor
+.DS_Store

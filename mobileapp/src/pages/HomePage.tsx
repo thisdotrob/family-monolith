@@ -16,7 +16,11 @@ const HomePage = () => {
   }
 
   if (error) {
-    return <View style={styles.container}><Text style={styles.centered}>Error: {error.message}</Text></View>;
+    return (
+      <View style={styles.container}>
+        <Text style={styles.centered}>Error: {error.message}</Text>
+      </View>
+    );
   }
 
   const logoutOnPress = async () => {
@@ -31,13 +35,10 @@ const HomePage = () => {
   return (
     <View style={styles.container}>
       <Text variant="headlineLarge">Welcome, {data?.me?.firstName || 'User'}!</Text>
-      <Text variant="bodyLarge" style={styles.username}>Your username is: {data?.me?.username}</Text>
-      <Button
-        mode="contained"
-        onPress={logoutOnPress}
-        style={styles.button}
-        icon="logout"
-      >
+      <Text variant="bodyLarge" style={styles.username}>
+        Your username is: {data?.me?.username}
+      </Text>
+      <Button mode="contained" onPress={logoutOnPress} style={styles.button} icon="logout">
         Logout
       </Button>
     </View>

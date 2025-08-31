@@ -6,4 +6,4 @@ const LocalStorage = {
   removeItem: (key: string) => AsyncStorage.removeItem(key),
 };
 
-export default LocalStorage
+export default LocalStorage;

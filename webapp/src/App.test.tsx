@@ -9,7 +9,7 @@ describe('App', () => {
     render(
       <AuthProvider storage={require('./LocalStorage').default}>
         <App />
-      </AuthProvider>
+      </AuthProvider>,
     );
     expect(screen.getByText('Login')).toBeInTheDocument();
   });

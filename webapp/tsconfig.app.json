@@ -24,13 +24,8 @@
       "@apollo/*": ["./node_modules/@apollo/*"],
       "graphql": ["./node_modules/graphql/*"],
       "react": ["./node_modules/@types/react/index"],
-      "react/jsx-runtime": ["./node_modules/@types/react/jsx-runtime"],
-      
-    },
+      "react/jsx-runtime": ["./node_modules/@types/react/jsx-runtime"]
+    }
   },
-  "include": [
-    "src",
-    "../shared/**/*.ts",
-    "../shared/**/*.tsx"
-  ]
+  "include": ["src", "../shared/**/*.ts", "../shared/**/*.tsx"]
 }

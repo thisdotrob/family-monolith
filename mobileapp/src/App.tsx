@@ -11,16 +11,17 @@ import LoginPage from './pages/LoginPage';
 type AppContentProps = { isAuthenticating: boolean; isLoggedIn: boolean };
 const AppContent = ({ isAuthenticating, isLoggedIn }: AppContentProps) => {
   if (isAuthenticating) {
-    return (<GlobalLoading />);
+    return <GlobalLoading />;
   } else if (isLoggedIn) {
-    return (<HomePage />);
+    return <HomePage />;
   } else {
-    return (<LoginPage />);
+    return <LoginPage />;
   }
-}
+};
 
 const App: React.FC = () => {
-  const { isAuthenticating, isLoggedIn, setIsAuthenticating, getTokens, saveTokens, logout } = useAuth();
+  const { isAuthenticating, isLoggedIn, setIsAuthenticating, getTokens, saveTokens, logout } =
+    useAuth();
 
   const client = useMemo(() => {
     return createApolloClient({
@@ -41,8 +42,8 @@ const App: React.FC = () => {
       </PaperProvider>
     </ApolloProvider>
   );
-}
+};
 
-const styles = StyleSheet.create({ container: { flex: 1 }});
+const styles = StyleSheet.create({ container: { flex: 1 } });
 
 export default App;

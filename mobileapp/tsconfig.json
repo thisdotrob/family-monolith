@@ -22,11 +22,5 @@
     ".expo/types/**/*.ts",
     "expo-env.d.ts"
   ],
-  "exclude": [
-    "app/__tests__/**",
-    "components/**",
-    "hooks/**",
-    "**/*.test.ts",
-    "**/*.test.tsx"
-  ]
+  "exclude": ["app/__tests__/**", "components/**", "hooks/**", "**/*.test.ts", "**/*.test.tsx"]
 }
