@@ -1,6 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import { AuthProvider } from '../../shared/contexts/AuthContext';
+import { AuthProvider } from '@shared/contexts/AuthContext';
 import App from './App.tsx';
 import LocalStorage from './LocalStorage';
 import './index.css';

@@ -3,14 +3,26 @@
   "compilerOptions": {
     "strict": true,
     "baseUrl": ".",
-    "types": ["react", "react-native"],
+    "types": [
+      "react",
+      "react-native"
+    ],
     "jsx": "react-jsx",
     "skipLibCheck": true,
     "moduleResolution": "bundler",
     "paths": {
-      "@/*": ["./*"],
-      "@apollo/*": ["./node_modules/@apollo/*"],
-      "graphql": ["./node_modules/graphql/*"]
+      "@/*": [
+        "./*"
+      ],
+      "@shared/*": [
+        "../shared/*"
+      ],
+      "@apollo/*": [
+        "./node_modules/@apollo/*"
+      ],
+      "graphql": [
+        "./node_modules/graphql/*"
+      ]
     }
   },
   "include": [
@@ -20,7 +32,9 @@
     "app/**/*.tsx",
     "src/**/*.d.ts",
     "../shared/**/*.ts",
-    "../shared/**/*.tsx"
+    "../shared/**/*.tsx",
+    ".expo/types/**/*.ts",
+    "expo-env.d.ts"
   ],
   "exclude": [
     "app/__tests__/**",

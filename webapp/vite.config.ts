@@ -11,6 +11,7 @@ export default defineConfig({
   plugins: [react(), tailwindcss()],
   resolve: {
     alias: {
+      '@shared': path.resolve(rootDir, '../shared'),
       '@apollo/client': path.resolve(rootDir, 'node_modules/@apollo/client'),
       'graphql': path.resolve(rootDir, 'node_modules/graphql'),
     },

@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import { describe, it, expect } from 'vitest';
 import App from './App';
-import { AuthProvider } from '../../shared/contexts/AuthContext';
+import { AuthProvider } from '@shared/contexts/AuthContext';
 import '@testing-library/jest-dom/vitest';
 
 describe('App', () => {

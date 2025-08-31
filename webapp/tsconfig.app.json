@@ -17,6 +17,7 @@
 
     "baseUrl": ".",
     "paths": {
+      "@shared/*": ["../shared/*"],
       "@apollo/*": ["./node_modules/@apollo/*"],
       "graphql": ["./node_modules/graphql/*"]
     },

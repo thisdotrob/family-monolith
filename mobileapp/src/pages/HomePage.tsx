@@ -2,8 +2,8 @@ import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import { Text, Button, ActivityIndicator } from 'react-native-paper';
 import { useApolloClient, useQuery } from '@apollo/client';
-import { useAuth } from '../../../shared/contexts/AuthContext';
-import { ME_QUERY } from '../../../shared/graphql/queries';
+import { useAuth } from '@shared/contexts/AuthContext';
+import { ME_QUERY } from '@shared/graphql/queries';
 
 const HomePage = () => {
   const { logout } = useAuth();
