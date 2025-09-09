@@ -1,7 +1,7 @@
 import 'dotenv/config';
 import type { ExpoConfig } from 'expo/config';
 
-const APP_ID = process.env.APP_ID || 'placeholder';
+const APP_ID = 'placeholder';
 
 const META = {
   placeholder: {
@@ -11,23 +11,9 @@ const META = {
     androidPackage: 'com.example.placeholder',
     updatesChannel: 'family-placeholder',
   },
-  groceries: {
-    name: 'Groceries',
-    slug: 'groceries',
-    iosBundleId: 'com.example.groceries',
-    androidPackage: 'com.example.groceries',
-    updatesChannel: 'family-groceries',
-  },
-  trips: {
-    name: 'Trips',
-    slug: 'trips',
-    iosBundleId: 'com.example.trips',
-    androidPackage: 'com.example.trips',
-    updatesChannel: 'family-trips',
-  },
 } as const;
 
-const m = META[APP_ID as keyof typeof META] ?? META.placeholder;
+const m = META[APP_ID as keyof typeof META];
 
 export default ({ config }: { config: ExpoConfig }): ExpoConfig => ({
   ...config,

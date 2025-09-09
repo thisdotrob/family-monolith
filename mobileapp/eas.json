@@ -5,17 +5,8 @@
   "build": {
     "placeholder": {
       "env": {
-        "APP_ID": "placeholder",
-        "EXPO_UPDATES_URL": "https://u.expo.dev/placeholder-branch"
+        "APP_ID": "placeholder"
       },
-      "distribution": "internal"
-    },
-    "groceries": {
-      "env": { "APP_ID": "groceries", "EXPO_UPDATES_URL": "https://u.expo.dev/groceries-branch" },
-      "distribution": "internal"
-    },
-    "trips": {
-      "env": { "APP_ID": "trips", "EXPO_UPDATES_URL": "https://u.expo.dev/trips-branch" },
       "distribution": "internal"
     },
     "development": {
@@ -31,13 +22,9 @@
   },
   "submit": {
     "placeholder": {},
-    "groceries": {},
-    "trips": {},
     "production": {}
   },
   "update": {
-    "placeholder": { "channel": "family-placeholder" },
-    "groceries": { "channel": "family-groceries" },
-    "trips": { "channel": "family-trips" }
+    "placeholder": { "channel": "family-placeholder" }
   }
 }
