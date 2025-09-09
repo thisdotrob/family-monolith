@@ -7,7 +7,8 @@
       "env": {
         "APP_ID": "placeholder"
       },
-      "distribution": "internal"
+      "distribution": "internal",
+      "android": { "buildType": "apk" }
     },
     "development": {
       "developmentClient": true,
