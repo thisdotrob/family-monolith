@@ -8,8 +8,13 @@
     "paths": {
       "@/*": ["./*"],
       "@shared/*": ["../shared/*"],
+      "@apps-mobile/*": ["../apps/mobile/*"],
       "@apollo/*": ["./node_modules/@apollo/*"],
-      "graphql": ["./node_modules/graphql/*"]
+      "graphql": ["./node_modules/graphql/*"],
+      "react-native": ["./node_modules/react-native"],
+      "react-native/*": ["./node_modules/react-native/*"],
+      "react-native-paper": ["./node_modules/react-native-paper"],
+      "react-native-paper/*": ["./node_modules/react-native-paper/*"]
     }
   },
   "include": [

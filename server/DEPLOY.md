@@ -1,6 +1,6 @@
 # Deployment
 
-This document outlines two methods for deploying the monolith backend: as a native Rust binary or as a Docker container. Both methods use systemd to manage the service.
+This document outlines deployment for the backend. It can also serve multiple web apps from `server/static/<appId>`. Build per app with `VITE_APP_ID=<appId> npm --prefix webapp run build` and copy to that folder.
 
 ---
 

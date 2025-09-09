@@ -3,8 +3,9 @@ import { useMemo } from 'react';
 import { createApolloClient } from '@shared/apollo/createApolloClient';
 import GlobalLoading from './components/GlobalLoading';
 import { useAuth } from '@shared/contexts/AuthContext';
-import HomePage from './pages/HomePage';
-import LoginPage from './pages/LoginPage';
+import { getSelectedWebApp } from './appSelection';
+const HomePage = getSelectedWebApp();
+import LoginPage from './pages/LoginPage'; // scaffold-owned auth screen
 
 type AppContentProps = { isAuthenticating: boolean; isLoggedIn: boolean };
 const AppContent = ({ isAuthenticating, isLoggedIn }: AppContentProps) => {

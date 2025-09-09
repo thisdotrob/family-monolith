@@ -8,8 +8,11 @@
     "scheme": "mobileapp",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
+    "runtimeVersion": { "policy": "appVersion" },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.example.mobileapp",
+      "buildNumber": "1"
     },
     "android": {
       "adaptiveIcon": {

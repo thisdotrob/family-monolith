@@ -1,4 +1,5 @@
 /target
+/static
 .aider*
 blobfishapp.sqlite
 logs

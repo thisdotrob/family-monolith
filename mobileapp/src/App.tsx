@@ -5,7 +5,7 @@ import { PaperProvider } from 'react-native-paper';
 import { createApolloClient } from '@shared/apollo/createApolloClient';
 import GlobalLoading from './components/GlobalLoading';
 import { useAuth } from '@shared/contexts/AuthContext';
-import HomePage from './pages/HomePage';
+import HomePage from '@apps-mobile/placeholder';
 import LoginPage from './pages/LoginPage';
 
 type AppContentProps = { isAuthenticating: boolean; isLoggedIn: boolean };
