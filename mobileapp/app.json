@@ -8,7 +8,9 @@
     "scheme": "mobileapp",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
-    "runtimeVersion": { "policy": "appVersion" },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.example.mobileapp",
@@ -40,6 +42,13 @@
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "APP_ID": "placeholder",
+      "router": {},
+      "eas": {
+        "projectId": "b46e89ca-a8e8-43d0-9dee-6521b01e8416"
+      }
     }
   }
 }
