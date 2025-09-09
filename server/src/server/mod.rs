@@ -1,11 +1,16 @@
-use crate::{config, graphql, AppError};
 use crate::error_codes::ErrorCode;
+use crate::{AppError, config, graphql};
 use axum::body::Bytes;
 use axum::extract::{ConnectInfo, Extension, Request};
 use axum::http::{Method, StatusCode};
 use axum::middleware::{self, Next};
+use axum::response::Html;
 use axum::{
-    response::Response, Json, Router, extract::{State, Path}, response::IntoResponse, routing::get,
+    Json, Router,
+    extract::{Path, State},
+    response::IntoResponse,
+    response::Response,
+    routing::get,
     routing::post,
 };
 use axum_server;
@@ -18,7 +23,6 @@ use std::sync::Arc;
 use std::time::Duration;
 use tower_http::cors::{Any, CorsLayer};
 use tower_http::limit::RequestBodyLimitLayer;
-use axum::response::Html;
 use tower_http::services::ServeDir;
 use tower_http::trace::{self, TraceLayer};
 use tracing::Span;
@@ -74,8 +78,7 @@ pub async fn run(port: u16) {
         .route("/v1/version", get(version))
         .route(
             "/v1/graphql",
-            post(graphql_unified_handler)
-                .layer(middleware::from_fn(rate_limit::login_rate_limit)),
+            post(graphql_unified_handler).layer(middleware::from_fn(rate_limit::login_rate_limit)),
         )
         .layer(middleware::from_fn(jwt_middleware))
         .layer(middleware::from_fn(content_type_middleware))
@@ -230,7 +233,10 @@ async fn jwt_middleware(request: Request, next: Next) -> Result<Response, AppErr
                         ErrorKind::ExpiredSignature => {
                             if !is_unauth_mutation {
                                 // For expired tokens on authenticated operations, return 401 so the client can refresh.
-                                return Err(AppError { code: ErrorCode::TokenExpired, msg: "token has expired".into() });
+                                return Err(AppError {
+                                    code: ErrorCode::TokenExpired,
+                                    msg: "token has expired".into(),
+                                });
                             }
                             // Otherwise allow unauthenticated mutations to proceed without claims
                         }
@@ -275,7 +281,11 @@ async fn serve_app_index_root(Path(app_id): Path<String>) -> Response {
         if let Ok(contents) = std::fs::read_to_string(&index_path) {
             (StatusCode::OK, [("content-type", "text/html")], contents).into_response()
         } else {
-            (StatusCode::INTERNAL_SERVER_ERROR, "Failed to read index.html").into_response()
+            (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                "Failed to read index.html",
+            )
+                .into_response()
         }
     } else {
         (StatusCode::NOT_FOUND, "App not found").into_response()
@@ -318,9 +328,7 @@ async fn serve_app_path(Path((app_id, path)): Path<(String, String)>) -> Respons
             };
             (StatusCode::OK, [("content-type", content_type)], bytes).into_response()
         }
-        Err(_) => {
-            (StatusCode::NOT_FOUND, "Not Found").into_response()
-        }
+        Err(_) => (StatusCode::NOT_FOUND, "Not Found").into_response(),
     }
 }
 

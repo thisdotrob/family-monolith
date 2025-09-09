@@ -2,8 +2,8 @@ use sqlx::SqlitePool;
 mod auth;
 
 pub use crate::graphql::auth::{AuthenticatedMutation, UnauthenticatedMutation};
-use async_graphql::{MergedObject, Object, SimpleObject};
 use async_graphql::{Context, EmptySubscription, Schema};
+use async_graphql::{MergedObject, Object, SimpleObject};
 
 use crate::auth::Claims;
 use std::sync::Arc;
@@ -52,14 +52,10 @@ pub struct CombinedMutation(UnauthenticatedMutation, AuthenticatedMutation);
 pub type AppSchema = Schema<QueryRoot, CombinedMutation, EmptySubscription>;
 
 pub fn build(pool: SqlitePool) -> AppSchema {
-    Schema::build(
-        QueryRoot,
-        CombinedMutation::default(),
-        EmptySubscription,
-    )
-    .data(pool)
-    .limit_depth(5)
-    .limit_complexity(50)
-    .disable_introspection()
-    .finish()
+    Schema::build(QueryRoot, CombinedMutation::default(), EmptySubscription)
+        .data(pool)
+        .limit_depth(5)
+        .limit_complexity(50)
+        .disable_introspection()
+        .finish()
 }

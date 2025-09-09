@@ -1,5 +1,5 @@
 use crate::config::JWT_SECRET;
-use jsonwebtoken::{DecodingKey, EncodingKey, Header, Validation, Algorithm};
+use jsonwebtoken::{Algorithm, DecodingKey, EncodingKey, Header, Validation};
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize)]

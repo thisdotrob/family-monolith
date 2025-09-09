@@ -1,7 +1,7 @@
+use crate::auth::Claims;
 use async_graphql::{Context, InputObject, Object, SimpleObject};
 use sqlx::SqlitePool;
 use std::sync::Arc;
-use crate::auth::Claims;
 
 #[derive(InputObject)]
 pub struct LoginInput {
