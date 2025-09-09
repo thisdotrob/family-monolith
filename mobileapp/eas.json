@@ -3,6 +3,18 @@
     "version": ">= 9.0.0"
   },
   "build": {
+    "placeholder": {
+      "env": { "APP_ID": "placeholder" },
+      "distribution": "internal"
+    },
+    "groceries": {
+      "env": { "APP_ID": "groceries" },
+      "distribution": "internal"
+    },
+    "trips": {
+      "env": { "APP_ID": "trips" },
+      "distribution": "internal"
+    },
     "development": {
       "developmentClient": true,
       "distribution": "internal"
@@ -15,6 +27,9 @@
     }
   },
   "submit": {
+    "placeholder": {},
+    "groceries": {},
+    "trips": {},
     "production": {}
   }
 }
