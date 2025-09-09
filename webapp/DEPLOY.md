@@ -1,11 +1,11 @@
-# Web App Deployment (served by the Rust server at "/")
+# Web Apps Deployment (hosted at "/:appId")
 
-This document explains how to build the web app and deploy its static assets so the Rust server serves it at the root path `/`.
+This document explains how to build per-app bundles and deploy them so the Rust server serves each app at a distinct path `/:appId`.
 
 The server is configured to serve static files from a `static/` directory under its WorkingDirectory.
 
 - WorkingDirectory (from `server/deploy/monolith.service`): `/home/rs/monolith`
-- Static directory used by the server (see `server/src/server/mod.rs`): `/home/rs/monolith/static`
+- Static directory used by the server (see `server/src/server/mod.rs`): `/home/rs/monolith/static/<appId>`
 
 If your service unit uses a different WorkingDirectory, adjust the paths accordingly.
 
@@ -15,20 +15,22 @@ The full manual instructions are documented in the following sections, but all y
 
 ```bash
 # From webapp/ directory
+VITE_APP_ID=<appId> npm run build
+# then copy dist/<appId> to the server's static folder
 npm run predeploy:pi    # ensure remote /home/rs/monolith/static exists
-npm run build:deploy:pi # build locally and rsync dist/ to the Pi
+rsync -avz --delete dist/<appId>/ rs@raspberrypi.local:/home/rs/monolith/static/<appId>/
 ```
 
 ---
 
-## 1) Build the web app
+## 1) Build the web app per appId
 
 On your development machine or CI runner:
 
 ```bash
 cd webapp
 npm ci  # or: npm install
-npm run build
+VITE_APP_ID=<appId> npm run build
 ```
 
 The production build will be created at `webapp/dist/`.
@@ -43,7 +45,7 @@ Before copying, ensure the destination directory exists on the server and is wri
 
 ```bash
 # On the server (one-time):
-sudo -u rs mkdir -p /home/rs/monolith/static
+sudo -u rs mkdir -p /home/rs/monolith/static/<appId>
 ```
 
 ### Option A: Copy locally on the server
@@ -53,7 +55,7 @@ If you built on the server itself:
 ```bash
 # From repository root after running the build above
 tree webapp/dist  # optional: inspect output
-rsync -av --delete webapp/dist/ /home/rs/monolith/static/
+rsync -av --delete webapp/dist/<appId>/ /home/rs/monolith/static/<appId>/
 
 # Set ownership to the service user if needed (example: rs:rs)
 sudo chown -R rs:rs /home/rs/monolith/static
@@ -65,22 +67,22 @@ For your setup, the Raspberry Pi is reachable at `rs@raspberrypi.local`. The com
 
 ```bash
 # Run on your development machine, from repository root after building
-rsync -avz --delete webapp/dist/ rs@raspberrypi.local:/home/rs/monolith/static/
+rsync -avz --delete webapp/dist/<appId>/ rs@raspberrypi.local:/home/rs/monolith/static/<appId>/
 ```
 
 Alternatively, using scp (no deletion of removed files):
 
 ```bash
-scp -r webapp/dist/* rs@raspberrypi.local:/home/rs/monolith/static/
+scp -r webapp/dist/<appId>/* rs@raspberrypi.local:/home/rs/monolith/static/<appId>/
 ```
 
 Shortcuts via npm scripts:
 
 ```bash
 # From webapp/ directory
-npm run build          # build locally
-npm run predeploy:pi   # ensure remote /home/rs/monolith/static exists
-npm run deploy:pi      # rsync dist/ to the Pi
+VITE_APP_ID=<appId> npm run build          # build locally
+npm run predeploy:pi   # ensure remote /home/rs/monolith/static/<appId> exists
+npm run deploy:pi      # rsync dist/<appId> to the Pi
 # or in one go
 npm run build:deploy:pi
 ```
@@ -89,17 +91,17 @@ npm run build:deploy:pi
 
 ## 3) Verify and serve
 
-- The Rust server (Axum) is configured to serve the directory `static/` at the root path `/`.
+- The Rust server (Axum) serves each app at `/:appId`.
 - Typically, no server restart is needed; files are served directly from the filesystem. If you have a CDN or proxy in front, you may need to clear its cache.
 
 Quick checks:
 
 ```bash
 # On the server
-ls -l /home/rs/monolith/static
+ls -l /home/rs/monolith/static/<appId>
 
 # From your browser
-https://blobfishapp.duckdns.org/
+https://blobfishapp.duckdns.org/<appId>
 ```
 
 If the service is not yet running, follow the backend deployment steps in `server/DEPLOY.md`.

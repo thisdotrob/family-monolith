@@ -5,7 +5,7 @@ use axum::extract::{ConnectInfo, Extension, Request};
 use axum::http::{Method, StatusCode};
 use axum::middleware::{self, Next};
 use axum::{
-    response::Response, Json, Router, extract::State, response::IntoResponse, routing::get,
+    response::Response, Json, Router, extract::{State, Path}, response::IntoResponse, routing::get,
     routing::post,
 };
 use axum_server;
@@ -18,6 +18,7 @@ use std::sync::Arc;
 use std::time::Duration;
 use tower_http::cors::{Any, CorsLayer};
 use tower_http::limit::RequestBodyLimitLayer;
+use axum::response::Html;
 use tower_http::services::ServeDir;
 use tower_http::trace::{self, TraceLayer};
 use tracing::Span;
@@ -59,8 +60,16 @@ pub async fn run(port: u16) {
         ])
         .max_age(std::time::Duration::from_secs(3600));
 
+    // Static web apps serving strategy:
+    // - Each app is built under: static/<appId>/ (e.g., static/placeholder/, static/groceries/)
+    // - Serve /<appId>/* from that directory
+    // - Fallback to index.html for client-side routing on unknown paths
+
     let app = Router::new()
-        .nest_service("/", ServeDir::new("static"))
+        // Serve per-app bundles at /:app_id
+        .route("/:app_id/*path", get(serve_app_path))
+        .route("/:app_id", get(serve_app_index_root))
+        // API endpoints
         .route("/v1/healthz", get(health_check))
         .route("/v1/version", get(version))
         .route(
@@ -257,6 +266,62 @@ async fn graphql_unified_handler(
     let response = state.schema.execute(request).await;
 
     (StatusCode::OK, Json(response)).into_response()
+}
+
+// Serve /:app_id and /:app_id/* paths
+async fn serve_app_index_root(Path(app_id): Path<String>) -> Response {
+    let index_path = format!("static/{}/index.html", app_id);
+    if std::path::Path::new(&index_path).exists() {
+        if let Ok(contents) = std::fs::read_to_string(&index_path) {
+            (StatusCode::OK, [("content-type", "text/html")], contents).into_response()
+        } else {
+            (StatusCode::INTERNAL_SERVER_ERROR, "Failed to read index.html").into_response()
+        }
+    } else {
+        (StatusCode::NOT_FOUND, "App not found").into_response()
+    }
+}
+
+// Serve dynamic file paths under /:app_id
+async fn serve_app_path(Path((app_id, path)): Path<(String, String)>) -> Response {
+    // Try to serve a file relative to the app root first
+    let candidate_root = format!("static/{}/{}", app_id, path);
+    let full_path = if std::path::Path::new(&candidate_root).exists() {
+        candidate_root
+    } else {
+        // Otherwise, try the assets folder (for Vite assets)
+        format!("static/{}/assets/{}", app_id, path)
+    };
+
+    match std::fs::read(&full_path) {
+        Ok(bytes) => {
+            let content_type = if full_path.ends_with(".js") {
+                "application/javascript"
+            } else if full_path.ends_with(".css") {
+                "text/css"
+            } else if full_path.ends_with(".map") {
+                "application/json"
+            } else if full_path.ends_with(".svg") {
+                "image/svg+xml"
+            } else if full_path.ends_with(".png") {
+                "image/png"
+            } else if full_path.ends_with(".jpg") || full_path.ends_with(".jpeg") {
+                "image/jpeg"
+            } else if full_path.ends_with(".webp") {
+                "image/webp"
+            } else if full_path.ends_with(".svg") {
+                "image/svg+xml"
+            } else if full_path.ends_with(".ico") {
+                "image/x-icon"
+            } else {
+                "application/octet-stream"
+            };
+            (StatusCode::OK, [("content-type", content_type)], bytes).into_response()
+        }
+        Err(_) => {
+            (StatusCode::NOT_FOUND, "Not Found").into_response()
+        }
+    }
 }
 
 /*

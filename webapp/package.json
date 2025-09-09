@@ -11,8 +11,8 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "vitest",
-    "predeploy:pi": "ssh rs@raspberrypi.local 'mkdir -p /home/rs/monolith/static'",
-    "deploy:pi": "rsync -avz --delete dist/ rs@raspberrypi.local:/home/rs/monolith/static/",
+    "predeploy:pi": "ssh rs@raspberrypi.local \"mkdir -p /home/rs/monolith/static/$VITE_APP_ID\"",
+    "deploy:pi": "rsync -avz --delete dist/$VITE_APP_ID/ rs@raspberrypi.local:/home/rs/monolith/static/$VITE_APP_ID/",
     "build:deploy:pi": "npm run build && npm run deploy:pi",
     "typecheck": "tsc -b"
   },
