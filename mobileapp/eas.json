@@ -1,6 +1,7 @@
 {
   "cli": {
-    "version": ">= 9.0.0"
+    "version": "^16.18.0",
+    "appVersionSource": "remote"
   },
   "build": {
     "placeholder": {
@@ -24,8 +25,5 @@
   "submit": {
     "placeholder": {},
     "production": {}
-  },
-  "update": {
-    "placeholder": { "channel": "family-placeholder" }
   }
 }
