@@ -11,7 +11,7 @@ It works per app id (APP_ID) using EAS build profiles defined in `mobileapp/eas.
   - Verify: `eas --version`
 - Login to Expo: `eas login`
 - In this repo, the mobile scaffold selects the app module by `APP_ID` via `mobileapp/src/selectMobileApp.ts` and per-app metadata via `mobileapp/app.config.ts`.
-- EAS build profiles are defined in `mobileapp/eas.json` (placeholder, groceries, trips).
+- EAS build profiles are defined in `mobileapp/eas.json` (placeholder).
 
 ## Overview
 
@@ -76,10 +76,7 @@ Two options:
    - `eas build --profile placeholder --platform android`
 
 2. Over-the-Air (OTA) Updates with EAS Update (configured)
-   - OTA is enabled via `expo-updates`. Each app id maps to a channel in `app.config.ts`:
-     - placeholder → `family-placeholder`
-     - groceries → `family-groceries`
-     - trips → `family-trips`
+   - OTA is enabled via `expo-updates`. The placeholder app uses channel `family-placeholder` (see `app.config.ts`).
    - Publish JS updates without rebuilding binaries (pick the matching branch/channel):
      ```bash
      cd mobileapp
@@ -98,17 +95,14 @@ Two options:
   ```
 - The resolver `src/selectMobileApp.ts` loads the appropriate module under `apps/mobile/<APP_ID>`.
 
-## Adding Another Family App
+## Adding Another Family App (future)
 
-1. Create the module:
-   - `apps/mobile/<newAppId>/index.ts` exporting the root component.
-2. Register the module in `mobileapp/src/selectMobileApp.ts` (import and add to `registry`).
-3. Add metadata for the app in `mobileapp/app.config.ts` (name/slug/bundle/package).
-4. Add an EAS profile in `mobileapp/eas.json`:
-   ```json
-   "<newAppId>": { "env": { "APP_ID": "<newAppId>" }, "distribution": "internal" }
-   ```
-5. Build and share install links with the family.
+If you choose to add more apps later:
+
+- Create `apps/mobile/<appId>` with an `index.ts` exporting the root component.
+- Reintroduce a dynamic resolver keyed by `APP_ID` (or a codegen registry).
+- Add per-app metadata in `app.config.ts` and an EAS profile in `eas.json`.
+- Build and distribute internal builds per profile.
 
 ## Troubleshooting
 

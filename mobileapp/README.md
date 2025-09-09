@@ -1,8 +1,15 @@
-# Mobile App (Expo) - Multi App + Internal Distribution + OTA Updates
+# Mobile App (Expo) — Placeholder App + Internal Distribution + OTA Updates
+
+This mobile scaffold currently ships a single app: `placeholder`.
+
+- App selection: hardcoded to `placeholder` (see `src/selectMobileApp.ts`)
+- App metadata: set in `app.config.ts` (name, slug, bundle identifiers, OTA channel)
+- Internal distribution: via EAS Internal Distribution
+- OTA updates: enabled via `expo-updates` on channel `family-placeholder`
 
 ## Build Profiles
 
-See `eas.json` for profiles per app: placeholder, groceries, trips.
+See `eas.json` for the available profiles.
 
 - Build (internal distribution):
   - iOS: `eas build --profile placeholder --platform ios`
@@ -13,22 +20,34 @@ See `eas.json` for profiles per app: placeholder, groceries, trips.
 
 ## Select App Module
 
-- Resolver at `src/selectMobileApp.ts` picks the app by `APP_ID` (from `app.config.ts` -> `extra.APP_ID`).
-- Add imports and registry entries for new apps under `apps/mobile/<appId>`.
+- The resolver at `src/selectMobileApp.ts` returns the placeholder app.
+- `app.config.ts` is hardcoded to the placeholder app and injects `extra.APP_ID = 'placeholder'`.
 
-## Per-App Metadata (and OTA Channel)
+## OTA Updates (expo-updates)
 
-- `app.config.ts` sets name, slug, bundle identifiers, and OTA updates channel per app.
-- OTA updates (expo-updates) are enabled and set to check automatically on load.
+- Devices check for updates on app load.
+- Publish a JS/UI update to the placeholder channel:
+  ```bash
+  cd mobileapp
+  eas update --branch family-placeholder --message "UI fix"
+  ```
+- Note: OTA updates can’t change native modules.
 
 ## Internal Distribution
 
 - See `INTERNAL_DISTRIBUTION.md` for step-by-step installation (Android APK, iOS Ad Hoc with UDIDs).
 
-## OTA Updates
+## Local Development
 
-- Publish a JS/UI update to the appropriate channel:
-  ```bash
-  eas update --branch family-placeholder --message "Fix header"
-  ```
-- Note: OTA updates can’t change native modules.
+```bash
+cd mobileapp
+npx expo start
+```
+
+## Future Work (optional)
+
+If you later choose to add additional apps under `apps/mobile/<appId>`, we can:
+
+- Reintroduce a dynamic resolver keyed by `APP_ID`
+- Add per-app EAS build profiles and per-app metadata in `app.config.ts`
+- Provide a small codegen step to auto-register app modules
