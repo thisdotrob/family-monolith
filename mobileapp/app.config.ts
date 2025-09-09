@@ -35,6 +35,11 @@ export default ({ config }: { config: ExpoConfig }): ExpoConfig => ({
   },
   extra: {
     ...config.extra,
+    // Preserve any existing EAS project linkage, or allow override via env
+    eas: {
+      ...(config.extra as any)?.eas,
+      projectId: process.env.EAS_PROJECT_ID || (config.extra as any)?.eas?.projectId,
+    },
     APP_ID,
     UPDATES_CHANNEL: m.updatesChannel,
   },
