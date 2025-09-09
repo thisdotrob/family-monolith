@@ -1,6 +1,11 @@
 {
   "name": "mobileapp",
   "main": "expo-router/entry",
+  "expo": {
+    "app": {
+      "extends": "./app.config.ts"
+    }
+  },
   "version": "1.0.0",
   "scripts": {
     "format": "prettier --write \"**/*.{js,jsx,ts,tsx,json,css,md,yml,yaml}\"",
