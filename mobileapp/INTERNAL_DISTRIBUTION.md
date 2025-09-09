@@ -75,12 +75,18 @@ Two options:
    - `eas build --profile placeholder --platform ios`
    - `eas build --profile placeholder --platform android`
 
-2. (Optional) Over-the-Air (OTA) Updates with EAS Update:
-   - Add `expo-updates` and configure a private branch/channel (e.g., `family`).
-   - Publish JS updates without rebuilding binaries:
+2. Over-the-Air (OTA) Updates with EAS Update (configured)
+   - OTA is enabled via `expo-updates`. Each app id maps to a channel in `app.config.ts`:
+     - placeholder → `family-placeholder`
+     - groceries → `family-groceries`
+     - trips → `family-trips`
+   - Publish JS updates without rebuilding binaries (pick the matching branch/channel):
      ```bash
-     eas update --branch family --message "UI fix"
+     cd mobileapp
+     # Example for placeholder app
+     eas update --branch family-placeholder --message "UI fix"
      ```
+   - Devices check for updates on app load (`checkAutomatically: ON_LOAD`).
    - Note: OTA updates can’t change native modules.
 
 ## Local Development Per App
