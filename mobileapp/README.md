@@ -1,50 +1,34 @@
-# Welcome to your Expo app 👋
+# Mobile App (Expo) - Multi App + Internal Distribution + OTA Updates
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+## Build Profiles
 
-## Get started
+See `eas.json` for profiles per app: placeholder, groceries, trips.
 
-1. Install dependencies
+- Build (internal distribution):
+  - iOS: `eas build --profile placeholder --platform ios`
+  - Android: `eas build --profile placeholder --platform android`
+- Submit to stores (optional):
+  - iOS: `eas submit --profile placeholder --platform ios --latest`
+  - Android: `eas submit --profile placeholder --platform android --latest`
 
-   ```bash
-   npm install
-   ```
+## Select App Module
 
-2. Start the app
+- Resolver at `src/selectMobileApp.ts` picks the app by `APP_ID` (from `app.config.ts` -> `extra.APP_ID`).
+- Add imports and registry entries for new apps under `apps/mobile/<appId>`.
 
-   ```bash
-   npx expo start
-   ```
+## Per-App Metadata (and OTA Channel)
 
-In the output, you'll find options to open the app in a
+- `app.config.ts` sets name, slug, bundle identifiers, and OTA updates channel per app.
+- OTA updates (expo-updates) are enabled and set to check automatically on load.
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+## Internal Distribution
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+- See `INTERNAL_DISTRIBUTION.md` for step-by-step installation (Android APK, iOS Ad Hoc with UDIDs).
 
-## Get a fresh project
+## OTA Updates
 
-When you're ready, run:
-
-```bash
-npm run reset-project
-```
-
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
-
-## Learn more
-
-To learn more about developing your project with Expo, look at the following resources:
-
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+- Publish a JS/UI update to the appropriate channel:
+  ```bash
+  eas update --branch family-placeholder --message "Fix header"
+  ```
+- Note: OTA updates can’t change native modules.

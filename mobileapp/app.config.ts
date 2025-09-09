@@ -9,14 +9,22 @@ const META = {
     slug: 'placeholder',
     iosBundleId: 'com.example.placeholder',
     androidPackage: 'com.example.placeholder',
+    updatesChannel: 'family-placeholder',
   },
-  // Add additional apps here:
-  // groceries: {
-  //   name: 'Groceries',
-  //   slug: 'groceries',
-  //   iosBundleId: 'com.example.groceries',
-  //   androidPackage: 'com.example.groceries',
-  // },
+  groceries: {
+    name: 'Groceries',
+    slug: 'groceries',
+    iosBundleId: 'com.example.groceries',
+    androidPackage: 'com.example.groceries',
+    updatesChannel: 'family-groceries',
+  },
+  trips: {
+    name: 'Trips',
+    slug: 'trips',
+    iosBundleId: 'com.example.trips',
+    androidPackage: 'com.example.trips',
+    updatesChannel: 'family-trips',
+  },
 } as const;
 
 const m = META[APP_ID as keyof typeof META] ?? META.placeholder;
@@ -34,8 +42,14 @@ export default ({ config }: { config: ExpoConfig }): ExpoConfig => ({
     ...config.android,
     package: m.androidPackage,
   },
+  updates: {
+    ...config.updates,
+    enabled: true,
+    checkAutomatically: 'ON_LOAD',
+  },
   extra: {
     ...config.extra,
     APP_ID,
+    UPDATES_CHANNEL: m.updatesChannel,
   },
 });
