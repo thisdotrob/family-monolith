@@ -29,6 +29,12 @@ Currently, the mobile scaffold ships a single app: `placeholder`.
 
 ## Android (APK) — Local Build and Host
 
+Quick script (from mobileapp/):
+
+```bash
+npm run build:android:local
+```
+
 1. Build APK locally (uses the `placeholder` profile configured for APK):
 
 ```bash
@@ -52,6 +58,12 @@ scp ./app-placeholder.apk rs@raspberrypi.local:/home/rs/monolith/server/static/d
 - `https://<your-domain-or-ip>/downloads/android/placeholder/app.apk`
 
 ## iOS (IPA) — Local Build, Manifest, and Host
+
+Quick script (from mobileapp/):
+
+```bash
+npm run build:ios:local
+```
 
 iOS Ad Hoc distribution requires:
 
@@ -127,6 +139,10 @@ scp ./manifest.plist rs@raspberrypi.local:/home/rs/monolith/server/static/downlo
 - Settings → General → VPN & Device Management → Developer App → Trust
 
 ## Notes & Troubleshooting
+
+- Using npx vs global eas-cli:
+  - The scripts use `npx -y eas-cli` so you don’t need a global install.
+  - Alternatively, install globally: `npm i -g eas-cli` and run `eas build ...` directly.
 
 - HTTPS is required for iOS itms-services links (use a proper certificate on your domain).
 - iOS installs will only work on devices included in the Ad Hoc provisioning profile (UDIDs).
