@@ -73,6 +73,9 @@ pub async fn run(port: u16) {
         // Serve per-app bundles at /:app_id
         .route("/:app_id/*path", get(serve_app_path))
         .route("/:app_id", get(serve_app_index_root))
+        // Mobile app downloads (self-hosted)
+        .route("/downloads/android/:app_id/:filename", get(serve_download_android))
+        .route("/downloads/ios/:app_id/:filename", get(serve_download_ios))
         // API endpoints
         .route("/v1/healthz", get(health_check))
         .route("/v1/version", get(version))
@@ -323,6 +326,38 @@ async fn serve_app_path(Path((app_id, path)): Path<(String, String)>) -> Respons
                 "image/svg+xml"
             } else if full_path.ends_with(".ico") {
                 "image/x-icon"
+            } else {
+                "application/octet-stream"
+            };
+            (StatusCode::OK, [("content-type", content_type)], bytes).into_response()
+        }
+        Err(_) => (StatusCode::NOT_FOUND, "Not Found").into_response(),
+    }
+}
+
+// Serve Android APKs from static/downloads/android/<app_id>/<filename>.apk
+async fn serve_download_android(Path((app_id, filename)): Path<(String, String)>) -> Response {
+    let full_path = format!("static/downloads/android/{}/{}", app_id, filename);
+    match std::fs::read(&full_path) {
+        Ok(bytes) => (
+            StatusCode::OK,
+            [("content-type", "application/vnd.android.package-archive")],
+            bytes,
+        )
+            .into_response(),
+        Err(_) => (StatusCode::NOT_FOUND, "Not Found").into_response(),
+    }
+}
+
+// Serve iOS artifacts (IPA or manifest.plist) from static/downloads/ios/<app_id>/<filename>
+async fn serve_download_ios(Path((app_id, filename)): Path<(String, String)>) -> Response {
+    let full_path = format!("static/downloads/ios/{}/{}", app_id, filename);
+    match std::fs::read(&full_path) {
+        Ok(bytes) => {
+            let content_type = if full_path.ends_with(".plist") {
+                "application/xml"
+            } else if full_path.ends_with(".ipa") {
+                "application/octet-stream"
             } else {
                 "application/octet-stream"
             };
