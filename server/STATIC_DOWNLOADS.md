@@ -7,7 +7,7 @@ You can host mobile app artifacts on the server under `server/static/downloads/`
   - IPA: `/downloads/ios/<appId>/<filename>.ipa`
   - Manifest (for itms-services): `/downloads/ios/<appId>/manifest.plist`
 
-Place files on the host filesystem at:
+Place files on the host filesystem at (relative to the server WorkingDirectory):
 
 - `server/static/downloads/android/<appId>/<filename>.apk`
 - `server/static/downloads/ios/<appId>/<filename>.ipa`

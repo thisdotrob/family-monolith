@@ -23,8 +23,8 @@
     "test": "jest",
     "lint": "expo lint",
     "typecheck": "tsc -b",
-    "build:android:local": "npx -y eas-cli build --profile placeholder --platform android --local --non-interactive --output ./app-placeholder.apk",
-    "build:ios:local": "npx -y eas-cli build --profile placeholder --platform ios --local --non-interactive --output ./app-placeholder.ipa"
+    "build:android:local:placeholder": "npx -y eas-cli build --profile placeholder --platform android --local --non-interactive --output ./app-placeholder.apk",
+    "build:ios:local:placeholder": "npx -y eas-cli build --profile placeholder --platform ios --local --non-interactive --output ./app-placeholder.ipa"
   },
   "dependencies": {
     "@apollo/client": "^3.13.9",

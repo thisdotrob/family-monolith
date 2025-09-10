@@ -23,6 +23,10 @@ See `eas.json` for the available profiles.
 - The resolver at `src/selectMobileApp.ts` returns the placeholder app.
 - `app.config.ts` is hardcoded to the placeholder app and injects `extra.APP_ID = 'placeholder'`.
 
+## Deployment
+
+See `BUILD_LOCAL_DISTRIBUTION.md`.
+
 ## OTA Updates (expo-updates)
 
 - Devices check for updates on app load.
@@ -32,10 +36,6 @@ See `eas.json` for the available profiles.
   eas update --branch family-placeholder --message "UI fix"
   ```
 - Note: OTA updates can’t change native modules.
-
-## Internal Distribution
-
-- See `INTERNAL_DISTRIBUTION.md` for step-by-step installation (Android APK, iOS Ad Hoc with UDIDs).
 
 ## Local Development
 
