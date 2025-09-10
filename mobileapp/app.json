@@ -38,7 +38,8 @@
           "resizeMode": "contain",
           "backgroundColor": "#ffffff"
         }
-      ]
+      ],
+      "./plugins/disable-android-lint"
     ],
     "experiments": {
       "typedRoutes": true
