@@ -74,7 +74,10 @@ pub async fn run(port: u16) {
         .route("/:app_id/*path", get(serve_app_path))
         .route("/:app_id", get(serve_app_index_root))
         // Mobile app downloads (self-hosted)
-        .route("/downloads/android/:app_id/:filename", get(serve_download_android))
+        .route(
+            "/downloads/android/:app_id/:filename",
+            get(serve_download_android),
+        )
         .route("/downloads/ios/:app_id/:filename", get(serve_download_ios))
         // API endpoints
         .route("/v1/healthz", get(health_check))
