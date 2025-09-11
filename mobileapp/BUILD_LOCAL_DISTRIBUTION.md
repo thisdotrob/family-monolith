@@ -109,7 +109,6 @@ scp ./manifest-placeholder.plist rs@raspberrypi.local:/home/rs/monolith/static/d
 - Using npx vs global eas-cli:
   - The scripts use `npx -y eas-cli` so you don’t need a global install.
   - Alternatively, install globally: `npm i -g eas-cli` and run `eas build ...` directly.
-
 - HTTPS is required for iOS itms-services links (use a proper certificate on your domain).
 - iOS installs will only work on devices included in the Ad Hoc provisioning profile (UDIDs).
 - Android devices must allow installing apps from the browser/File manager.
