@@ -22,8 +22,9 @@
     "test": "jest",
     "lint": "expo lint",
     "typecheck": "tsc -b",
-    "build:android:local:placeholder": "npx -y eas-cli build --profile placeholder --platform android --local --non-interactive --output ./app-placeholder.apk",
-    "build:ios:local:placeholder": "npx -y eas-cli build --profile placeholder --platform ios --local --non-interactive --output ./app-placeholder.ipa"
+    "build:android:placeholder": "npx -y eas-cli build --profile placeholder --platform android --local --non-interactive --output ./app-placeholder.apk",
+    "prebuild:ios:placeholder": "APP_ID=placeholder npx expo prebuild --platform ios",
+    "buildui:ios:placeholder": "open ios/Placeholder.xcworkspace"
   },
   "dependencies": {
     "@apollo/client": "^3.13.9",
@@ -58,7 +59,8 @@
     "react-native-url-polyfill": "^2.0.0",
     "react-native-vector-icons": "^10.3.0",
     "react-native-web": "~0.20.0",
-    "react-native-webview": "13.13.5"
+    "react-native-webview": "13.13.5",
+    "expo-dev-client": "~5.2.4"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",

@@ -1,29 +1,25 @@
 # Local Build and Self-Hosted Distribution (Android & iOS)
 
-This guide shows how to build the mobile apps locally and host the artifacts on your Rust server so your family can install via links — without app stores and without waiting in the EAS cloud queue.
-
-The server already exposes routes for downloads. Place files on disk under:
-
-- `server/static/downloads/android/<appId>/<filename>.apk`
-- `server/static/downloads/ios/<appId>/<filename>.ipa`
-- `server/static/downloads/ios/<appId>/manifest.plist`
+This guide shows how to build the mobile apps locally and deploy to family devices either by sideloading with xcode (ios) or hosting the artifact on the Rust server with install links (android).
 
 Currently, the mobile scaffold ships a single app: `placeholder`.
 
-## Android (APK) — Local Build and Host
+## Android (APK) — Local Build and Hosted Install Link
 
+### Configuration notes
 New architecture is disabled for local builds (app.json: `newArchEnabled: false`). Lint is disabled for release via a config plugin (plugins/disable-android-lint.js).
+
+### Build & Distributrion steps
 
 1. Build APK locally (uses the `placeholder` profile configured for APK):
 
 ```bash
-npm run build:android:local:placeholder
+npm run build:android:placeholder
 ```
 
-2. Copy the APK to the server’s download folder (adjust host/path as needed):
+2. Copy the APK to the server’s downloads folder:
 
 ```bash
-# Example: copy to Rust server static downloads directory
 scp ./app-placeholder.apk rs@raspberrypi.local:/home/rs/monolith/static/downloads/android/placeholder/app.apk
 ```
 
@@ -31,88 +27,51 @@ scp ./app-placeholder.apk rs@raspberrypi.local:/home/rs/monolith/static/download
 
 - `https://blobfishapp.duckdns.org/downloads/android/placeholder/app.apk`
 
-## iOS (IPA) — Local Build, Manifest, and Host
+## iOS — Local Build and Sideloading with Xcode
 
-Quick script (from mobileapp/):
+For iOS, we prebuild with expo then build and sideload in Xcode. This avoids paying for App Store distribution, TestFlight, or over-the-air installation methods.
 
-iOS Ad Hoc distribution requires:
+### iPhone requiements
 
-- Apple Developer Program
-- Ad Hoc provisioning profile that includes each device’s UDID (family devices)
+- Must have developer mode enabled.
 
-1. Build IPA locally (macOS/Xcode required):
+### Build & Distributrion steps
 
-```bash
-npm run build:ios:local:placeholder
-```
-
-2. Create a manifest.plist (example below). Replace:
-
-- IPA URL
-- bundle-identifier (e.g., com.example.placeholder)
-- bundle-version (e.g., 1.0.0)
-- title (e.g., Placeholder)
-
-Save as `manifest.plist`.
-
-```xml
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0">
-<dict>
-  <key>items</key>
-  <array>
-    <dict>
-      <key>assets</key>
-      <array>
-        <dict>
-          <key>kind</key>
-          <string>software-package</string>
-          <key>url</key>
-          <string>https://blobfishapp.duckdns.org/downloads/ios/placeholder/app.ipa</string>
-        </dict>
-      </array>
-      <key>metadata</key>
-      <dict>
-        <key>bundle-identifier</key>
-        <string>com.example.placeholder</string>
-        <key>bundle-version</key>
-        <string>1.0.0</string>
-        <key>kind</key>
-        <string>software</string>
-        <key>Placeholder</key>
-        <string>Placeholder</string>
-      </dict>
-    </dict>
-  </array>
-</dict>
-</plist>
-```
-
-3. Copy the IPA and manifest to the server:
+1. Prebuild the app with expo:
 
 ```bash
-scp ./app-placeholder.ipa rs@raspberrypi.local:/home/rs/monolith/static/downloads/ios/placeholder/app.ipa
-scp ./manifest-placeholder.plist rs@raspberrypi.local:/home/rs/monolith/static/downloads/ios/placeholder/manifest.plist
+npm run prebuild:ios:placeholder
 ```
 
-4. Share the iOS install link (must open in Safari on device):
+2. Open prebuilt project in Xcode:
 
-- `itms-services://?action=download-manifest&url=https://blobfishapp.duckdns.org/downloads/ios/placeholder/manifest.plist`
+```bash
+npm run buildui:ios:placeholder
+```
 
-5. First-time install on iOS requires trusting the developer profile:
+3. Build the project in Xcode:
 
-- Settings → General → VPN & Device Management → Developer App → Trust
+**Product -> Build** in top menu.
 
-## Notes & Troubleshooting
+4. Create archive:
 
-- Using npx vs global eas-cli:
-  - The scripts use `npx -y eas-cli` so you don’t need a global install.
-  - Alternatively, install globally: `npm i -g eas-cli` and run `eas build ...` directly.
-- HTTPS is required for iOS itms-services links (use a proper certificate on your domain).
-- iOS installs will only work on devices included in the Ad Hoc provisioning profile (UDIDs).
-- Android devices must allow installing apps from the browser/File manager.
-- Content types:
-  - APK → `application/vnd.android.package-archive`
-  - IPA → `application/octet-stream`
-  - PLIST → `application/xml`
+**Product -> Archive** in top menu.
+
+5. Export the `.app` file:
+
+- In the Organizer, right-click your archive                                                                        │
+- Select "Show in Finder"                                                                                           │
+- Right-click the `.xcarchive` file                                                                                   │
+- Select "Show Package Contents"                                                                                    │
+- Navigate to `Products/Applications/`
+- Drag the `.app` file to the device in Xcode's Devices window
+
+6. Trust the Developer Certificate:
+
+After installation, you need to trust the developer certificate on the iOS device:
+- Go to **Settings → General → VPN & Device Management**
+- Under **Developer App**, tap your Apple ID
+- Tap **Trust "[Your Apple ID]"**
+- Tap **Trust** in the confirmation dialog
+
+The app should now be available on your home screen and ready to use.
