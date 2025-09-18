@@ -24,7 +24,10 @@
     "typecheck": "tsc -b",
     "build:android:placeholder": "npx -y eas-cli build --profile placeholder --platform android --local --non-interactive --output ./app-placeholder.apk",
     "prebuild:ios:placeholder": "APP_ID=placeholder npx expo prebuild --platform ios",
-    "buildui:ios:placeholder": "open ios/Placeholder.xcworkspace"
+    "buildui:ios:placeholder": "open ios/Placeholder.xcworkspace",
+    "build:android:champs-tracker": "npx -y eas-cli build --profile champs-tracker --platform android --local --non-interactive --output ./app-champs-tracker.apk",
+    "prebuild:ios:champs-tracker": "APP_ID=champs-tracker npx expo prebuild --platform ios",
+    "buildui:ios:champs-tracker": "open ios/ChampsTracker.xcworkspace"
   },
   "dependencies": {
     "@apollo/client": "^3.13.9",
@@ -33,9 +36,11 @@
     "@react-navigation/bottom-tabs": "^7.3.10",
     "@react-navigation/elements": "^2.3.8",
     "@react-navigation/native": "^7.1.6",
+    "@react-navigation/stack": "^7.4.8",
     "expo": "53.0.22",
     "expo-blur": "~14.1.5",
     "expo-constants": "~17.1.7",
+    "expo-dev-client": "~5.2.4",
     "expo-font": "~13.3.2",
     "expo-haptics": "~14.1.4",
     "expo-image": "~2.4.0",
@@ -59,8 +64,7 @@
     "react-native-url-polyfill": "^2.0.0",
     "react-native-vector-icons": "^10.3.0",
     "react-native-web": "~0.20.0",
-    "react-native-webview": "13.13.5",
-    "expo-dev-client": "~5.2.4"
+    "react-native-webview": "13.13.5"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",

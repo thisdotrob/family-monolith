@@ -1,7 +1,7 @@
 import 'dotenv/config';
 import type { ExpoConfig } from 'expo/config';
 
-const APP_ID = 'placeholder';
+const APP_ID = 'champs-tracker';
 
 const META = {
   placeholder: {
@@ -10,6 +10,13 @@ const META = {
     iosBundleId: 'com.example.placeholder',
     androidPackage: 'com.example.placeholder',
     updatesChannel: 'family-placeholder',
+  },
+  'champs-tracker': {
+    name: 'Champs Tracker',
+    slug: 'champs-tracker',
+    iosBundleId: 'com.example.champstracker',
+    androidPackage: 'com.example.champstracker',
+    updatesChannel: 'family-champs-tracker',
   },
 } as const;
 

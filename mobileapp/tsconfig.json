@@ -14,7 +14,8 @@
       "react-native": ["./node_modules/react-native"],
       "react-native/*": ["./node_modules/react-native/*"],
       "react-native-paper": ["./node_modules/react-native-paper"],
-      "react-native-paper/*": ["./node_modules/react-native-paper/*"]
+      "react-native-paper/*": ["./node_modules/react-native-paper/*"],
+      "@react-navigation/*": ["./node_modules/@react-navigation/*"]
     }
   },
   "include": [
@@ -24,6 +25,8 @@
     "app/**/*.tsx",
     "../shared/**/*.ts",
     "../shared/**/*.tsx",
+    "../apps/mobile/**/*.ts",
+    "../apps/mobile/**/*.tsx",
     ".expo/types/**/*.ts",
     "expo-env.d.ts"
   ],
