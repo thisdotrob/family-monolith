@@ -22,7 +22,8 @@ export type CreateApolloClientDeps = {
   uri?: string;
 };
 
-const DEFAULT_GRAPHQL_URI = "https://blobfishapp.duckdns.org/v1/graphql";
+// const DEFAULT_GRAPHQL_URI = "https://blobfishapp.duckdns.org/v1/graphql";
+const DEFAULT_GRAPHQL_URI = "http://192.168.1.52:4173/v1/graphql";
 
 const createAuthHeaderLink = (
   getTokens: () => Promise<AuthTokens>,
