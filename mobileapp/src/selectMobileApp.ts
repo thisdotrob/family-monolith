@@ -1,6 +1,8 @@
 import type { ComponentType } from 'react';
-import Placeholder from '@apps-mobile/placeholder';
+import ChampsTracker from '@apps-mobile/champs-tracker';
 
 export default function selectMobileApp(): ComponentType<any> {
-  return Placeholder;
+  // For now, default to champs-tracker
+  // Later this could be environment-driven or user-selectable
+  return ChampsTracker;
 }

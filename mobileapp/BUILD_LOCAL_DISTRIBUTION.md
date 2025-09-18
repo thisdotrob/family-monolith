@@ -7,6 +7,7 @@ Currently, the mobile scaffold ships a single app: `placeholder`.
 ## Android (APK) — Local Build and Hosted Install Link
 
 ### Configuration notes
+
 New architecture is disabled for local builds (app.json: `newArchEnabled: false`). Lint is disabled for release via a config plugin (plugins/disable-android-lint.js).
 
 ### Build & Distributrion steps
@@ -59,16 +60,17 @@ npm run buildui:ios:placeholder
 
 5. Export the `.app` file:
 
-- In the Organizer, right-click your archive                                                                        │
-- Select "Show in Finder"                                                                                           │
-- Right-click the `.xcarchive` file                                                                                   │
-- Select "Show Package Contents"                                                                                    │
+- In the Organizer, right-click your archive │
+- Select "Show in Finder" │
+- Right-click the `.xcarchive` file │
+- Select "Show Package Contents" │
 - Navigate to `Products/Applications/`
 - Drag the `.app` file to the device in Xcode's Devices window
 
 6. Trust the Developer Certificate:
 
 After installation, you need to trust the developer certificate on the iOS device:
+
 - Go to **Settings → General → VPN & Device Management**
 - Under **Developer App**, tap your Apple ID
 - Tap **Trust "[Your Apple ID]"**
