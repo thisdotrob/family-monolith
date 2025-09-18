@@ -10,7 +10,7 @@ members = ["."]
 axum = { version = "0.7", features = ["macros"] }
 axum-server = { version = "0.7.2", features = ["tls-rustls"] }
 async-graphql = "7.0"
-sqlx = { version = "0.7", features = ["sqlite", "runtime-tokio-native-tls"] }
+sqlx = { version = "0.7", features = ["sqlite", "runtime-tokio-rustls"] }
 jsonwebtoken = "9.3"
 chrono = "0.4"
 tracing = "0.1"
@@ -24,11 +24,11 @@ tokio = { version = "1", features = ["macros", "rt-multi-thread", "signal"] }
 tower = { version = "0.4", features = ["util"] }
 tower-http = { version = "0.5", features = ["cors", "limit", "trace", "fs"] }
 time = "0.3"
-reqwest = { version = "0.12.15", features = ["default-tls"] }
 once_cell = "1.19"
 anyhow = "1.0"
 base64 = "0.21"
 dashmap = "5.5"
+libsqlite3-sys = { version = "0.27", features = ["bundled"] }
 
 [dev-dependencies]
-sqlx-cli = { version = "0.7", default-features = false, features = ["sqlite", "native-tls"] }
+sqlx-cli = { version = "0.7", default-features = false, features = ["sqlite", "rustls"] }
