@@ -1,2 +1,6 @@
 [build]
 rustflags = ["-A", "clippy::all"]
+target = "aarch64-unknown-linux-musl"
+
+[target.aarch64-unknown-linux-musl]
+rustflags = ["-C", "target-cpu=cortex-a76"] # or "generic" for portability
