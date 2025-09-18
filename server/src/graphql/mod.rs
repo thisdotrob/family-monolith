@@ -1,7 +1,9 @@
 use sqlx::SqlitePool;
 mod auth;
+mod champ_tracker;
 
 pub use crate::graphql::auth::{AuthenticatedMutation, UnauthenticatedMutation};
+pub use crate::graphql::champ_tracker::{ChampTrackerQueries, ChampTrackerMutations};
 use async_graphql::{Context, EmptySubscription, Schema};
 use async_graphql::{MergedObject, Object, SimpleObject};
 
@@ -44,10 +46,14 @@ impl QueryRoot {
             first_name: user_data.1,
         })
     }
+
+    async fn champ_tracker(&self) -> ChampTrackerQueries {
+        ChampTrackerQueries::default()
+    }
 }
 
 #[derive(MergedObject, Default)]
-pub struct CombinedMutation(UnauthenticatedMutation, AuthenticatedMutation);
+pub struct CombinedMutation(UnauthenticatedMutation, AuthenticatedMutation, ChampTrackerMutations);
 
 pub type AppSchema = Schema<QueryRoot, CombinedMutation, EmptySubscription>;
 

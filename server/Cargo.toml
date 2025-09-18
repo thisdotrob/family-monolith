@@ -9,8 +9,8 @@ members = ["."]
 [dependencies]
 axum = { version = "0.7", features = ["macros"] }
 axum-server = { version = "0.7.2", features = ["tls-rustls"] }
-async-graphql = "7.0"
-sqlx = { version = "0.7", features = ["sqlite", "runtime-tokio-native-tls"] }
+async-graphql = { version = "7.0", features = ["chrono"] }
+sqlx = { version = "0.7", features = ["sqlite", "runtime-tokio-native-tls", "chrono"] }
 jsonwebtoken = "9.3"
 chrono = "0.4"
 tracing = "0.1"
