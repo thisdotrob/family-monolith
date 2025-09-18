@@ -1,0 +1,3 @@
+- In the bathroom screen, change the Date and Time so that it can be adjusted.
+- In the bathroom screen, change the display so that there's two options, one is to log the bathroom activity and the other is to log a litter change.
+- In bathroom screen, use User's first_name instead of id on logged activities
