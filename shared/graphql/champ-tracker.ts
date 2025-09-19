@@ -28,3 +28,32 @@ export const GET_BATHROOM_ACTIVITIES = gql`
     }
   }
 `;
+
+export const CREATE_EATING_ACTIVITY = gql`
+  mutation CreateEatingActivity($input: EatingActivityInput!) {
+    createEatingActivity(input: $input) {
+      id
+      timestamp
+      quantityEaten
+      leftoversThrownAway
+      foodType
+      createdAt
+    }
+  }
+`;
+
+export const GET_EATING_ACTIVITIES = gql`
+  query GetEatingActivities($limit: Int, $offset: Int) {
+    champTracker {
+      eatingActivities(limit: $limit, offset: $offset) {
+        id
+        userId
+        timestamp
+        quantityEaten
+        leftoversThrownAway
+        foodType
+        createdAt
+      }
+    }
+  }
+`;
