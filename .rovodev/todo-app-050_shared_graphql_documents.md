@@ -1,0 +1,26 @@
+# 050 — Shared: GraphQL Documents for Projects/Tags/Tasks
+
+Spec refs: §8, §16
+
+## Summary
+Add typed GraphQL documents for Projects, Tags, Tasks, Saved Views, History; export from shared package for reuse by web/mobile (mobile first).
+
+## Scope
+- Queries: me, projects, projectMembers, tags, tasks, savedViews, projectDefaultSavedView, history
+- Mutations: project CRUD, tag CRUD, task CRUD, saved view CRUD/default, series create/update
+- Add TypeScript types via codegen or manual typings aligned with existing pattern
+
+## Acceptance Criteria
+- All documents compile and can be imported from `@shared/graphql`
+- Documents include required variables for timezone where needed
+
+## Dependencies
+- 002, 006, 008, 012, 014, 016, 018
+
+## Implementation Steps
+1) Create/extend files under `shared/graphql/`
+2) Ensure exports map mirrors names in spec
+3) Add minimal unit tests to check variables shape
+
+## Out of Scope
+- Apollo client setup (covered by 051)
