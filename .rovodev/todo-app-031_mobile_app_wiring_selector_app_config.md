@@ -18,3 +18,6 @@ Wire the new `takenlijst` module into `mobileapp/src/selectMobileApp.ts` and `mo
 ## Implementation Steps
 1) Edit selector to import `@apps-mobile/takenlijst`
 2) Update app.config values
+
+
+Note: When you complete this ticket, update todo-app-implementation-sequencing-plan.md to check off .rovodev/todo-app-031_mobile_app_wiring_selector_app_config.md in the appropriate wave.

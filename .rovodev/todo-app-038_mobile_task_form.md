@@ -21,3 +21,6 @@ Full-screen form to create and edit todo tasks with validation.
 1) Build form with input components
 2) Populate members and tags dropdowns
 3) Wire mutations and navigate back on success
+
+
+Note: When you complete this ticket, update todo-app-implementation-sequencing-plan.md to check off .rovodev/todo-app-038_mobile_task_form.md in the appropriate wave.

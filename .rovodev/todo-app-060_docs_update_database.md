@@ -17,3 +17,6 @@ Document schema changes: projects, project_members, tags, tasks, task_tags, save
 
 ## Implementation Steps
 1) Update server/DATABASE.md with new sections
+
+
+Note: When you complete this ticket, update todo-app-implementation-sequencing-plan.md to check off .rovodev/todo-app-060_docs_update_database.md in the appropriate wave.

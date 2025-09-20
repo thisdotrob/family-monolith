@@ -5,6 +5,8 @@ instructions:
   - name: todo-app implementation planning
     description:
     content_file: todo-app-implementation-planning.md
+  - name: todo-app implementation sequencing
+    content_file: todo-app-implementation-sequencing.md
   - name: todo-app 001 server migrations projects memberships
     content_file: todo-app-001_server_migrations_projects_memberships.md
   - name: todo-app 002 server graphql projects queries

@@ -24,3 +24,6 @@ Build Projects tab to list projects (with includeArchived toggle) and select a p
 
 ## Tests
 - Manual happy path; consider basic component test
+
+
+Note: When you complete this ticket, update todo-app-implementation-sequencing-plan.md to check off .rovodev/todo-app-033_mobile_projects_list.md in the appropriate wave.

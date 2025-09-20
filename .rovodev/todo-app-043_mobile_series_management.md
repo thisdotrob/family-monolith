@@ -18,3 +18,6 @@ Add screen to view and edit recurring series for a project.
 ## Implementation Steps
 1) Build series list and edit screen
 2) Wire mutations and refresh related tasks
+
+
+Note: When you complete this ticket, update todo-app-implementation-sequencing-plan.md to check off .rovodev/todo-app-043_mobile_series_management.md in the appropriate wave.

@@ -1,1 +1,3 @@
 # 017 — Server: Series Top-up on Done/Abandoned\n\nSpec refs: §§6,8\n\n## Summary\nWhen an occurrence is marked done or abandoned, ensure the series maintains 5 future occurrences by generating new ones.\n\n## Scope\n- Hook in complete/abandon mutations to trigger top-up\n\n## Acceptance Criteria\n- After completion/abandon, series has 5 future todo occurrences\n\n## Dependencies\n- 015, 009\n\n## Implementation Steps\n1) After task mutation, compute future remaining count for that series\n2) Generate additional occurrences to reach 5\n3) Tests for top-up behavior\n
+
+Note: When you complete this ticket, update todo-app-implementation-sequencing-plan.md to check off .rovodev/todo-app-017_server_series_topup_on_completion.md in the appropriate wave.

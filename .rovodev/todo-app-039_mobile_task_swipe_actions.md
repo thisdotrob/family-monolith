@@ -19,3 +19,6 @@ Add swipe gestures: right=Complete, left=Abandon on todo; Restore on abandoned i
 ## Implementation Steps
 1) Add swipeable list items
 2) Wire mutations and refresh
+
+
+Note: When you complete this ticket, update todo-app-implementation-sequencing-plan.md to check off .rovodev/todo-app-039_mobile_task_swipe_actions.md in the appropriate wave.

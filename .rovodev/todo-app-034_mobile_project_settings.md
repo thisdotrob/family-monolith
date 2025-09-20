@@ -19,3 +19,6 @@ Provide a settings screen accessible from Tasks header to rename or archive/unar
 ## Implementation Steps
 1) Show owner-only actions conditionally (query me + project owner)
 2) Wire mutations; handle `CONFLICT_STALE_WRITE` with retry UX placeholder (046 for polish)
+
+
+Note: When you complete this ticket, update todo-app-implementation-sequencing-plan.md to check off .rovodev/todo-app-034_mobile_project_settings.md in the appropriate wave.

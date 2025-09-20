@@ -19,3 +19,6 @@ Implement Saved Views tab: list, apply, create/rename/delete, and set/clear proj
 ## Implementation Steps
 1) Build saved views list and editor dialogs
 2) Wire default setter control
+
+
+Note: When you complete this ticket, update todo-app-implementation-sequencing-plan.md to check off .rovodev/todo-app-040_mobile_saved_views_ui.md in the appropriate wave.

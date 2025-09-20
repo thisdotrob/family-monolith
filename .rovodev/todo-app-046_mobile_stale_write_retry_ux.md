@@ -19,3 +19,6 @@ Provide consistent UX for `CONFLICT_STALE_WRITE` errors: refetch and prompt user
 ## Implementation Steps
 1) Add error handling helper/hook
 2) Integrate in mutation flows
+
+
+Note: When you complete this ticket, update todo-app-implementation-sequencing-plan.md to check off .rovodev/todo-app-046_mobile_stale_write_retry_ux.md in the appropriate wave.
