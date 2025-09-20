@@ -1,0 +1,4 @@
+instructions:
+- name: todo-app idea honing
+  description: Develop a project spec for a family todo list mobile app.
+  content_file: todo-app-idea-honing.md
