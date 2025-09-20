@@ -20,3 +20,6 @@ Provide hooks/adapters for offline detection and define storage keys for last-se
 ## Implementation Steps
 1) Implement hook and keys under `shared/`
 2) Minimal tests or manual usage sample
+
+
+Note: When you complete this ticket, update todo-app-implementation-sequencing-plan.md to check off .rovodev/todo-app-052_shared_offline_and_storage.md in the appropriate wave.

@@ -24,3 +24,6 @@ Add integration tests to validate end-to-end behavior for derived fields, orderi
 
 ## Out of Scope
 - Unit-level validation (covered by 020)
+
+
+Note: When you complete this ticket, update todo-app-implementation-sequencing-plan.md to check off .rovodev/todo-app-021_server_tests_integration.md in the appropriate wave.

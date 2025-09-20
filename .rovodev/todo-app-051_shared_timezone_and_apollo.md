@@ -21,3 +21,6 @@ Provide helpers to obtain device timezone and pass it into relevant queries/muta
 1) Create `@shared/time` helper for tz
 2) Add example `useTimezone()` hook for mobile
 3) Update shared README or inline docs
+
+
+Note: When you complete this ticket, update todo-app-implementation-sequencing-plan.md to check off .rovodev/todo-app-051_shared_timezone_and_apollo.md in the appropriate wave.

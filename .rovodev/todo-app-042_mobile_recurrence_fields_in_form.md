@@ -18,3 +18,6 @@ Add a collapsible section in the task form for recurrence input (raw RRULE and D
 ## Implementation Steps
 1) Add fields and local validation hints
 2) Gate by feature flag or check for server field availability
+
+
+Note: When you complete this ticket, update todo-app-implementation-sequencing-plan.md to check off .rovodev/todo-app-042_mobile_recurrence_fields_in_form.md in the appropriate wave.

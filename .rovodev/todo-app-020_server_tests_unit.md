@@ -22,3 +22,6 @@ Add unit tests to cover validation, permissions, concurrency, and recurrence beh
 1) Add unit tests under `server/src/...` or `tests/` as appropriate
 2) Mock or seed minimal data for each scenario
 3) Assert error codes via GraphQL extensions where relevant
+
+
+Note: When you complete this ticket, update todo-app-implementation-sequencing-plan.md to check off .rovodev/todo-app-020_server_tests_unit.md in the appropriate wave.

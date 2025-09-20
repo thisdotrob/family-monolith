@@ -18,3 +18,6 @@ Explain the new `takenlijst` mobile app, multi-app selection, polling behavior, 
 ## Implementation Steps
 1) Update docs with commands and env
 2) Cross-link to DEPLOY docs where relevant
+
+
+Note: When you complete this ticket, update todo-app-implementation-sequencing-plan.md to check off .rovodev/todo-app-061_docs_update_architecture_and_mobile_readme.md in the appropriate wave.

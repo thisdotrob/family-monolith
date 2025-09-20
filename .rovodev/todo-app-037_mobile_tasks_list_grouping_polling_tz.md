@@ -22,3 +22,6 @@ Implement Tasks tab to fetch and display tasks for the selected project with gro
 1) Build list with section headers
 2) Wire polling and app state listeners
 3) Integrate offline hook
+
+
+Note: When you complete this ticket, update todo-app-implementation-sequencing-plan.md to check off .rovodev/todo-app-037_mobile_tasks_list_grouping_polling_tz.md in the appropriate wave.

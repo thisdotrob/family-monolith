@@ -19,3 +19,6 @@ Provide a Tag Manager accessible from Saved Views or Tasks header to create/rena
 ## Implementation Steps
 1) Build simple list UI with edit/delete
 2) Hook up mutations and handle errors
+
+
+Note: When you complete this ticket, update todo-app-implementation-sequencing-plan.md to check off .rovodev/todo-app-036_mobile_tag_manager.md in the appropriate wave.

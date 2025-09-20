@@ -1,1 +1,3 @@
 # 004 — Server: Permissions Enforcement for Projects\n\nSpec refs: §§5,14\n\n## Summary\nCentralize and enforce permissions for project operations.\n\n## Scope\n- Helper functions to verify:\n  - isOwner(userId, projectId)\n  - isMember(userId, projectId)\n- Apply in project resolvers/mutations\n\n## Acceptance Criteria\n- All project mutations guarded; unauthorized attempts yield `PERMISSION_DENIED`\n\n## Dependencies\n- 003\n\n## Implementation Steps\n1) Add helpers in `server/src/auth/guard.rs` or similar\n2) Reuse in project mutations and queries\n3) Tests for negative paths\n
+
+Note: When you complete this ticket, update todo-app-implementation-sequencing-plan.md to check off .rovodev/todo-app-004_server_permissions_projects.md in the appropriate wave.

@@ -24,3 +24,6 @@ Add typed GraphQL documents for Projects, Tags, Tasks, Saved Views, History; exp
 
 ## Out of Scope
 - Apollo client setup (covered by 051)
+
+
+Note: When you complete this ticket, update todo-app-implementation-sequencing-plan.md to check off .rovodev/todo-app-050_shared_graphql_documents.md in the appropriate wave.

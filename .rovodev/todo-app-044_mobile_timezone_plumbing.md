@@ -18,3 +18,6 @@ Ensure device timezone is passed into tasks and history queries/mutations that n
 ## Implementation Steps
 1) Inject tz from `useTimezone()` into Apollo hooks
 2) Add regression tests where feasible
+
+
+Note: When you complete this ticket, update todo-app-implementation-sequencing-plan.md to check off .rovodev/todo-app-044_mobile_timezone_plumbing.md in the appropriate wave.
