@@ -21,7 +21,7 @@ Note on a few tickets with soft/rolling dependencies
 
 Wave 1 — Foundations (independent kickoff)
 Backend
-- [ ] .rovodev/todo-app-001_server_migrations_projects_memberships.md
+- [x] .rovodev/todo-app-001_server_migrations_projects_memberships.md
 - [ ] .rovodev/todo-app-005_server_migrations_tags.md
 - [ ] .rovodev/todo-app-019_server_placeholder.md (reserved / gap filler)
 Shared
