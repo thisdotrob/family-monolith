@@ -38,10 +38,22 @@ Database migrations are applied automatically on server startup. The server conn
   - created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
   - indices: project_id, user_id
   - unique(project_id, user_id)
+- tags
+  - id TEXT PRIMARY KEY
+  - name TEXT UNIQUE NOT NULL
+  - created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%d %H:%M:%f','now'))
+  - updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%d %H:%M:%f','now'))
+  - index: lower(name)
+
+### Tag normalization rules
+- Trim leading/trailing whitespace
+- Remove leading '#'
+- Collapse internal whitespace to a single space
+- Lowercase for case-insensitive uniqueness
 
 ### Timestamp behavior
 - created_at defaults to the insertion time.
-- updated_at defaults to insertion time; application logic should explicitly update this column on write operations that modify a project. (No DB trigger is used to keep schema simple and follow repo style.)
+- updated_at defaults to insertion time; application logic should explicitly update this column on write operations that modify a project. (No DB trigger is used for projects; tags use a trigger to update updated_at on name change.)
 
 ### Rollbacks
 - The migration files are idempotent (CREATE TABLE/INDEX IF NOT EXISTS). To revert changes during development you can either delete the SQLite file (blobfishapp.sqlite) or manually run DROP statements for the affected tables and indices.
