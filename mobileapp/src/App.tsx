@@ -9,9 +9,12 @@ import selectMobileApp from './selectMobileApp';
 const HomePage = selectMobileApp();
 import LoginPage from './pages/LoginPage';
 
+import { useLastSelection } from './contexts/LastSelectionContext';
+
 type AppContentProps = { isAuthenticating: boolean; isLoggedIn: boolean };
 const AppContent = ({ isAuthenticating, isLoggedIn }: AppContentProps) => {
-  if (isAuthenticating) {
+  const { isRestoring } = useLastSelection();
+  if (isAuthenticating || isRestoring) {
     return <GlobalLoading />;
   } else if (isLoggedIn) {
     return <HomePage />;

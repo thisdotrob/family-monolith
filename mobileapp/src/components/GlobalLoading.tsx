@@ -7,7 +7,7 @@ const GlobalLoading = () => {
       <View style={styles.container}>
         <View style={styles.content}>
           <ActivityIndicator animating={true} size="large" />
-          <Text style={styles.text}>Authenticating...</Text>
+          <Text style={styles.text}>Loading...</Text>
         </View>
       </View>
     </Modal>
