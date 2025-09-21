@@ -24,9 +24,7 @@ pub async fn init(db_path: &str) -> Result<SqlitePool, sqlx::Error> {
         pool_options = pool_options.max_connections(5);
     }
 
-    let pool = pool_options
-        .connect_with(connect_options)
-        .await?;
+    let pool = pool_options.connect_with(connect_options).await?;
 
     // Enforce foreign key constraints in SQLite
     if let Err(e) = sqlx::query("PRAGMA foreign_keys = ON").execute(&pool).await {

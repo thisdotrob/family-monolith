@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod db_tags_tests {
-    use sqlx::{sqlite::SqliteRow, Row};
+    use sqlx::{Row, sqlite::SqliteRow};
 
     use crate::db;
     use crate::db::helpers::normalize_tag_name;
@@ -31,7 +31,11 @@ mod db_tags_tests {
         let dup_cases = ["work", "WoRk", "work  ", "##Work", "\tWork\n"]; // variations that normalize to "work"
         for v in dup_cases {
             let res = insert_tag(&pool, v).await;
-            assert!(res.is_err(), "expected uniqueness violation for value: {}", v);
+            assert!(
+                res.is_err(),
+                "expected uniqueness violation for value: {}",
+                v
+            );
         }
 
         // Verify the stored value is the normalized one
@@ -60,11 +64,12 @@ mod db_tags_tests {
             .unwrap();
         assert_eq!(now_row.rows_affected(), 1);
 
-        let row1: (String, String) = sqlx::query_as("SELECT created_at, updated_at FROM tags WHERE id = ?")
-            .bind(&id)
-            .fetch_one(&pool)
-            .await
-            .unwrap();
+        let row1: (String, String) =
+            sqlx::query_as("SELECT created_at, updated_at FROM tags WHERE id = ?")
+                .bind(&id)
+                .fetch_one(&pool)
+                .await
+                .unwrap();
 
         // Sleep a bit to ensure a timestamp change
         tokio::time::sleep(std::time::Duration::from_millis(100)).await;
@@ -77,11 +82,12 @@ mod db_tags_tests {
             .await
             .unwrap();
 
-        let row2: (String, String) = sqlx::query_as("SELECT created_at, updated_at FROM tags WHERE id = ?")
-            .bind(&id)
-            .fetch_one(&pool)
-            .await
-            .unwrap();
+        let row2: (String, String) =
+            sqlx::query_as("SELECT created_at, updated_at FROM tags WHERE id = ?")
+                .bind(&id)
+                .fetch_one(&pool)
+                .await
+                .unwrap();
 
         assert_eq!(row1.0, row2.0, "created_at should remain unchanged");
         assert_ne!(row1.1, row2.1, "updated_at should update on row change");

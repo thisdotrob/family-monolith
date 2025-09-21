@@ -5,10 +5,11 @@ async fn duplicate_project_membership_fails() {
     let pool = init("sqlite::memory:").await.expect("db init");
 
     // Debug: list available tables
-    let tables: Vec<(String,)> = sqlx::query_as("SELECT name FROM sqlite_master WHERE type='table' ORDER BY name")
-        .fetch_all(&pool)
-        .await
-        .expect("list tables");
+    let tables: Vec<(String,)> =
+        sqlx::query_as("SELECT name FROM sqlite_master WHERE type='table' ORDER BY name")
+            .fetch_all(&pool)
+            .await
+            .expect("list tables");
     println!("tables: {:?}", tables);
 
     // Insert a user
