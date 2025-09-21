@@ -45,7 +45,7 @@ Backend
 Mobile
 - [ ] .rovodev/todo-app-031_mobile_app_wiring_selector_app_config.md (depends on 030)
 - [ ] .rovodev/todo-app-044_mobile_timezone_plumbing.md (depends on 051)
-- [ ] .rovodev/todo-app-045_mobile_persist_last_selected_project_view.md (depends on 052)
+- [x] .rovodev/todo-app-045_mobile_persist_last_selected_project_view.md (depends on 052)
 
 Next up when Wave 2 items complete:
 - Project mutations and permissions (003,004)
