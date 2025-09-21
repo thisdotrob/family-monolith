@@ -18,4 +18,8 @@ The commit title should be the same as the title of the ticket I give you. The c
 
 Make sure the commit is formatted correctly with no literal `\n` characters.
 
-Once committed, push the changes to Github and open a PR with `gh`. The PR title and description should match the commit title and message.
+Once committed, push the changes to Github and open a PR with `gh` which is preconfigured and authenticated with Github.
+
+The PR title and description should match the commit title and message.
+
+Are you ready for the filename of the ticket to start work on?
