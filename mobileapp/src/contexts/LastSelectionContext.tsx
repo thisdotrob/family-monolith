@@ -25,7 +25,11 @@ export type LastSelectionContextType = LastSelectionState & {
 const LastSelectionContext = createContext<LastSelectionContextType | null>(null);
 
 export function LastSelectionProvider({ children }: { children: ReactNode }) {
-  const [state, setState] = useState<LastSelectionState>({ lastProjectId: null, lastSavedViewId: null, isRestoring: true });
+  const [state, setState] = useState<LastSelectionState>({
+    lastProjectId: null,
+    lastSavedViewId: null,
+    isRestoring: true,
+  });
 
   useEffect(() => {
     let mounted = true;
@@ -44,53 +48,54 @@ export function LastSelectionProvider({ children }: { children: ReactNode }) {
       }
     })();
 
-    return () => { mounted = false; };
+    return () => {
+      mounted = false;
+    };
   }, []);
 
-  const api = useMemo<LastSelectionContextType>(() => ({
-    ...state,
-    setLastProjectId: async (projectId: string | null) => {
-      try {
-        if (projectId === null) {
-          await storageRemoveLastSelectedProjectId(LocalStorage);
-        } else {
-          await storageSetLastSelectedProjectId(LocalStorage, projectId);
+  const api = useMemo<LastSelectionContextType>(
+    () => ({
+      ...state,
+      setLastProjectId: async (projectId: string | null) => {
+        try {
+          if (projectId === null) {
+            await storageRemoveLastSelectedProjectId(LocalStorage);
+          } else {
+            await storageSetLastSelectedProjectId(LocalStorage, projectId);
+          }
+          setState((prev) => ({ ...prev, lastProjectId: projectId }));
+        } catch (e) {
+          if (__DEV__) console.warn('Failed to set last project id', e);
         }
-        setState((prev) => ({ ...prev, lastProjectId: projectId }));
-      } catch (e) {
-        if (__DEV__) console.warn('Failed to set last project id', e);
-      }
-    },
-    setLastSavedViewId: async (savedViewId: string | null) => {
-      try {
-        if (savedViewId === null) {
-          await storageRemoveLastSavedViewId(LocalStorage);
-        } else {
-          await storageSetLastSavedViewId(LocalStorage, savedViewId);
+      },
+      setLastSavedViewId: async (savedViewId: string | null) => {
+        try {
+          if (savedViewId === null) {
+            await storageRemoveLastSavedViewId(LocalStorage);
+          } else {
+            await storageSetLastSavedViewId(LocalStorage, savedViewId);
+          }
+          setState((prev) => ({ ...prev, lastSavedViewId: savedViewId }));
+        } catch (e) {
+          if (__DEV__) console.warn('Failed to set last saved view id', e);
         }
-        setState((prev) => ({ ...prev, lastSavedViewId: savedViewId }));
-      } catch (e) {
-        if (__DEV__) console.warn('Failed to set last saved view id', e);
-      }
-    },
-    clear: async () => {
-      try {
-        await Promise.all([
-          storageRemoveLastSelectedProjectId(LocalStorage),
-          storageRemoveLastSavedViewId(LocalStorage),
-        ]);
-        setState({ lastProjectId: null, lastSavedViewId: null, isRestoring: false });
-      } catch (e) {
-        if (__DEV__) console.warn('Failed to clear last selection', e);
-      }
-    },
-  }), [state]);
-
-  return (
-    <LastSelectionContext.Provider value={api}>
-      {children}
-    </LastSelectionContext.Provider>
+      },
+      clear: async () => {
+        try {
+          await Promise.all([
+            storageRemoveLastSelectedProjectId(LocalStorage),
+            storageRemoveLastSavedViewId(LocalStorage),
+          ]);
+          setState({ lastProjectId: null, lastSavedViewId: null, isRestoring: false });
+        } catch (e) {
+          if (__DEV__) console.warn('Failed to clear last selection', e);
+        }
+      },
+    }),
+    [state],
   );
+
+  return <LastSelectionContext.Provider value={api}>{children}</LastSelectionContext.Provider>;
 }
 
 export function useLastSelection(): LastSelectionContextType {
