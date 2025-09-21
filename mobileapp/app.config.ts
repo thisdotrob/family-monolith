@@ -1,7 +1,7 @@
 import 'dotenv/config';
 import type { ExpoConfig } from 'expo/config';
 
-const APP_ID = 'placeholder';
+const APP_ID = 'takenlijst';
 
 const META = {
   placeholder: {
@@ -10,6 +10,13 @@ const META = {
     iosBundleId: 'com.example.placeholder',
     androidPackage: 'com.example.placeholder',
     updatesChannel: 'family-placeholder',
+  },
+  takenlijst: {
+    name: 'Family Takenlijst',
+    slug: 'takenlijst',
+    iosBundleId: 'com.example.takenlijst',
+    androidPackage: 'com.example.takenlijst',
+    updatesChannel: 'family-takenlijst',
   },
 } as const;
 

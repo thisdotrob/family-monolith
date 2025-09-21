@@ -48,7 +48,7 @@
       "typedRoutes": true
     },
     "extra": {
-      "APP_ID": "placeholder",
+      "APP_ID": "takenlijst",
       "router": {},
       "eas": {
         "projectId": "b46e89ca-a8e8-43d0-9dee-6521b01e8416"
