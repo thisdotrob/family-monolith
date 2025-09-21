@@ -23,7 +23,7 @@ Wave 1 — Foundations (independent kickoff)
 Backend
 - [ ] .rovodev/todo-app-001_server_migrations_projects_memberships.md
 - [ ] .rovodev/todo-app-005_server_migrations_tags.md
-- [ ] .rovodev/todo-app-019_server_placeholder.md (reserved / gap filler)
+- [x] .rovodev/todo-app-019_server_placeholder.md (reserved / gap filler)
 Shared
 - [ ] .rovodev/todo-app-051_shared_timezone_and_apollo.md (can start; finalize after 008,010)
 - [ ] .rovodev/todo-app-052_shared_offline_and_storage.md
