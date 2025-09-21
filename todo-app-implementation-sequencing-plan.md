@@ -28,7 +28,7 @@ Shared
 - [ ] .rovodev/todo-app-051_shared_timezone_and_apollo.md (can start; finalize after 008,010)
 - [ ] .rovodev/todo-app-052_shared_offline_and_storage.md
 Mobile
-- [ ] .rovodev/todo-app-030_mobile_app_module_skeleton.md
+- [x] .rovodev/todo-app-030_mobile_app_module_skeleton.md
 
 Next up when Wave 1 items complete:
 - Projects/Tasks dependent migrations and queries/mutations (Wave 2 and 3)
