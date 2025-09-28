@@ -25,7 +25,7 @@ Backend
 - [x] .rovodev/todo-app-005_server_migrations_tags.md
 - [x] .rovodev/todo-app-019_server_placeholder.md (reserved / gap filler)
 Shared
-- [ ] .rovodev/todo-app-051_shared_timezone_and_apollo.md (can start; finalize after 008,010)
+- [x] .rovodev/todo-app-051_shared_timezone_and_apollo.md (can start; finalize after 008,010)
 - [x] .rovodev/todo-app-052_shared_offline_and_storage.md
 Mobile
 - [x] .rovodev/todo-app-030_mobile_app_module_skeleton.md

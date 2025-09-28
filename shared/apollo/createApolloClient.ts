@@ -26,15 +26,20 @@ const DEFAULT_GRAPHQL_URI = "https://blobfishapp.duckdns.org/v1/graphql";
 
 const createAuthHeaderLink = (
   getTokens: () => Promise<AuthTokens>,
-) => setContext(async (_request: any, prevContext: { headers?: Record<string, string> }) => {
-  const { token } = await getTokens();
-  return {
-    headers: {
-      ...prevContext.headers,
-      authorization: token ? `Bearer ${token}` : "",
-    },
-  };
-});
+) =>
+  setContext(async (_request: any, prevContext: { headers?: Record<string, string>; unauthenticated?: boolean }) => {
+    if (prevContext?.unauthenticated) {
+      // Skip auth header for unauthenticated operations (login, refresh)
+      return { headers: { ...prevContext.headers } };
+    }
+    const { token } = await getTokens();
+    return {
+      headers: {
+        ...prevContext.headers,
+        authorization: token ? `Bearer ${token}` : "",
+      },
+    };
+  });
 
 const createErrorLink = (
   getClient: () => ApolloClient<any>,
