@@ -10,6 +10,8 @@ pub mod helpers;
 mod tests;
 #[cfg(test)]
 mod tests_tags;
+#[cfg(test)]
+mod tests_tasks;
 
 pub async fn init(db_path: &str) -> Result<SqlitePool, sqlx::Error> {
     tracing::info!("Initializing database at {}", db_path);
