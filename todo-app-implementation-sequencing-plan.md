@@ -59,7 +59,7 @@ Backend
 - [ ] .rovodev/todo-app-010_server_tasks_derived_fields.md (depends on 007)
 - [ ] .rovodev/todo-app-014_server_graphql_create_series_validation.md (depends on 013,006)
 Docs
-- [ ] .rovodev/todo-app-060_docs_update_database.md (after migrations: 001,005,007,011,013)
+- [x] .rovodev/todo-app-060_docs_update_database.md (after migrations: 001,005,007,011,013)
 Mobile
 - [ ] .rovodev/todo-app-032_mobile_navigation_tabs_placeholders.md (depends on 031)
 - [ ] .rovodev/todo-app-036_mobile_tag_manager.md (depends on 006)
