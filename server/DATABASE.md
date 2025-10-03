@@ -44,6 +44,25 @@ Database migrations are applied automatically on server startup. The server conn
   - created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%d %H:%M:%f','now'))
   - updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%d %H:%M:%f','now'))
   - index: lower(name)
+- recurring_series
+  - id TEXT PRIMARY KEY
+  - project_id TEXT NOT NULL (FK projects.id)
+  - created_by TEXT NOT NULL (FK users.id)
+  - title TEXT NOT NULL
+  - description TEXT NULL
+  - assignee_id TEXT NULL (FK users.id)
+  - rrule TEXT NOT NULL
+  - dtstart_date TEXT NOT NULL
+  - dtstart_time_minutes INTEGER NULL
+  - deadline_offset_minutes INTEGER NOT NULL
+  - created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+  - updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+  - indices: project_id, created_by, assignee_id
+- recurring_series_tags
+  - series_id TEXT NOT NULL (FK recurring_series.id) ON DELETE CASCADE
+  - tag_id TEXT NOT NULL (FK tags.id) ON DELETE CASCADE
+  - indices: series_id, tag_id
+  - unique(series_id, tag_id)
 
 ### Tag normalization rules
 - Trim leading/trailing whitespace
