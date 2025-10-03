@@ -61,7 +61,7 @@ Backend
 Docs
 - [x] .rovodev/todo-app-060_docs_update_database.md (after migrations: 001,005,007,011,013)
 Mobile
-- [ ] .rovodev/todo-app-032_mobile_navigation_tabs_placeholders.md (depends on 031)
+- [x] .rovodev/todo-app-032_mobile_navigation_tabs_placeholders.md (depends on 031)
 - [x] .rovodev/todo-app-036_mobile_tag_manager.md (depends on 006)
 
 Next up when Wave 3 items complete:
