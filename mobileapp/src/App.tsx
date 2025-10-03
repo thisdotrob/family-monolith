@@ -3,13 +3,13 @@ import { useMemo } from 'react';
 import { SafeAreaView, StyleSheet } from 'react-native';
 import { PaperProvider } from 'react-native-paper';
 import { createApolloClient } from '@shared/apollo/createApolloClient';
-import GlobalLoading from './components/GlobalLoading';
 import { useAuth } from '@shared/contexts/AuthContext';
-import selectMobileApp from './selectMobileApp';
-const HomePage = selectMobileApp();
-import LoginPage from './pages/LoginPage';
-
+import GlobalLoading from './components/GlobalLoading';
 import { useLastSelection } from './contexts/LastSelectionContext';
+import LoginPage from './pages/LoginPage';
+import selectMobileApp from './selectMobileApp';
+
+const HomePage = selectMobileApp();
 
 type AppContentProps = { isAuthenticating: boolean; isLoggedIn: boolean };
 const AppContent = ({ isAuthenticating, isLoggedIn }: AppContentProps) => {
