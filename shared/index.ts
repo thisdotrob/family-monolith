@@ -8,3 +8,4 @@ export {
   getLastSavedViewId,
   removeLastSavedViewId,
 } from './storage/keys';
+export * from './time';
