@@ -63,6 +63,19 @@ Database migrations are applied automatically on server startup. The server conn
   - tag_id TEXT NOT NULL (FK tags.id) ON DELETE CASCADE
   - indices: series_id, tag_id
   - unique(series_id, tag_id)
+- saved_views
+  - id TEXT PRIMARY KEY
+  - project_id TEXT NOT NULL (FK projects.id)
+  - name TEXT NOT NULL
+  - filters TEXT NOT NULL (JSON string)
+  - created_by TEXT NOT NULL (FK users.id)
+  - created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+  - updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+  - indices: project_id
+  - unique(project_id, LOWER(TRIM(name))) for case-insensitive name uniqueness per project
+- project_default_view
+  - project_id TEXT PRIMARY KEY (FK projects.id)
+  - saved_view_id TEXT NULL (FK saved_views.id)
 
 ### Tag normalization rules
 - Trim leading/trailing whitespace
