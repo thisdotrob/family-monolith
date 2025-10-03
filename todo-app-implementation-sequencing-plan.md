@@ -55,7 +55,7 @@ Next up when Wave 2 items complete:
 
 Wave 3 — Mutations, derived fields, navigation, and docs
 Backend
-- [ ] .rovodev/todo-app-003_server_graphql_projects_mutations.md (depends on 001,002)
+- [x] .rovodev/todo-app-003_server_graphql_projects_mutations.md (depends on 001,002)
 - [ ] .rovodev/todo-app-010_server_tasks_derived_fields.md (depends on 007)
 - [x] .rovodev/todo-app-014_server_graphql_create_series_validation.md (depends on 013,006)
 Docs
