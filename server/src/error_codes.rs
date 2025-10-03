@@ -5,6 +5,8 @@ pub enum ErrorCode {
     ValidationFailed,
     NotFound,
     Internal,
+    PermissionDenied,
+    ConflictStaleWrite,
 }
 
 impl ErrorCode {
@@ -15,6 +17,8 @@ impl ErrorCode {
             Self::ValidationFailed => "VALIDATION_FAILED",
             Self::NotFound => "NOT_FOUND",
             Self::Internal => "INTERNAL_ERROR",
+            Self::PermissionDenied => "PERMISSION_DENIED",
+            Self::ConflictStaleWrite => "CONFLICT_STALE_WRITE",
         }
     }
 }
