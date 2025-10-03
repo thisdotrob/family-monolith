@@ -1,7 +1,8 @@
 use sqlx::SqlitePool;
 mod auth;
+mod tests_recurring_series;
 
-pub use crate::graphql::auth::{AuthenticatedMutation, UnauthenticatedMutation};
+pub use crate::graphql::auth::{AuthenticatedMutation, RecurringSeries, UnauthenticatedMutation};
 use async_graphql::{Context, EmptySubscription, Schema};
 use async_graphql::{MergedObject, Object, SimpleObject};
 
@@ -117,14 +118,16 @@ impl QueryRoot {
 
         Ok(projects
             .into_iter()
-            .map(|(id, name, owner_id, archived_at, created_at, updated_at)| Project {
-                id,
-                name,
-                owner_id,
-                archived_at,
-                created_at,
-                updated_at,
-            })
+            .map(
+                |(id, name, owner_id, archived_at, created_at, updated_at)| Project {
+                    id,
+                    name,
+                    owner_id,
+                    archived_at,
+                    created_at,
+                    updated_at,
+                },
+            )
             .collect())
     }
 

@@ -13,6 +13,7 @@ async-graphql = "7.0"
 sqlx = { version = "0.7", features = ["sqlite", "runtime-tokio-rustls"] }
 jsonwebtoken = "9.3"
 chrono = "0.4"
+chrono-tz = "0.10"
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter", "fmt", "json"] }
 tracing-appender = "0.2"
@@ -29,6 +30,7 @@ anyhow = "1.0"
 base64 = "0.21"
 dashmap = "5.5"
 libsqlite3-sys = { version = "0.27", features = ["bundled"] }
+rrule = "0.13"
 
 [dev-dependencies]
 sqlx-cli = { version = "0.7", default-features = false, features = ["sqlite", "rustls"] }
