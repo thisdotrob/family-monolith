@@ -8,3 +8,14 @@ export const ME_QUERY = gql`
     }
   }
 `;
+
+export const TAGS_QUERY = gql`
+  query Tags($offset: Int, $limit: Int) {
+    tags(offset: $offset, limit: $limit) {
+      id
+      name
+      createdAt
+      updatedAt
+    }
+  }
+`;
