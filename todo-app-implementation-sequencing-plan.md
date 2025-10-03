@@ -37,7 +37,7 @@ Next up when Wave 1 items complete:
 
 Wave 2 — Early schema and mobile wiring
 Backend
-- [ ] .rovodev/todo-app-002_server_graphql_projects_queries.md (depends on 001)
+- [x] .rovodev/todo-app-002_server_graphql_projects_queries.md (depends on 001)
 - [ ] .rovodev/todo-app-006_server_graphql_tags_crud.md (depends on 005)
 - [ ] .rovodev/todo-app-007_server_migrations_tasks_task_tags.md (depends on 001,005)
 - [ ] .rovodev/todo-app-011_server_migrations_saved_views.md (depends on 001)
