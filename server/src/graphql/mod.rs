@@ -29,6 +29,16 @@ struct Project {
     updated_at: String,
 }
 
+#[derive(SimpleObject)]
+pub struct Tag {
+    id: String,
+    name: String,
+    #[graphql(name = "createdAt")]
+    created_at: String,
+    #[graphql(name = "updatedAt")]
+    updated_at: String,
+}
+
 // Define a query root
 pub struct QueryRoot;
 
@@ -107,25 +117,25 @@ impl QueryRoot {
 
         Ok(projects
             .into_iter()
-            .map(
-                |(id, name, owner_id, archived_at, created_at, updated_at)| Project {
-                    id,
-                    name,
-                    owner_id,
-                    archived_at,
-                    created_at,
-                    updated_at,
-                },
-            )
+            .map(|(id, name, owner_id, archived_at, created_at, updated_at)| Project {
+                id,
+                name,
+                owner_id,
+                archived_at,
+                created_at,
+                updated_at,
+            })
             .collect())
     }
 
-    async fn project_members(
+    async fn tags(
         &self,
         ctx: &Context<'_>,
-        project_id: String,
-    ) -> async_graphql::Result<Vec<User>> {
-        let claims = match ctx.data_opt::<Arc<Claims>>() {
+        #[graphql(default = 0)] offset: i32,
+        #[graphql(default = 200)] limit: i32,
+    ) -> async_graphql::Result<Vec<Tag>> {
+        // Require authentication
+        let _claims = match ctx.data_opt::<Arc<Claims>>() {
             Some(claims) => claims,
             None => {
                 return Err(async_graphql::Error::new("Authentication required"));
@@ -133,52 +143,22 @@ impl QueryRoot {
         };
 
         let pool = ctx.data::<SqlitePool>()?;
-        let username = &claims.sub;
 
-        // First get the user ID
-        let user_id = sqlx::query_as::<_, (String,)>("SELECT id FROM users WHERE username = ?1")
-            .bind(username)
-            .fetch_one(pool)
-            .await?
-            .0;
-
-        // Check if user has access to this project (is owner or member)
-        let has_access = sqlx::query_as::<_, (i32,)>(
-            "SELECT 1 FROM projects p 
-             LEFT JOIN project_members pm ON p.id = pm.project_id 
-             WHERE p.id = ?1 AND (p.owner_id = ?2 OR pm.user_id = ?2)
-             LIMIT 1",
+        let tags = sqlx::query_as::<_, (String, String, String, String)>(
+            "SELECT id, name, created_at, updated_at FROM tags ORDER BY name LIMIT ?1 OFFSET ?2",
         )
-        .bind(&project_id)
-        .bind(&user_id)
-        .fetch_optional(pool)
-        .await?
-        .is_some();
-
-        if !has_access {
-            return Err(async_graphql::Error::new("Permission denied"));
-        }
-
-        // Get all members including the owner
-        let members = sqlx::query_as::<_, (String, Option<String>)>(
-            "SELECT DISTINCT u.username, u.first_name 
-             FROM users u
-             WHERE u.id IN (
-                 SELECT p.owner_id FROM projects p WHERE p.id = ?1
-                 UNION
-                 SELECT pm.user_id FROM project_members pm WHERE pm.project_id = ?1
-             )
-             ORDER BY u.username",
-        )
-        .bind(&project_id)
+        .bind(limit)
+        .bind(offset)
         .fetch_all(pool)
         .await?;
 
-        Ok(members
+        Ok(tags
             .into_iter()
-            .map(|(username, first_name)| User {
-                username,
-                first_name,
+            .map(|(id, name, created_at, updated_at)| Tag {
+                id,
+                name,
+                created_at,
+                updated_at,
             })
             .collect())
     }
