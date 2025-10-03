@@ -117,14 +117,16 @@ impl QueryRoot {
 
         Ok(projects
             .into_iter()
-            .map(|(id, name, owner_id, archived_at, created_at, updated_at)| Project {
-                id,
-                name,
-                owner_id,
-                archived_at,
-                created_at,
-                updated_at,
-            })
+            .map(
+                |(id, name, owner_id, archived_at, created_at, updated_at)| Project {
+                    id,
+                    name,
+                    owner_id,
+                    archived_at,
+                    created_at,
+                    updated_at,
+                },
+            )
             .collect())
     }
 

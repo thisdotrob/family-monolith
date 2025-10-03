@@ -1,11 +1,15 @@
+import { useState } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { Text, Button, ActivityIndicator } from 'react-native-paper';
 import { useApolloClient, useQuery } from '@apollo/client';
 import { useAuth } from '@shared/contexts/AuthContext';
 import { ME_QUERY } from '@shared/graphql/queries';
+import TasksScreen from '../../../mobileapp/src/components/TasksScreen';
+import SavedViewsScreen from '../../../mobileapp/src/components/SavedViewsScreen';
 
 const HomePage = () => {
   const { logout } = useAuth();
+  const [currentScreen, setCurrentScreen] = useState<string>('Home');
 
   const client = useApolloClient();
 
@@ -33,9 +37,21 @@ const HomePage = () => {
   };
 
   const go = (dest: string) => () => {
-    // Placeholder for navigation tabs (wired in later tickets)
-    console.log(`Navigate to ${dest} (stub)`);
+    setCurrentScreen(dest);
   };
+
+  const navigate = (screen: string) => {
+    setCurrentScreen(screen);
+  };
+
+  // Render different screens based on current selection
+  if (currentScreen === 'Tasks') {
+    return <TasksScreen onNavigate={navigate} />;
+  }
+  
+  if (currentScreen === 'SavedViews') {
+    return <SavedViewsScreen onNavigate={navigate} />;
+  }
 
   return (
     <View style={styles.container}>
@@ -49,7 +65,10 @@ const HomePage = () => {
           Quick links
         </Text>
         <Button mode="outlined" icon="format-list-checkbox" onPress={go('Tasks')} style={styles.linkBtn}>
-          Tasks
+          Tasks (with Tag Manager)
+        </Button>
+        <Button mode="outlined" icon="bookmark" onPress={go('SavedViews')} style={styles.linkBtn}>
+          Saved Views (with Tag Manager)
         </Button>
         <Button mode="outlined" icon="folder" onPress={go('Projects')} style={styles.linkBtn}>
           Projects
