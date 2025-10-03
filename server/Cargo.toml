@@ -12,7 +12,7 @@ axum-server = { version = "0.7.2", features = ["tls-rustls"] }
 async-graphql = "7.0"
 sqlx = { version = "0.7", features = ["sqlite", "runtime-tokio-rustls"] }
 jsonwebtoken = "9.3"
-chrono = "0.4"
+chrono = { version = "0.4", features = ["serde"] }
 chrono-tz = "0.10"
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter", "fmt", "json"] }
