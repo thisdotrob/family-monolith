@@ -3,9 +3,9 @@ use crate::db::helpers::{normalize_project_name, normalize_tag_name};
 use crate::error_codes::ErrorCode;
 use crate::graphql::{Project, Tag};
 use async_graphql::{Context, ErrorExtensions, InputObject, Object, SimpleObject};
-use chrono::{DateTime, NaiveDate, NaiveTime, TimeZone, Utc};
+use chrono::{NaiveDate, NaiveTime, TimeZone, Utc};
 use chrono_tz::Tz;
-use rrule::{RRule, RRuleSet};
+use rrule::RRule;
 use sqlx::SqlitePool;
 use std::sync::Arc;
 
@@ -769,7 +769,7 @@ impl AuthenticatedMutation {
         }
 
         // Validate RRULE
-        let rrule = match input.rrule.parse::<RRule>() {
+        let _rrule = match input.rrule.parse::<RRule<rrule::Unvalidated>>() {
             Ok(rrule) => rrule,
             Err(_) => {
                 let error = async_graphql::Error::new("Invalid RRULE format")

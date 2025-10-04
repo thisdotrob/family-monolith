@@ -15,7 +15,7 @@ mod tests_tasks;
 
 pub async fn init(db_path: &str) -> Result<SqlitePool, sqlx::Error> {
     tracing::info!("Initializing database at {}", db_path);
-    let mut connect_options = SqliteConnectOptions::from_str(db_path)?
+    let connect_options = SqliteConnectOptions::from_str(db_path)?
         .create_if_missing(true)
         .foreign_keys(true);
 
