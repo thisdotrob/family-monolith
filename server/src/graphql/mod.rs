@@ -8,6 +8,7 @@ use async_graphql::{Context, EmptySubscription, Schema};
 use async_graphql::{MergedObject, Object, SimpleObject};
 
 use crate::auth::Claims;
+use crate::auth::guard::require_member;
 use crate::tasks::{Task, TaskStatus, time_utils};
 use std::sync::Arc;
 
@@ -210,22 +211,7 @@ impl QueryRoot {
             .0;
 
         // Check if user has access to this project
-        let has_access = sqlx::query_as::<_, (i64,)>(
-            "SELECT COUNT(*) FROM projects p 
-             LEFT JOIN project_members pm ON p.id = pm.project_id 
-             WHERE p.id = ?1 AND (p.owner_id = ?2 OR pm.user_id = ?2)",
-        )
-        .bind(&project_id)
-        .bind(&user_id)
-        .fetch_one(pool)
-        .await?
-        .0;
-
-        if has_access == 0 {
-            return Err(async_graphql::Error::new(
-                "Project not found or access denied",
-            ));
-        }
+        require_member(pool, &user_id, &project_id).await?;
 
         // Build the base query with conditions
         let mut where_conditions = vec!["t.project_id = ?".to_string()];
