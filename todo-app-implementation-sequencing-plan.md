@@ -72,7 +72,7 @@ Wave 4 — Permissions and read queries finalized
 Backend
 - [ ] .rovodev/todo-app-004_server_permissions_projects.md (depends on 003)
 - [ ] .rovodev/todo-app-008_server_graphql_tasks_list.md (depends on 007,010,006)
-- [ ] .rovodev/todo-app-018_server_graphql_history_query.md (depends on 007,010)
+- [x] .rovodev/todo-app-018_server_graphql_history_query.md (depends on 007,010)
 
 Next up when Wave 4 items complete:
 - Task mutations (009), Saved Views GraphQL (012), Integration tests (021)
