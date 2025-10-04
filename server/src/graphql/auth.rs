@@ -1,4 +1,5 @@
 use crate::auth::Claims;
+use crate::auth::guard::{require_member, require_owner};
 use crate::db::helpers::{normalize_project_name, normalize_tag_name};
 use crate::error_codes::ErrorCode;
 use crate::graphql::{Project, Tag};
@@ -435,29 +436,16 @@ impl AuthenticatedMutation {
             .await?
             .0;
 
-        // Check if project exists and get current state
+        // Check permission (only owner can rename)
+        require_owner(pool, &user_id, &project_id).await?;
+
+        // Get current project state
         let project = sqlx::query_as::<_, (String, String, String, Option<String>, String, String)>(
             "SELECT id, name, owner_id, archived_at, created_at, updated_at FROM projects WHERE id = ?1",
         )
         .bind(&project_id)
         .fetch_one(pool)
-        .await;
-
-        let project = match project {
-            Ok(p) => p,
-            Err(_) => {
-                let error = async_graphql::Error::new("Project not found")
-                    .extend_with(|_, e| e.set("code", ErrorCode::NotFound.as_str()));
-                return Err(error);
-            }
-        };
-
-        // Check permission (only owner can rename)
-        if project.2 != user_id {
-            let error = async_graphql::Error::new("Only project owner can rename project")
-                .extend_with(|_, e| e.set("code", ErrorCode::PermissionDenied.as_str()));
-            return Err(error);
-        }
+        .await?;
 
         // Check for stale write
         if project.5 != last_known_updated_at {
@@ -514,29 +502,16 @@ impl AuthenticatedMutation {
             .await?
             .0;
 
-        // Check if project exists and get current state
+        // Check permission (only owner can archive)
+        require_owner(pool, &user_id, &project_id).await?;
+
+        // Get current project state
         let project = sqlx::query_as::<_, (String, String, String, Option<String>, String, String)>(
             "SELECT id, name, owner_id, archived_at, created_at, updated_at FROM projects WHERE id = ?1",
         )
         .bind(&project_id)
         .fetch_one(pool)
-        .await;
-
-        let project = match project {
-            Ok(p) => p,
-            Err(_) => {
-                let error = async_graphql::Error::new("Project not found")
-                    .extend_with(|_, e| e.set("code", ErrorCode::NotFound.as_str()));
-                return Err(error);
-            }
-        };
-
-        // Check permission (only owner can archive)
-        if project.2 != user_id {
-            let error = async_graphql::Error::new("Only project owner can archive project")
-                .extend_with(|_, e| e.set("code", ErrorCode::PermissionDenied.as_str()));
-            return Err(error);
-        }
+        .await?;
 
         // Check for stale write
         if project.5 != last_known_updated_at {
@@ -592,29 +567,16 @@ impl AuthenticatedMutation {
             .await?
             .0;
 
-        // Check if project exists and get current state
+        // Check permission (only owner can unarchive)
+        require_owner(pool, &user_id, &project_id).await?;
+
+        // Get current project state
         let project = sqlx::query_as::<_, (String, String, String, Option<String>, String, String)>(
             "SELECT id, name, owner_id, archived_at, created_at, updated_at FROM projects WHERE id = ?1",
         )
         .bind(&project_id)
         .fetch_one(pool)
-        .await;
-
-        let project = match project {
-            Ok(p) => p,
-            Err(_) => {
-                let error = async_graphql::Error::new("Project not found")
-                    .extend_with(|_, e| e.set("code", ErrorCode::NotFound.as_str()));
-                return Err(error);
-            }
-        };
-
-        // Check permission (only owner can unarchive)
-        if project.2 != user_id {
-            let error = async_graphql::Error::new("Only project owner can unarchive project")
-                .extend_with(|_, e| e.set("code", ErrorCode::PermissionDenied.as_str()));
-            return Err(error);
-        }
+        .await?;
 
         // Check for stale write
         if project.5 != last_known_updated_at {
@@ -673,29 +635,16 @@ impl AuthenticatedMutation {
                 .await?
                 .0;
 
-        // Check if project exists and get owner
+        // Check permission (only owner can add members)
+        require_owner(pool, &current_user_id, &project_id).await?;
+
+        // Get project info for owner check later
         let project = sqlx::query_as::<_, (String, String)>(
             "SELECT id, owner_id FROM projects WHERE id = ?1",
         )
         .bind(&project_id)
         .fetch_one(pool)
-        .await;
-
-        let project = match project {
-            Ok(p) => p,
-            Err(_) => {
-                let error = async_graphql::Error::new("Project not found")
-                    .extend_with(|_, e| e.set("code", ErrorCode::NotFound.as_str()));
-                return Err(error);
-            }
-        };
-
-        // Check permission (only owner can add members)
-        if project.1 != current_user_id {
-            let error = async_graphql::Error::new("Only project owner can add members")
-                .extend_with(|_, e| e.set("code", ErrorCode::PermissionDenied.as_str()));
-            return Err(error);
-        }
+        .await?;
 
         // Find the user to add
         let target_user =
@@ -852,21 +801,7 @@ impl AuthenticatedMutation {
         }
 
         // Validate project exists and user has access
-        let project_exists = sqlx::query_as::<_, (i64,)>(
-            "SELECT COUNT(*) FROM projects p 
-             LEFT JOIN project_members pm ON p.id = pm.project_id 
-             WHERE p.id = ?1 AND (p.owner_id = ?2 OR pm.user_id = ?2)",
-        )
-        .bind(&input.project_id)
-        .bind(&user_id)
-        .fetch_one(pool)
-        .await?;
-
-        if project_exists.0 == 0 {
-            let error = async_graphql::Error::new("Project not found or access denied")
-                .extend_with(|_, e| e.set("code", "NOT_FOUND"));
-            return Err(error);
-        }
+        require_member(pool, &user_id, &input.project_id).await?;
 
         // Validate assignee exists if provided
         if let Some(ref assignee_id) = input.assignee_id {
