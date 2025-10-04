@@ -60,7 +60,6 @@ pub struct Task {
 
 pub mod time_utils {
     use super::*;
-    use chrono::Datelike;
 
     /// Parse a timezone string and return the Tz
     pub fn parse_timezone(tz_str: &str) -> Result<Tz, String> {

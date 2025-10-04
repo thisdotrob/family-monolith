@@ -2,12 +2,12 @@ use sqlx::{Row, SqlitePool};
 mod auth;
 mod tests_recurring_series;
 
-pub use crate::graphql::auth::{AuthenticatedMutation, RecurringSeries, UnauthenticatedMutation};
+pub use crate::graphql::auth::{AuthenticatedMutation, UnauthenticatedMutation};
 use async_graphql::{Context, EmptySubscription, Schema};
 use async_graphql::{MergedObject, Object, SimpleObject};
 
 use crate::auth::Claims;
-use crate::tasks::{Task, TaskBucket, TaskStatus, time_utils};
+use crate::tasks::{Task, TaskStatus, time_utils};
 use std::sync::Arc;
 
 #[derive(SimpleObject)]
@@ -180,11 +180,11 @@ impl QueryRoot {
         project_id: String,
         timezone: String,
         statuses: Option<Vec<TaskStatus>>,
-        assignee: Option<String>,
-        include_unassigned: Option<bool>,
-        assigned_to_me: Option<bool>,
-        tag_ids: Option<Vec<String>>,
-        search: Option<String>,
+        _assignee: Option<String>,
+        _include_unassigned: Option<bool>,
+        _assigned_to_me: Option<bool>,
+        _tag_ids: Option<Vec<String>>,
+        _search: Option<String>,
         offset: Option<i32>,
         limit: Option<i32>,
     ) -> async_graphql::Result<PagedTasks> {
@@ -236,9 +236,6 @@ impl QueryRoot {
 
         // Handle default values
         let statuses = statuses.unwrap_or_else(|| vec![TaskStatus::Todo]);
-        let include_unassigned = include_unassigned.unwrap_or(false);
-        let assigned_to_me = assigned_to_me.unwrap_or(false);
-        let tag_ids = tag_ids.unwrap_or_default();
         let offset = offset.unwrap_or(0);
         let limit = limit.unwrap_or(20);
 

@@ -4,7 +4,6 @@ use axum::body::Bytes;
 use axum::extract::{ConnectInfo, Extension, Request};
 use axum::http::{Method, StatusCode};
 use axum::middleware::{self, Next};
-use axum::response::Html;
 use axum::{
     Json, Router,
     extract::{Path, State},
@@ -23,7 +22,6 @@ use std::sync::Arc;
 use std::time::Duration;
 use tower_http::cors::{Any, CorsLayer};
 use tower_http::limit::RequestBodyLimitLayer;
-use tower_http::services::ServeDir;
 use tower_http::trace::{self, TraceLayer};
 use tracing::Span;
 

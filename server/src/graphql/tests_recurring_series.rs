@@ -1,7 +1,6 @@
 #[cfg(test)]
 mod tests {
-    use super::*;
-    use chrono::{NaiveDate, TimeZone, Utc};
+    use chrono::{NaiveDate, Utc};
     use chrono_tz::Tz;
     use rrule::RRule;
 
@@ -9,11 +8,11 @@ mod tests {
     fn test_rrule_validation() {
         // Valid RRULE
         let valid_rrule = "FREQ=DAILY;INTERVAL=1";
-        assert!(valid_rrule.parse::<RRule>().is_ok());
+        assert!(valid_rrule.parse::<RRule<rrule::Unvalidated>>().is_ok());
 
         // Invalid RRULE
         let invalid_rrule = "INVALID_RRULE";
-        assert!(invalid_rrule.parse::<RRule>().is_err());
+        assert!(invalid_rrule.parse::<RRule<rrule::Unvalidated>>().is_err());
     }
 
     #[test]
