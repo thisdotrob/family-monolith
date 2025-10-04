@@ -1,11 +1,15 @@
 use async_graphql::{Enum, SimpleObject};
 use chrono::{DateTime, NaiveDate, NaiveTime, TimeZone, Utc};
 use chrono_tz::Tz;
+use serde::{Deserialize, Serialize};
 
-#[derive(Enum, Copy, Clone, Eq, PartialEq, Debug)]
+#[derive(Enum, Copy, Clone, Eq, PartialEq, Debug, Serialize, Deserialize)]
 pub enum TaskStatus {
+    #[serde(rename = "todo")]
     Todo,
+    #[serde(rename = "done")]
     Done,
+    #[serde(rename = "abandoned")]
     Abandoned,
 }
 

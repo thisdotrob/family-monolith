@@ -129,11 +129,12 @@ mod tests {
             .unwrap()
             .create_if_missing(true)
             .foreign_keys(true);
-        
+
         let pool = SqlitePool::connect_with(options).await.unwrap();
-        
+
         // Create tables manually to avoid migration conflicts
-        sqlx::query(r#"
+        sqlx::query(
+            r#"
             CREATE TABLE users (
                 id TEXT PRIMARY KEY,
                 username TEXT UNIQUE NOT NULL,
@@ -142,9 +143,14 @@ mod tests {
                 created_at TEXT DEFAULT CURRENT_TIMESTAMP,
                 updated_at TEXT DEFAULT CURRENT_TIMESTAMP
             )
-        "#).execute(&pool).await.unwrap();
-        
-        sqlx::query(r#"
+        "#,
+        )
+        .execute(&pool)
+        .await
+        .unwrap();
+
+        sqlx::query(
+            r#"
             CREATE TABLE projects (
                 id TEXT PRIMARY KEY,
                 name TEXT NOT NULL,
@@ -154,9 +160,14 @@ mod tests {
                 updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
                 FOREIGN KEY (owner_id) REFERENCES users(id)
             )
-        "#).execute(&pool).await.unwrap();
-        
-        sqlx::query(r#"
+        "#,
+        )
+        .execute(&pool)
+        .await
+        .unwrap();
+
+        sqlx::query(
+            r#"
             CREATE TABLE project_members (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 project_id TEXT NOT NULL,
@@ -166,8 +177,12 @@ mod tests {
                 FOREIGN KEY (project_id) REFERENCES projects(id),
                 FOREIGN KEY (user_id) REFERENCES users(id)
             )
-        "#).execute(&pool).await.unwrap();
-        
+        "#,
+        )
+        .execute(&pool)
+        .await
+        .unwrap();
+
         pool
     }
 
