@@ -3,12 +3,96 @@ use crate::auth::guard::{require_member, require_owner};
 use crate::db::helpers::{normalize_project_name, normalize_tag_name};
 use crate::error_codes::ErrorCode;
 use crate::graphql::{Project, Tag};
+use crate::tasks::{Task, TaskStatus, time_utils};
 use async_graphql::{Context, ErrorExtensions, InputObject, Object, SimpleObject};
 use chrono::{NaiveDate, NaiveTime, TimeZone, Utc};
 use chrono_tz::Tz;
 use rrule::RRule;
 use sqlx::SqlitePool;
 use std::sync::Arc;
+
+/// Helper function to read a task with derived fields computed
+async fn read_task_with_derived_fields(
+    pool: &SqlitePool,
+    task_id: &str,
+    tz: Tz,
+) -> async_graphql::Result<Task> {
+    let row = sqlx::query(
+        "SELECT id, project_id, author_id, assignee_id, series_id, title, description, 
+                status, scheduled_date, scheduled_time_minutes, deadline_date, deadline_time_minutes,
+                completed_at, completed_by, abandoned_at, abandoned_by, created_at, updated_at
+         FROM tasks WHERE id = ?1"
+    )
+    .bind(task_id)
+    .fetch_one(pool)
+    .await?;
+
+    let id: String = row.get("id");
+    let project_id: String = row.get("project_id");
+    let author_id: String = row.get("author_id");
+    let assignee_id: Option<String> = row.get("assignee_id");
+    let series_id: Option<String> = row.get("series_id");
+    let title: String = row.get("title");
+    let description: Option<String> = row.get("description");
+    let status_str: String = row.get("status");
+    let scheduled_date: Option<String> = row.get("scheduled_date");
+    let scheduled_time_minutes: Option<i32> = row.get("scheduled_time_minutes");
+    let deadline_date: Option<String> = row.get("deadline_date");
+    let deadline_time_minutes: Option<i32> = row.get("deadline_time_minutes");
+    let completed_at: Option<String> = row.get("completed_at");
+    let completed_by: Option<String> = row.get("completed_by");
+    let abandoned_at: Option<String> = row.get("abandoned_at");
+    let abandoned_by: Option<String> = row.get("abandoned_by");
+    let created_at: String = row.get("created_at");
+    let updated_at: String = row.get("updated_at");
+
+    let status = match status_str.as_str() {
+        "todo" => TaskStatus::Todo,
+        "done" => TaskStatus::Done,
+        "abandoned" => TaskStatus::Abandoned,
+        _ => TaskStatus::Todo,
+    };
+
+    // Compute derived fields
+    let is_overdue = time_utils::is_task_overdue(
+        scheduled_date.as_deref(),
+        scheduled_time_minutes,
+        deadline_date.as_deref(),
+        deadline_time_minutes,
+        tz,
+    );
+
+    let bucket = time_utils::get_task_bucket(
+        scheduled_date.as_deref(),
+        scheduled_time_minutes,
+        deadline_date.as_deref(),
+        deadline_time_minutes,
+        tz,
+    );
+
+    Ok(Task {
+        id,
+        project_id,
+        author_id,
+        assignee_id,
+        series_id,
+        title,
+        description,
+        status,
+        scheduled_date,
+        scheduled_time_minutes,
+        deadline_date,
+        deadline_time_minutes,
+        completed_at,
+        completed_by,
+        abandoned_at,
+        abandoned_by,
+        created_at,
+        updated_at,
+        is_overdue,
+        bucket,
+    })
+}
 
 #[derive(InputObject)]
 pub struct LoginInput {
@@ -888,6 +972,629 @@ impl AuthenticatedMutation {
             default_tag_ids,
         })
     }
+
+    async fn create_task(
+        &self,
+        ctx: &Context<'_>,
+        input: CreateTaskInput,
+    ) -> async_graphql::Result<Task> {
+        let claims = match ctx.data_opt::<Arc<Claims>>() {
+            Some(claims) => claims,
+            None => {
+                return Err(async_graphql::Error::new("Authentication required"));
+            }
+        };
+
+        let pool = ctx.data::<SqlitePool>()?;
+
+        // Get user ID
+        let user_id = sqlx::query_as::<_, (String,)>("SELECT id FROM users WHERE username = ?1")
+            .bind(&claims.sub)
+            .fetch_one(pool)
+            .await?
+            .0;
+
+        // Validate project access and not archived
+        require_member(pool, &user_id, &input.project_id).await?;
+
+        let project = sqlx::query_as::<_, (Option<String>,)>(
+            "SELECT archived_at FROM projects WHERE id = ?1",
+        )
+        .bind(&input.project_id)
+        .fetch_one(pool)
+        .await?;
+
+        if project.0.is_some() {
+            let error = async_graphql::Error::new("Cannot create tasks in archived project")
+                .extend_with(|_, e| e.set("code", ErrorCode::PermissionDenied.as_str()));
+            return Err(error);
+        }
+
+        // Validate title
+        if input.title.trim().is_empty() {
+            let error = async_graphql::Error::new("Title cannot be empty")
+                .extend_with(|_, e| e.set("code", ErrorCode::ValidationFailed.as_str()));
+            return Err(error);
+        }
+
+        if input.title.len() > 120 {
+            let error = async_graphql::Error::new("Title cannot exceed 120 characters")
+                .extend_with(|_, e| e.set("code", ErrorCode::ValidationFailed.as_str()));
+            return Err(error);
+        }
+
+        // Validate description
+        if let Some(desc) = &input.description {
+            if desc.len() > 5000 {
+                let error = async_graphql::Error::new("Description cannot exceed 5000 characters")
+                    .extend_with(|_, e| e.set("code", ErrorCode::ValidationFailed.as_str()));
+                return Err(error);
+            }
+        }
+
+        // Validate time minutes
+        if let Some(time) = input.scheduled_time_minutes {
+            if time < 0 || time >= 1440 {
+                let error =
+                    async_graphql::Error::new("scheduledTimeMinutes must be between 0 and 1439")
+                        .extend_with(|_, e| e.set("code", ErrorCode::ValidationFailed.as_str()));
+                return Err(error);
+            }
+        }
+
+        if let Some(time) = input.deadline_time_minutes {
+            if time < 0 || time >= 1440 {
+                let error =
+                    async_graphql::Error::new("deadlineTimeMinutes must be between 0 and 1439")
+                        .extend_with(|_, e| e.set("code", ErrorCode::ValidationFailed.as_str()));
+                return Err(error);
+            }
+        }
+
+        // Validate dates
+        if let Some(date) = &input.scheduled_date {
+            if NaiveDate::parse_from_str(date, "%Y-%m-%d").is_err() {
+                let error =
+                    async_graphql::Error::new("Invalid scheduledDate format, expected YYYY-MM-DD")
+                        .extend_with(|_, e| e.set("code", ErrorCode::ValidationFailed.as_str()));
+                return Err(error);
+            }
+        }
+
+        if let Some(date) = &input.deadline_date {
+            if NaiveDate::parse_from_str(date, "%Y-%m-%d").is_err() {
+                let error =
+                    async_graphql::Error::new("Invalid deadlineDate format, expected YYYY-MM-DD")
+                        .extend_with(|_, e| e.set("code", ErrorCode::ValidationFailed.as_str()));
+                return Err(error);
+            }
+        }
+
+        // Validate assignee if provided, otherwise default to creator
+        let assignee_id = if let Some(assignee) = &input.assignee_id {
+            // Check if assignee exists and is a member
+            let assignee_member = sqlx::query_as::<_, (i64,)>(
+                "SELECT COUNT(*) FROM projects p 
+                 LEFT JOIN project_members pm ON p.id = pm.project_id 
+                 WHERE p.id = ?1 AND (p.owner_id = ?2 OR pm.user_id = ?2)",
+            )
+            .bind(&input.project_id)
+            .bind(assignee)
+            .fetch_one(pool)
+            .await?;
+
+            if assignee_member.0 == 0 {
+                let error = async_graphql::Error::new("Assignee must be a project member")
+                    .extend_with(|_, e| e.set("code", ErrorCode::ValidationFailed.as_str()));
+                return Err(error);
+            }
+            assignee.clone()
+        } else {
+            user_id.clone()
+        };
+
+        // Validate tags if provided
+        let tag_ids = input.tag_ids.unwrap_or_default();
+        for tag_id in &tag_ids {
+            let tag_exists = sqlx::query_as::<_, (i64,)>("SELECT COUNT(*) FROM tags WHERE id = ?1")
+                .bind(tag_id)
+                .fetch_one(pool)
+                .await?;
+
+            if tag_exists.0 == 0 {
+                let error = async_graphql::Error::new("One or more tags not found")
+                    .extend_with(|_, e| e.set("code", ErrorCode::NotFound.as_str()));
+                return Err(error);
+            }
+        }
+
+        // Create task
+        let task_id = uuid::Uuid::new_v4().to_string();
+
+        sqlx::query(
+            "INSERT INTO tasks (id, project_id, author_id, assignee_id, title, description, status, 
+             scheduled_date, scheduled_time_minutes, deadline_date, deadline_time_minutes) 
+             VALUES (?1, ?2, ?3, ?4, ?5, ?6, 'todo', ?7, ?8, ?9, ?10)"
+        )
+        .bind(&task_id)
+        .bind(&input.project_id)
+        .bind(&user_id)
+        .bind(&assignee_id)
+        .bind(&input.title)
+        .bind(&input.description)
+        .bind(&input.scheduled_date)
+        .bind(input.scheduled_time_minutes)
+        .bind(&input.deadline_date)
+        .bind(input.deadline_time_minutes)
+        .execute(pool)
+        .await?;
+
+        // Insert tags
+        for tag_id in &tag_ids {
+            sqlx::query("INSERT INTO task_tags (task_id, tag_id) VALUES (?1, ?2)")
+                .bind(&task_id)
+                .bind(tag_id)
+                .execute(pool)
+                .await?;
+        }
+
+        // Read the created task back
+        read_task_with_derived_fields(pool, &task_id, time_utils::parse_timezone("UTC").unwrap())
+            .await
+    }
+
+    async fn update_task(
+        &self,
+        ctx: &Context<'_>,
+        id: String,
+        input: UpdateTaskInput,
+        last_known_updated_at: String,
+    ) -> async_graphql::Result<Task> {
+        let claims = match ctx.data_opt::<Arc<Claims>>() {
+            Some(claims) => claims,
+            None => {
+                return Err(async_graphql::Error::new("Authentication required"));
+            }
+        };
+
+        let pool = ctx.data::<SqlitePool>()?;
+
+        // Get user ID
+        let user_id = sqlx::query_as::<_, (String,)>("SELECT id FROM users WHERE username = ?1")
+            .bind(&claims.sub)
+            .fetch_one(pool)
+            .await?
+            .0;
+
+        // Get current task
+        let task = sqlx::query_as::<_, (String, String, String, String)>(
+            "SELECT project_id, status, updated_at, author_id FROM tasks WHERE id = ?1",
+        )
+        .bind(&id)
+        .fetch_one(pool)
+        .await
+        .map_err(|_| {
+            async_graphql::Error::new("Task not found")
+                .extend_with(|_, e| e.set("code", ErrorCode::NotFound.as_str()))
+        })?;
+
+        let (project_id, status, updated_at, _author_id) = task;
+
+        // Check concurrency
+        if updated_at != last_known_updated_at {
+            let error = async_graphql::Error::new("Task has been modified by another user")
+                .extend_with(|_, e| e.set("code", ErrorCode::ConflictStaleWrite.as_str()));
+            return Err(error);
+        }
+
+        // Only allow editing todo tasks
+        if status != "todo" {
+            let error = async_graphql::Error::new("Can only edit todo tasks")
+                .extend_with(|_, e| e.set("code", ErrorCode::PermissionDenied.as_str()));
+            return Err(error);
+        }
+
+        // Check project access and not archived
+        require_member(pool, &user_id, &project_id).await?;
+
+        let project = sqlx::query_as::<_, (Option<String>,)>(
+            "SELECT archived_at FROM projects WHERE id = ?1",
+        )
+        .bind(&project_id)
+        .fetch_one(pool)
+        .await?;
+
+        if project.0.is_some() {
+            let error = async_graphql::Error::new("Cannot edit tasks in archived project")
+                .extend_with(|_, e| e.set("code", ErrorCode::PermissionDenied.as_str()));
+            return Err(error);
+        }
+
+        // Validate inputs if provided
+        if let Some(title) = &input.title {
+            if title.trim().is_empty() {
+                let error = async_graphql::Error::new("Title cannot be empty")
+                    .extend_with(|_, e| e.set("code", ErrorCode::ValidationFailed.as_str()));
+                return Err(error);
+            }
+            if title.len() > 120 {
+                let error = async_graphql::Error::new("Title cannot exceed 120 characters")
+                    .extend_with(|_, e| e.set("code", ErrorCode::ValidationFailed.as_str()));
+                return Err(error);
+            }
+        }
+
+        if let Some(desc) = &input.description {
+            if desc.len() > 5000 {
+                let error = async_graphql::Error::new("Description cannot exceed 5000 characters")
+                    .extend_with(|_, e| e.set("code", ErrorCode::ValidationFailed.as_str()));
+                return Err(error);
+            }
+        }
+
+        // Validate time minutes
+        if let Some(time) = input.scheduled_time_minutes {
+            if time < 0 || time >= 1440 {
+                let error =
+                    async_graphql::Error::new("scheduledTimeMinutes must be between 0 and 1439")
+                        .extend_with(|_, e| e.set("code", ErrorCode::ValidationFailed.as_str()));
+                return Err(error);
+            }
+        }
+
+        if let Some(time) = input.deadline_time_minutes {
+            if time < 0 || time >= 1440 {
+                let error =
+                    async_graphql::Error::new("deadlineTimeMinutes must be between 0 and 1439")
+                        .extend_with(|_, e| e.set("code", ErrorCode::ValidationFailed.as_str()));
+                return Err(error);
+            }
+        }
+
+        // Validate dates
+        if let Some(date) = &input.scheduled_date {
+            if !date.is_empty() && NaiveDate::parse_from_str(date, "%Y-%m-%d").is_err() {
+                let error =
+                    async_graphql::Error::new("Invalid scheduledDate format, expected YYYY-MM-DD")
+                        .extend_with(|_, e| e.set("code", ErrorCode::ValidationFailed.as_str()));
+                return Err(error);
+            }
+        }
+
+        if let Some(date) = &input.deadline_date {
+            if !date.is_empty() && NaiveDate::parse_from_str(date, "%Y-%m-%d").is_err() {
+                let error =
+                    async_graphql::Error::new("Invalid deadlineDate format, expected YYYY-MM-DD")
+                        .extend_with(|_, e| e.set("code", ErrorCode::ValidationFailed.as_str()));
+                return Err(error);
+            }
+        }
+
+        // Validate assignee if provided
+        if let Some(assignee) = &input.assignee_id {
+            let assignee_member = sqlx::query_as::<_, (i64,)>(
+                "SELECT COUNT(*) FROM projects p 
+                 LEFT JOIN project_members pm ON p.id = pm.project_id 
+                 WHERE p.id = ?1 AND (p.owner_id = ?2 OR pm.user_id = ?2)",
+            )
+            .bind(&project_id)
+            .bind(assignee)
+            .fetch_one(pool)
+            .await?;
+
+            if assignee_member.0 == 0 {
+                let error = async_graphql::Error::new("Assignee must be a project member")
+                    .extend_with(|_, e| e.set("code", ErrorCode::ValidationFailed.as_str()));
+                return Err(error);
+            }
+        }
+
+        // Validate tags if provided
+        if let Some(tag_ids) = &input.tag_ids {
+            for tag_id in tag_ids {
+                let tag_exists =
+                    sqlx::query_as::<_, (i64,)>("SELECT COUNT(*) FROM tags WHERE id = ?1")
+                        .bind(tag_id)
+                        .fetch_one(pool)
+                        .await?;
+
+                if tag_exists.0 == 0 {
+                    let error = async_graphql::Error::new("One or more tags not found")
+                        .extend_with(|_, e| e.set("code", ErrorCode::NotFound.as_str()));
+                    return Err(error);
+                }
+            }
+        }
+
+        // Update task fields individually if provided
+        if let Some(title) = &input.title {
+            sqlx::query("UPDATE tasks SET title = ?1 WHERE id = ?2")
+                .bind(title)
+                .bind(&id)
+                .execute(pool)
+                .await?;
+        }
+
+        if let Some(description) = &input.description {
+            sqlx::query("UPDATE tasks SET description = ?1 WHERE id = ?2")
+                .bind(description)
+                .bind(&id)
+                .execute(pool)
+                .await?;
+        }
+
+        if let Some(assignee_id) = &input.assignee_id {
+            sqlx::query("UPDATE tasks SET assignee_id = ?1 WHERE id = ?2")
+                .bind(assignee_id)
+                .bind(&id)
+                .execute(pool)
+                .await?;
+        }
+
+        if let Some(scheduled_date) = &input.scheduled_date {
+            if scheduled_date.is_empty() {
+                sqlx::query("UPDATE tasks SET scheduled_date = NULL WHERE id = ?1")
+                    .bind(&id)
+                    .execute(pool)
+                    .await?;
+            } else {
+                sqlx::query("UPDATE tasks SET scheduled_date = ?1 WHERE id = ?2")
+                    .bind(scheduled_date)
+                    .bind(&id)
+                    .execute(pool)
+                    .await?;
+            }
+        }
+
+        if let Some(scheduled_time_minutes) = &input.scheduled_time_minutes {
+            sqlx::query("UPDATE tasks SET scheduled_time_minutes = ?1 WHERE id = ?2")
+                .bind(scheduled_time_minutes)
+                .bind(&id)
+                .execute(pool)
+                .await?;
+        }
+
+        if let Some(deadline_date) = &input.deadline_date {
+            if deadline_date.is_empty() {
+                sqlx::query("UPDATE tasks SET deadline_date = NULL WHERE id = ?1")
+                    .bind(&id)
+                    .execute(pool)
+                    .await?;
+            } else {
+                sqlx::query("UPDATE tasks SET deadline_date = ?1 WHERE id = ?2")
+                    .bind(deadline_date)
+                    .bind(&id)
+                    .execute(pool)
+                    .await?;
+            }
+        }
+
+        if let Some(deadline_time_minutes) = &input.deadline_time_minutes {
+            sqlx::query("UPDATE tasks SET deadline_time_minutes = ?1 WHERE id = ?2")
+                .bind(deadline_time_minutes)
+                .bind(&id)
+                .execute(pool)
+                .await?;
+        }
+
+        // Update tags if provided
+        if let Some(tag_ids) = &input.tag_ids {
+            // Delete existing tags
+            sqlx::query("DELETE FROM task_tags WHERE task_id = ?1")
+                .bind(&id)
+                .execute(pool)
+                .await?;
+
+            // Insert new tags
+            for tag_id in tag_ids {
+                sqlx::query("INSERT INTO task_tags (task_id, tag_id) VALUES (?1, ?2)")
+                    .bind(&id)
+                    .bind(tag_id)
+                    .execute(pool)
+                    .await?;
+            }
+        }
+
+        // Read the updated task back
+        read_task_with_derived_fields(pool, &id, time_utils::parse_timezone("UTC").unwrap()).await
+    }
+
+    async fn complete_task(
+        &self,
+        ctx: &Context<'_>,
+        id: String,
+        last_known_updated_at: String,
+    ) -> async_graphql::Result<Task> {
+        let claims = match ctx.data_opt::<Arc<Claims>>() {
+            Some(claims) => claims,
+            None => {
+                return Err(async_graphql::Error::new("Authentication required"));
+            }
+        };
+
+        let pool = ctx.data::<SqlitePool>()?;
+
+        // Get user ID
+        let user_id = sqlx::query_as::<_, (String,)>("SELECT id FROM users WHERE username = ?1")
+            .bind(&claims.sub)
+            .fetch_one(pool)
+            .await?
+            .0;
+
+        // Get current task
+        let task = sqlx::query_as::<_, (String, String, String)>(
+            "SELECT project_id, status, updated_at FROM tasks WHERE id = ?1",
+        )
+        .bind(&id)
+        .fetch_one(pool)
+        .await
+        .map_err(|_| {
+            async_graphql::Error::new("Task not found")
+                .extend_with(|_, e| e.set("code", ErrorCode::NotFound.as_str()))
+        })?;
+
+        let (project_id, status, updated_at) = task;
+
+        // Check concurrency
+        if updated_at != last_known_updated_at {
+            let error = async_graphql::Error::new("Task has been modified by another user")
+                .extend_with(|_, e| e.set("code", ErrorCode::ConflictStaleWrite.as_str()));
+            return Err(error);
+        }
+
+        // Only allow completing todo tasks
+        if status != "todo" {
+            let error = async_graphql::Error::new("Can only complete todo tasks")
+                .extend_with(|_, e| e.set("code", ErrorCode::PermissionDenied.as_str()));
+            return Err(error);
+        }
+
+        // Check project access
+        require_member(pool, &user_id, &project_id).await?;
+
+        // Complete the task
+        sqlx::query(
+            "UPDATE tasks SET status = 'done', completed_at = CURRENT_TIMESTAMP, completed_by = ?1 WHERE id = ?2"
+        )
+        .bind(&user_id)
+        .bind(&id)
+        .execute(pool)
+        .await?;
+
+        // Read the updated task back
+        read_task_with_derived_fields(pool, &id, time_utils::parse_timezone("UTC").unwrap()).await
+    }
+
+    async fn abandon_task(
+        &self,
+        ctx: &Context<'_>,
+        id: String,
+        last_known_updated_at: String,
+    ) -> async_graphql::Result<Task> {
+        let claims = match ctx.data_opt::<Arc<Claims>>() {
+            Some(claims) => claims,
+            None => {
+                return Err(async_graphql::Error::new("Authentication required"));
+            }
+        };
+
+        let pool = ctx.data::<SqlitePool>()?;
+
+        // Get user ID
+        let user_id = sqlx::query_as::<_, (String,)>("SELECT id FROM users WHERE username = ?1")
+            .bind(&claims.sub)
+            .fetch_one(pool)
+            .await?
+            .0;
+
+        // Get current task
+        let task = sqlx::query_as::<_, (String, String, String)>(
+            "SELECT project_id, status, updated_at FROM tasks WHERE id = ?1",
+        )
+        .bind(&id)
+        .fetch_one(pool)
+        .await
+        .map_err(|_| {
+            async_graphql::Error::new("Task not found")
+                .extend_with(|_, e| e.set("code", ErrorCode::NotFound.as_str()))
+        })?;
+
+        let (project_id, status, updated_at) = task;
+
+        // Check concurrency
+        if updated_at != last_known_updated_at {
+            let error = async_graphql::Error::new("Task has been modified by another user")
+                .extend_with(|_, e| e.set("code", ErrorCode::ConflictStaleWrite.as_str()));
+            return Err(error);
+        }
+
+        // Only allow abandoning todo tasks
+        if status != "todo" {
+            let error = async_graphql::Error::new("Can only abandon todo tasks")
+                .extend_with(|_, e| e.set("code", ErrorCode::PermissionDenied.as_str()));
+            return Err(error);
+        }
+
+        // Check project access
+        require_member(pool, &user_id, &project_id).await?;
+
+        // Abandon the task
+        sqlx::query(
+            "UPDATE tasks SET status = 'abandoned', abandoned_at = CURRENT_TIMESTAMP, abandoned_by = ?1 WHERE id = ?2"
+        )
+        .bind(&user_id)
+        .bind(&id)
+        .execute(pool)
+        .await?;
+
+        // Read the updated task back
+        read_task_with_derived_fields(pool, &id, time_utils::parse_timezone("UTC").unwrap()).await
+    }
+
+    async fn restore_task(
+        &self,
+        ctx: &Context<'_>,
+        id: String,
+        last_known_updated_at: String,
+    ) -> async_graphql::Result<Task> {
+        let claims = match ctx.data_opt::<Arc<Claims>>() {
+            Some(claims) => claims,
+            None => {
+                return Err(async_graphql::Error::new("Authentication required"));
+            }
+        };
+
+        let pool = ctx.data::<SqlitePool>()?;
+
+        // Get user ID
+        let user_id = sqlx::query_as::<_, (String,)>("SELECT id FROM users WHERE username = ?1")
+            .bind(&claims.sub)
+            .fetch_one(pool)
+            .await?
+            .0;
+
+        // Get current task
+        let task = sqlx::query_as::<_, (String, String, String)>(
+            "SELECT project_id, status, updated_at FROM tasks WHERE id = ?1",
+        )
+        .bind(&id)
+        .fetch_one(pool)
+        .await
+        .map_err(|_| {
+            async_graphql::Error::new("Task not found")
+                .extend_with(|_, e| e.set("code", ErrorCode::NotFound.as_str()))
+        })?;
+
+        let (project_id, status, updated_at) = task;
+
+        // Check concurrency
+        if updated_at != last_known_updated_at {
+            let error = async_graphql::Error::new("Task has been modified by another user")
+                .extend_with(|_, e| e.set("code", ErrorCode::ConflictStaleWrite.as_str()));
+            return Err(error);
+        }
+
+        // Only allow restoring abandoned tasks
+        if status != "abandoned" {
+            let error = async_graphql::Error::new("Can only restore abandoned tasks")
+                .extend_with(|_, e| e.set("code", ErrorCode::PermissionDenied.as_str()));
+            return Err(error);
+        }
+
+        // Check project access
+        require_member(pool, &user_id, &project_id).await?;
+
+        // Restore the task (clear abandoned fields)
+        sqlx::query(
+            "UPDATE tasks SET status = 'todo', abandoned_at = NULL, abandoned_by = NULL WHERE id = ?1"
+        )
+        .bind(&id)
+        .execute(pool)
+        .await?;
+
+        // Read the updated task back
+        read_task_with_derived_fields(pool, &id, time_utils::parse_timezone("UTC").unwrap()).await
+    }
 }
 
 #[derive(InputObject)]
@@ -957,4 +1664,42 @@ pub struct CreateSeriesInput {
     #[graphql(name = "deadlineOffsetMinutes")]
     pub deadline_offset_minutes: i32,
     pub timezone: String,
+}
+
+#[derive(InputObject)]
+pub struct CreateTaskInput {
+    #[graphql(name = "projectId")]
+    pub project_id: String,
+    pub title: String,
+    pub description: Option<String>,
+    #[graphql(name = "assigneeId")]
+    pub assignee_id: Option<String>,
+    #[graphql(name = "scheduledDate")]
+    pub scheduled_date: Option<String>,
+    #[graphql(name = "scheduledTimeMinutes")]
+    pub scheduled_time_minutes: Option<i32>,
+    #[graphql(name = "deadlineDate")]
+    pub deadline_date: Option<String>,
+    #[graphql(name = "deadlineTimeMinutes")]
+    pub deadline_time_minutes: Option<i32>,
+    #[graphql(name = "tagIds")]
+    pub tag_ids: Option<Vec<String>>,
+}
+
+#[derive(InputObject)]
+pub struct UpdateTaskInput {
+    pub title: Option<String>,
+    pub description: Option<String>,
+    #[graphql(name = "assigneeId")]
+    pub assignee_id: Option<String>,
+    #[graphql(name = "scheduledDate")]
+    pub scheduled_date: Option<String>,
+    #[graphql(name = "scheduledTimeMinutes")]
+    pub scheduled_time_minutes: Option<i32>,
+    #[graphql(name = "deadlineDate")]
+    pub deadline_date: Option<String>,
+    #[graphql(name = "deadlineTimeMinutes")]
+    pub deadline_time_minutes: Option<i32>,
+    #[graphql(name = "tagIds")]
+    pub tag_ids: Option<Vec<String>>,
 }
