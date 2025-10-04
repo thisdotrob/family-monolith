@@ -200,7 +200,7 @@ impl QueryRoot {
         let username = &claims.sub;
 
         // Parse timezone
-        let tz = time_utils::parse_timezone(&timezone).map_err(|e| async_graphql::Error::new(e))?;
+        let tz = time_utils::parse_timezone(&timezone).map_err(async_graphql::Error::new)?;
 
         // First get the user ID
         let user_id = sqlx::query_as::<_, (String,)>("SELECT id FROM users WHERE username = ?1")
@@ -230,9 +230,9 @@ impl QueryRoot {
         // Build the base query with conditions
         let mut where_conditions = vec!["t.project_id = ?".to_string()];
         let mut join_clause = String::new();
-        
+
         // Add join for tag filtering if needed
-        let need_tag_join = tag_ids.as_ref().map_or(false, |tags| !tags.is_empty());
+        let need_tag_join = tag_ids.as_ref().is_some_and(|tags| !tags.is_empty());
         if need_tag_join {
             join_clause = " LEFT JOIN task_tags tt ON t.id = tt.task_id".to_string();
         }
@@ -248,7 +248,7 @@ impl QueryRoot {
         }
 
         // Add assignee filtering
-        if let Some(_) = &assignee {
+        if assignee.is_some() {
             where_conditions.push("t.assignee_id = ?".to_string());
         } else if include_unassigned {
             where_conditions.push("t.assignee_id IS NULL".to_string());
