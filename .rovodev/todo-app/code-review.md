@@ -10,6 +10,17 @@ Then, check that the changes contained in the commits on this branch since `main
 
 If the code needs changes, provide a set of helpful instructions for making them that can be passed back to the agent to work on.
 
-If no changes to the code are needed, proceed to reviewing the commit and PR content - the commit title should be the same as the title of the ticket I give you, preceded by the project title (todo-app). The commit message should include a summary of the changes that have been made to the code. Make sure the commit is formatted correctly with no literal `\n` characters. The PR can be checked with the `gh` tool and should have a title and description matching the commit title and message.
+If no changes to the code are needed, proceed to reviewing the commit:
+- the commit title should be the same as the title of the ticket I give you, preceded by the project title (todo-app) and should include the ticket number.
+- the commit message should include a summary of the changes that have been made to the code.
+- the title and message should be formatted correctly with no literal `\n` characters.
+- the commit message should be correct given any post-review changes you made to the code.
+
+If any changes are needed to the commit, amend it.
+
+After reviewing the commit, review the PR:
+- the PR can be checked with the `gh` tool
+- the PR should have the same title as the commit
+- the PR description should be the same as the commit message
 
 Are you ready for the ticket to start reviewing?
