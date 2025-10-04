@@ -82,7 +82,7 @@ Wave 5 — Mutations and saved views
 Backend
 - [ ] .rovodev/todo-app-009_server_graphql_tasks_mutations.md (depends on 008)
 - [x] .rovodev/todo-app-012_server_graphql_saved_views.md (depends on 011,004)
-- [ ] .rovodev/todo-app-021_server_tests_integration.md (depends on 010,018)
+- [x] .rovodev/todo-app-021_server_tests_integration.md (depends on 010,018)
 
 Next up when Wave 5 items complete:
 - Recurrence: generation, updates, top-up (015,016,017)
