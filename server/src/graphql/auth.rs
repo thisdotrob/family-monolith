@@ -1308,6 +1308,217 @@ impl AuthenticatedMutation {
 
         Ok(true)
     }
+
+    async fn create_task(
+        &self,
+        ctx: &Context<'_>,
+        input: CreateTaskInput,
+    ) -> async_graphql::Result<Task> {
+        let claims = match ctx.data_opt::<Arc<Claims>>() {
+            Some(claims) => claims,
+            None => return Err(async_graphql::Error::new("Authentication required")),
+        };
+
+        let pool = ctx.data::<SqlitePool>()?;
+        let user_id = sqlx::query_as::<_, (String,)>("SELECT id FROM users WHERE username = ?1")
+            .bind(&claims.sub)
+            .fetch_one(pool)
+            .await?
+            .0;
+
+        require_member(pool, &user_id, &input.project_id).await?;
+
+        let assignee_id = input.assignee_id.as_ref().unwrap_or(&user_id);
+        let task_id = uuid::Uuid::new_v4().to_string();
+
+        sqlx::query(
+            "INSERT INTO tasks (id, project_id, title, description, assignee_id, status, created_by) 
+             VALUES (?1, ?2, ?3, ?4, ?5, 'todo', ?6)"
+        )
+        .bind(&task_id)
+        .bind(&input.project_id)
+        .bind(&input.title)
+        .bind(&input.description)
+        .bind(assignee_id)
+        .bind(&user_id)
+        .execute(pool)
+        .await?;
+
+        read_task_with_derived_fields(pool, &task_id, time_utils::parse_timezone("UTC").unwrap()).await
+    }
+
+    async fn update_task(
+        &self,
+        ctx: &Context<'_>,
+        id: String,
+        input: UpdateTaskInput,
+        last_known_updated_at: String,
+    ) -> async_graphql::Result<Task> {
+        let claims = match ctx.data_opt::<Arc<Claims>>() {
+            Some(claims) => claims,
+            None => return Err(async_graphql::Error::new("Authentication required")),
+        };
+
+        let pool = ctx.data::<SqlitePool>()?;
+        let user_id = sqlx::query_as::<_, (String,)>("SELECT id FROM users WHERE username = ?1")
+            .bind(&claims.sub)
+            .fetch_one(pool)
+            .await?
+            .0;
+
+        let current_task = sqlx::query("SELECT project_id, updated_at FROM tasks WHERE id = ?1")
+            .bind(&id)
+            .fetch_one(pool)
+            .await
+            .map_err(|_| {
+                async_graphql::Error::new("Task not found")
+                    .extend_with(|_, e| e.set("code", ErrorCode::NotFound.as_str()))
+            })?;
+
+        let project_id: String = current_task.get("project_id");
+        let current_updated_at: String = current_task.get("updated_at");
+
+        require_member(pool, &user_id, &project_id).await?;
+
+        if current_updated_at != last_known_updated_at {
+            let error = async_graphql::Error::new("Task has been modified by another user")
+                .extend_with(|_, e| e.set("code", ErrorCode::ConflictStaleWrite.as_str()));
+            return Err(error);
+        }
+
+        if let Some(ref title) = input.title {
+            sqlx::query("UPDATE tasks SET title = ?1, updated_at = CURRENT_TIMESTAMP WHERE id = ?2")
+                .bind(title).bind(&id).execute(pool).await?;
+        }
+
+        read_task_with_derived_fields(pool, &id, time_utils::parse_timezone("UTC").unwrap()).await
+    }
+
+    async fn complete_task(
+        &self,
+        ctx: &Context<'_>,
+        id: String,
+        last_known_updated_at: String,
+    ) -> async_graphql::Result<Task> {
+        let claims = match ctx.data_opt::<Arc<Claims>>() {
+            Some(claims) => claims,
+            None => return Err(async_graphql::Error::new("Authentication required")),
+        };
+
+        let pool = ctx.data::<SqlitePool>()?;
+        let user_id = sqlx::query_as::<_, (String,)>("SELECT id FROM users WHERE username = ?1")
+            .bind(&claims.sub).fetch_one(pool).await?.0;
+
+        let current_task = sqlx::query("SELECT project_id, status, updated_at FROM tasks WHERE id = ?1")
+            .bind(&id).fetch_one(pool).await
+            .map_err(|_| async_graphql::Error::new("Task not found")
+                .extend_with(|_, e| e.set("code", ErrorCode::NotFound.as_str())))?;
+
+        let project_id: String = current_task.get("project_id");
+        let current_status: String = current_task.get("status");
+        let current_updated_at: String = current_task.get("updated_at");
+
+        require_member(pool, &user_id, &project_id).await?;
+
+        if current_updated_at != last_known_updated_at {
+            return Err(async_graphql::Error::new("Task has been modified by another user")
+                .extend_with(|_, e| e.set("code", ErrorCode::ConflictStaleWrite.as_str())));
+        }
+
+        if current_status != "todo" {
+            return Err(async_graphql::Error::new("Task can only be completed from todo status")
+                .extend_with(|_, e| e.set("code", ErrorCode::ValidationFailed.as_str())));
+        }
+
+        sqlx::query("UPDATE tasks SET status = 'done', completed_at = CURRENT_TIMESTAMP, completed_by = ?1, updated_at = CURRENT_TIMESTAMP WHERE id = ?2")
+            .bind(&user_id).bind(&id).execute(pool).await?;
+
+        read_task_with_derived_fields(pool, &id, time_utils::parse_timezone("UTC").unwrap()).await
+    }
+
+    async fn abandon_task(
+        &self,
+        ctx: &Context<'_>,
+        id: String,
+        last_known_updated_at: String,
+    ) -> async_graphql::Result<Task> {
+        let claims = match ctx.data_opt::<Arc<Claims>>() {
+            Some(claims) => claims,
+            None => return Err(async_graphql::Error::new("Authentication required")),
+        };
+
+        let pool = ctx.data::<SqlitePool>()?;
+        let user_id = sqlx::query_as::<_, (String,)>("SELECT id FROM users WHERE username = ?1")
+            .bind(&claims.sub).fetch_one(pool).await?.0;
+
+        let current_task = sqlx::query("SELECT project_id, status, updated_at FROM tasks WHERE id = ?1")
+            .bind(&id).fetch_one(pool).await
+            .map_err(|_| async_graphql::Error::new("Task not found")
+                .extend_with(|_, e| e.set("code", ErrorCode::NotFound.as_str())))?;
+
+        let project_id: String = current_task.get("project_id");
+        let current_status: String = current_task.get("status");
+        let current_updated_at: String = current_task.get("updated_at");
+
+        require_member(pool, &user_id, &project_id).await?;
+
+        if current_updated_at != last_known_updated_at {
+            return Err(async_graphql::Error::new("Task has been modified by another user")
+                .extend_with(|_, e| e.set("code", ErrorCode::ConflictStaleWrite.as_str())));
+        }
+
+        if current_status != "todo" {
+            return Err(async_graphql::Error::new("Task can only be abandoned from todo status")
+                .extend_with(|_, e| e.set("code", ErrorCode::ValidationFailed.as_str())));
+        }
+
+        sqlx::query("UPDATE tasks SET status = 'abandoned', abandoned_at = CURRENT_TIMESTAMP, abandoned_by = ?1, updated_at = CURRENT_TIMESTAMP WHERE id = ?2")
+            .bind(&user_id).bind(&id).execute(pool).await?;
+
+        read_task_with_derived_fields(pool, &id, time_utils::parse_timezone("UTC").unwrap()).await
+    }
+
+    async fn restore_task(
+        &self,
+        ctx: &Context<'_>,
+        id: String,
+        last_known_updated_at: String,
+    ) -> async_graphql::Result<Task> {
+        let claims = match ctx.data_opt::<Arc<Claims>>() {
+            Some(claims) => claims,
+            None => return Err(async_graphql::Error::new("Authentication required")),
+        };
+
+        let pool = ctx.data::<SqlitePool>()?;
+        let user_id = sqlx::query_as::<_, (String,)>("SELECT id FROM users WHERE username = ?1")
+            .bind(&claims.sub).fetch_one(pool).await?.0;
+
+        let current_task = sqlx::query("SELECT project_id, status, updated_at FROM tasks WHERE id = ?1")
+            .bind(&id).fetch_one(pool).await
+            .map_err(|_| async_graphql::Error::new("Task not found")
+                .extend_with(|_, e| e.set("code", ErrorCode::NotFound.as_str())))?;
+
+        let project_id: String = current_task.get("project_id");
+        let current_status: String = current_task.get("status");
+        let current_updated_at: String = current_task.get("updated_at");
+
+        require_member(pool, &user_id, &project_id).await?;
+
+        if current_updated_at != last_known_updated_at {
+            return Err(async_graphql::Error::new("Task has been modified by another user")
+                .extend_with(|_, e| e.set("code", ErrorCode::ConflictStaleWrite.as_str())));
+        }
+
+        if current_status != "abandoned" {
+            return Err(async_graphql::Error::new("Task can only be restored from abandoned status")
+                .extend_with(|_, e| e.set("code", ErrorCode::ValidationFailed.as_str())));
+        }
+
+        sqlx::query("UPDATE tasks SET status = 'todo', abandoned_at = NULL, abandoned_by = NULL, updated_at = CURRENT_TIMESTAMP WHERE id = ?1")
+            .bind(&id).execute(pool).await?;
+
+        read_task_with_derived_fields(pool, &id, time_utils::parse_timezone("UTC").unwrap()).await
+    }
 }
 
 #[derive(InputObject)]
@@ -1418,82 +1629,3 @@ pub struct UpdateTaskInput {
 }
 
 
-    async fn create_task(
-        &self,
-        ctx: &Context<'_>,
-        input: CreateTaskInput,
-    ) -> async_graphql::Result<Task> {
-        let claims = match ctx.data_opt::<Arc<Claims>>() {
-            Some(claims) => claims,
-            None => return Err(async_graphql::Error::new("Authentication required")),
-        };
-        let pool = ctx.data::<SqlitePool>()?;
-        let user_id = sqlx::query_as::<_, (String,)>("SELECT id FROM users WHERE username = ?1")
-            .bind(&claims.sub).fetch_one(pool).await?.0;
-        require_member(pool, &user_id, &input.project_id).await?;
-        let task_id = uuid::Uuid::new_v4().to_string();
-        sqlx::query("INSERT INTO tasks (id, project_id, title, description, assignee_id, status, created_by) VALUES (?1, ?2, ?3, ?4, ?5, 'todo', ?6)")
-            .bind(&task_id).bind(&input.project_id).bind(&input.title).bind(&input.description)
-            .bind(input.assignee_id.as_ref().unwrap_or(&user_id)).bind(&user_id).execute(pool).await?;
-        read_task_with_derived_fields(pool, &task_id).await
-    }
-
-    async fn update_task(&self, ctx: &Context<'_>, id: String, input: UpdateTaskInput, last_known_updated_at: String) -> async_graphql::Result<Task> {
-        let claims = ctx.data_opt::<Arc<Claims>>().ok_or_else(|| async_graphql::Error::new("Authentication required"))?;
-        let pool = ctx.data::<SqlitePool>()?;
-        let user_id = sqlx::query_as::<_, (String,)>("SELECT id FROM users WHERE username = ?1").bind(&claims.sub).fetch_one(pool).await?.0;
-        let current_task = sqlx::query("SELECT project_id, updated_at FROM tasks WHERE id = ?1").bind(&id).fetch_one(pool).await
-            .map_err(|_| async_graphql::Error::new("Task not found").extend_with(|_, e| e.set("code", ErrorCode::NotFound.as_str())))?;
-        let project_id: String = current_task.get("project_id");
-        let current_updated_at: String = current_task.get("updated_at");
-        require_member(pool, &user_id, &project_id).await?;
-        if current_updated_at != last_known_updated_at {
-            return Err(async_graphql::Error::new("Task has been modified by another user")
-                .extend_with(|_, e| e.set("code", ErrorCode::ConflictStaleWrite.as_str())));
-        }
-        if let Some(ref title) = input.title {
-            sqlx::query("UPDATE tasks SET title = ?1, updated_at = CURRENT_TIMESTAMP WHERE id = ?2").bind(title).bind(&id).execute(pool).await?;
-        }
-        read_task_with_derived_fields(pool, &id).await
-    }
-
-    async fn complete_task(&self, ctx: &Context<'_>, id: String, last_known_updated_at: String) -> async_graphql::Result<Task> {
-        let claims = ctx.data_opt::<Arc<Claims>>().ok_or_else(|| async_graphql::Error::new("Authentication required"))?;
-        let pool = ctx.data::<SqlitePool>()?;
-        let user_id = sqlx::query_as::<_, (String,)>("SELECT id FROM users WHERE username = ?1").bind(&claims.sub).fetch_one(pool).await?.0;
-        sqlx::query("UPDATE tasks SET status = 'done', completed_at = CURRENT_TIMESTAMP, completed_by = ?1, updated_at = CURRENT_TIMESTAMP WHERE id = ?2")
-            .bind(&user_id).bind(&id).execute(pool).await?;
-        read_task_with_derived_fields(pool, &id).await
-    }
-
-    async fn abandon_task(&self, ctx: &Context<'_>, id: String, last_known_updated_at: String) -> async_graphql::Result<Task> {
-        let claims = ctx.data_opt::<Arc<Claims>>().ok_or_else(|| async_graphql::Error::new("Authentication required"))?;
-        let pool = ctx.data::<SqlitePool>()?;
-        let user_id = sqlx::query_as::<_, (String,)>("SELECT id FROM users WHERE username = ?1").bind(&claims.sub).fetch_one(pool).await?.0;
-        sqlx::query("UPDATE tasks SET status = 'abandoned', abandoned_at = CURRENT_TIMESTAMP, abandoned_by = ?1, updated_at = CURRENT_TIMESTAMP WHERE id = ?2")
-            .bind(&user_id).bind(&id).execute(pool).await?;
-        read_task_with_derived_fields(pool, &id).await
-    }
-
-    async fn restore_task(&self, ctx: &Context<'_>, id: String, last_known_updated_at: String) -> async_graphql::Result<Task> {
-        let claims = ctx.data_opt::<Arc<Claims>>().ok_or_else(|| async_graphql::Error::new("Authentication required"))?;
-        let pool = ctx.data::<SqlitePool>()?;
-        sqlx::query("UPDATE tasks SET status = 'todo', abandoned_at = NULL, abandoned_by = NULL, updated_at = CURRENT_TIMESTAMP WHERE id = ?1")
-            .bind(&id).execute(pool).await?;
-        read_task_with_derived_fields(pool, &id).await
-    }
-}
-
-async fn read_task_with_derived_fields(pool: &SqlitePool, task_id: &str) -> async_graphql::Result<Task> {
-    let task_row = sqlx::query("SELECT id, project_id, title, description, assignee_id, status, created_by, created_at, updated_at FROM tasks WHERE id = ?1")
-        .bind(task_id).fetch_one(pool).await?;
-    Ok(Task {
-        id: task_row.get("id"), project_id: task_row.get("project_id"), title: task_row.get("title"),
-        description: task_row.get("description"), assignee_id: task_row.get("assignee_id"),
-        status: task_row.get::<String, _>("status").parse().unwrap_or(TaskStatus::Todo),
-        scheduled_date: None, scheduled_time_minutes: None, deadline_date: None, deadline_time_minutes: None,
-        completed_at: None, completed_by: None, abandoned_at: None, abandoned_by: None,
-        created_by: task_row.get("created_by"), created_at: task_row.get("created_at"), updated_at: task_row.get("updated_at"),
-        tag_ids: vec![], is_overdue: false, scheduled_datetime: None, deadline_datetime: None,
-    })
-}
