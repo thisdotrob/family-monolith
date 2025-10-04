@@ -12,6 +12,8 @@ instructions:
     content_file: todo-app-next-tickets-to-work-on.md
   - name: todo-app-pick-up-ticket
     content_file: todo-app/pick-up-ticket.md
+  - name: todo-app-code-review
+    content_file: todo-app/code-review.md
   - name: todo-app 002 server graphql projects queries
     content_file: todo-app-002_server_graphql_projects_queries.md
   - name: todo-app 003 server graphql projects mutations
