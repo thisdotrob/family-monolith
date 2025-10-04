@@ -2,6 +2,7 @@ use sqlx::{Row, SqlitePool};
 mod auth;
 mod tests_history;
 mod tests_recurring_series;
+mod tests_tasks_mutations;
 
 pub use crate::graphql::auth::{AuthenticatedMutation, UnauthenticatedMutation};
 use async_graphql::{Context, EmptySubscription, Schema};
