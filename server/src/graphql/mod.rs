@@ -180,14 +180,14 @@ impl QueryRoot {
         ctx: &Context<'_>,
         project_id: String,
         timezone: String,
-        statuses: Option<Vec<TaskStatus>>,
-        _assignee: Option<String>,
-        _include_unassigned: Option<bool>,
-        _assigned_to_me: Option<bool>,
-        _tag_ids: Option<Vec<String>>,
-        _search: Option<String>,
-        offset: Option<i32>,
-        limit: Option<i32>,
+        #[graphql(default_with = "vec![TaskStatus::Todo]")] statuses: Vec<TaskStatus>,
+        assignee: Option<String>,
+        #[graphql(default = false)] include_unassigned: bool,
+        #[graphql(default = false)] assigned_to_me: bool,
+        tag_ids: Option<Vec<String>>,
+        search: Option<String>,
+        #[graphql(default = 0)] offset: i32,
+        #[graphql(default = 20)] limit: i32,
     ) -> async_graphql::Result<PagedTasks> {
         let claims = match ctx.data_opt::<Arc<Claims>>() {
             Some(claims) => claims,
@@ -227,52 +227,123 @@ impl QueryRoot {
             ));
         }
 
-        // Start with a simple query for basic functionality
-        let mut base_query = String::from(
-            "SELECT t.id, t.project_id, t.author_id, t.assignee_id, t.series_id, t.title, t.description, 
-                    t.status, t.scheduled_date, t.scheduled_time_minutes, t.deadline_date, t.deadline_time_minutes,
-                    t.completed_at, t.completed_by, t.abandoned_at, t.abandoned_by, t.created_at, t.updated_at
-             FROM tasks t WHERE t.project_id = ?1"
-        );
-
-        // Handle default values
-        let statuses = statuses.unwrap_or_else(|| vec![TaskStatus::Todo]);
-        let offset = offset.unwrap_or(0);
-        let limit = limit.unwrap_or(20);
-
-        // Add status filter for todo by default
-        if statuses.len() == 1 && statuses[0] == TaskStatus::Todo {
-            base_query.push_str(" AND t.status = 'todo'");
+        // Build the base query with conditions
+        let mut where_conditions = vec!["t.project_id = ?".to_string()];
+        let mut join_clause = String::new();
+        
+        // Add join for tag filtering if needed
+        let need_tag_join = tag_ids.as_ref().map_or(false, |tags| !tags.is_empty());
+        if need_tag_join {
+            join_clause = " LEFT JOIN task_tags tt ON t.id = tt.task_id".to_string();
         }
 
-        // Add ordering according to spec: Scheduled, then Deadline, then Created
-        // NULL values go last in SQLite with ASC, so we need to handle this properly
-        base_query.push_str(
-            " ORDER BY 
-            CASE WHEN t.scheduled_date IS NULL THEN 1 ELSE 0 END,
-            t.scheduled_date ASC,
-            t.scheduled_time_minutes ASC,
-            CASE WHEN t.deadline_date IS NULL THEN 1 ELSE 0 END,
-            t.deadline_date ASC,
-            t.deadline_time_minutes ASC,
-            t.created_at ASC",
+        // Add status filtering
+        if !statuses.is_empty() {
+            if statuses.len() == 1 {
+                where_conditions.push("t.status = ?".to_string());
+            } else {
+                let placeholders = vec!["?"; statuses.len()].join(",");
+                where_conditions.push(format!("t.status IN ({})", placeholders));
+            }
+        }
+
+        // Add assignee filtering
+        if let Some(_) = &assignee {
+            where_conditions.push("t.assignee_id = ?".to_string());
+        } else if include_unassigned {
+            where_conditions.push("t.assignee_id IS NULL".to_string());
+        } else if assigned_to_me {
+            where_conditions.push("t.assignee_id = ?".to_string());
+        }
+
+        // Add tag filtering
+        if let Some(tags) = &tag_ids {
+            if !tags.is_empty() {
+                let placeholders = vec!["?"; tags.len()].join(",");
+                where_conditions.push(format!("tt.tag_id IN ({})", placeholders));
+            }
+        }
+
+        // Add search filtering
+        if let Some(search_term) = &search {
+            if !search_term.trim().is_empty() {
+                where_conditions.push("(t.title LIKE ? OR t.description LIKE ?)".to_string());
+            }
+        }
+
+        let where_clause = format!(" WHERE {}", where_conditions.join(" AND "));
+
+        let base_query = format!(
+            "SELECT DISTINCT t.id, t.project_id, t.author_id, t.assignee_id, t.series_id, t.title, t.description, 
+                    t.status, t.scheduled_date, t.scheduled_time_minutes, t.deadline_date, t.deadline_time_minutes,
+                    t.completed_at, t.completed_by, t.abandoned_at, t.abandoned_by, t.created_at, t.updated_at
+             FROM tasks t{}{}
+             ORDER BY 
+                CASE WHEN t.scheduled_date IS NULL AND t.deadline_date IS NULL THEN t.title ELSE '' END ASC,
+                CASE WHEN t.scheduled_date IS NULL THEN 1 ELSE 0 END,
+                t.scheduled_date ASC,
+                CASE WHEN t.scheduled_time_minutes IS NULL THEN 1 ELSE 0 END,
+                t.scheduled_time_minutes ASC,
+                CASE WHEN t.deadline_date IS NULL THEN 1 ELSE 0 END,
+                t.deadline_date ASC,
+                CASE WHEN t.deadline_time_minutes IS NULL THEN 1 ELSE 0 END,
+                t.deadline_time_minutes ASC,
+                t.created_at ASC
+             LIMIT {} OFFSET {}",
+            join_clause, where_clause, limit, offset
         );
 
-        base_query.push_str(&format!(" LIMIT {} OFFSET {}", limit, offset));
+        let count_query = format!(
+            "SELECT COUNT(DISTINCT t.id) FROM tasks t{}{}",
+            join_clause, where_clause
+        );
 
-        // Count total items - simplified for now
-        let total_count =
-            sqlx::query_as::<_, (i64,)>("SELECT COUNT(*) FROM tasks WHERE project_id = ?1")
-                .bind(&project_id)
-                .fetch_one(pool)
-                .await?
-                .0;
+        // Build the actual queries with parameter binding
+        let mut count_stmt = sqlx::query_as::<_, (i64,)>(&count_query).bind(&project_id);
+        let mut main_stmt = sqlx::query(&base_query).bind(&project_id);
 
-        // Execute the main query
-        let rows = sqlx::query(&base_query)
-            .bind(&project_id)
-            .fetch_all(pool)
-            .await?;
+        // Bind status parameters
+        for status in &statuses {
+            let status_str = match status {
+                TaskStatus::Todo => "todo",
+                TaskStatus::Done => "done",
+                TaskStatus::Abandoned => "abandoned",
+            };
+            count_stmt = count_stmt.bind(status_str);
+            main_stmt = main_stmt.bind(status_str);
+        }
+
+        // Bind assignee parameters
+        if let Some(assignee_id) = &assignee {
+            count_stmt = count_stmt.bind(assignee_id);
+            main_stmt = main_stmt.bind(assignee_id);
+        } else if assigned_to_me {
+            count_stmt = count_stmt.bind(&user_id);
+            main_stmt = main_stmt.bind(&user_id);
+        }
+
+        // Bind tag parameters
+        if let Some(tags) = &tag_ids {
+            for tag_id in tags {
+                count_stmt = count_stmt.bind(tag_id);
+                main_stmt = main_stmt.bind(tag_id);
+            }
+        }
+
+        // Bind search parameters
+        if let Some(search_term) = &search {
+            if !search_term.trim().is_empty() {
+                let search_pattern = format!("%{}%", search_term.trim());
+                count_stmt = count_stmt.bind(search_pattern.clone());
+                main_stmt = main_stmt.bind(search_pattern.clone());
+                count_stmt = count_stmt.bind(search_pattern.clone());
+                main_stmt = main_stmt.bind(search_pattern);
+            }
+        }
+
+        // Execute queries
+        let total_count = count_stmt.fetch_one(pool).await?.0;
+        let rows = main_stmt.fetch_all(pool).await?;
 
         let mut tasks = Vec::new();
         for row in rows {
