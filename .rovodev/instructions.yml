@@ -30,8 +30,20 @@ instructions:
     content_file: todo-app-008_server_graphql_tasks_list.md
   - name: todo-app 009 server graphql tasks mutations
     content_file: todo-app-009_server_graphql_tasks_mutations.md
-  - name: todo-app 009_1 server graphql auth refactor split modules
-    content_file: todo-app-009_1_server_graphql_auth_refactor_split_modules.md
+  - name: todo-app 009_1_1 server graphql auth module wiring and reexports
+    content_file: todo-app-009_1_1_server_graphql_auth_module_wiring_and_reexports.md
+  - name: todo-app 009_1_2 server graphql auth unauthenticated mutations split
+    content_file: todo-app-009_1_2_server_graphql_auth_unauthenticated_mutations_split.md
+  - name: todo-app 009_1_3 server graphql auth project mutations split
+    content_file: todo-app-009_1_3_server_graphql_auth_project_mutations_split.md
+  - name: todo-app 009_1_4 server graphql auth tag mutations split
+    content_file: todo-app-009_1_4_server_graphql_auth_tag_mutations_split.md
+  - name: todo-app 009_1_5 server graphql auth task mutations split
+    content_file: todo-app-009_1_5_server_graphql_auth_task_mutations_split.md
+  - name: todo-app 009_1_6 server graphql auth saved views mutations split
+    content_file: todo-app-009_1_6_server_graphql_auth_saved_views_mutations_split.md
+  - name: todo-app 009_1_7 server graphql auth recurring series mutations split
+    content_file: todo-app-009_1_7_server_graphql_auth_recurring_series_mutations_split.md
   - name: todo-app 009_2 server graphql expose task mutations
     content_file: todo-app-009_2_server_graphql_expose_task_mutations.md
   - name: todo-app 009_3 server archived guard status mutations
