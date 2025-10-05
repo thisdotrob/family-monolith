@@ -30,6 +30,16 @@ instructions:
     content_file: todo-app-008_server_graphql_tasks_list.md
   - name: todo-app 009 server graphql tasks mutations
     content_file: todo-app-009_server_graphql_tasks_mutations.md
+  - name: todo-app 009_1 server graphql auth refactor split modules
+    content_file: todo-app-009_1_server_graphql_auth_refactor_split_modules.md
+  - name: todo-app 009_2 server graphql expose task mutations
+    content_file: todo-app-009_2_server_graphql_expose_task_mutations.md
+  - name: todo-app 009_3 server archived guard status mutations
+    content_file: todo-app-009_3_server_archived_guard_status_mutations.md
+  - name: todo-app 009_4 server tasks date validation in mutations
+    content_file: todo-app-009_4_server_tasks_date_validation_in_mutations.md
+  - name: todo-app 009_5 server tests task mutations and integration fix
+    content_file: todo-app-009_5_server_tests_task_mutations_and_integration_fix.md
   - name: todo-app 010 server tasks derived fields
     content_file: todo-app-010_server_tasks_derived_fields.md
   - name: todo-app 011 server migrations saved views
