@@ -1,8 +1,6 @@
 #[cfg(test)]
 mod tests {
-    use super::*;
     use crate::auth::Claims;
-    use async_graphql::{Context, Schema};
     use chrono::{Duration, Utc};
     use sqlx::SqlitePool;
     use std::sync::Arc;

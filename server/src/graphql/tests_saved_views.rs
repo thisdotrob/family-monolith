@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod tests {
-    use crate::graphql::{SavedViewFilters, SavedViewFiltersInput};
+    use crate::graphql::{SavedViewFilters};
     use crate::tasks::TaskStatus;
     use serde_json;
 
