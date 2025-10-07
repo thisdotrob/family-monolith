@@ -5,8 +5,10 @@ mod tests_history;
 mod tests_integration;
 mod tests_recurring_series;
 mod tests_saved_views;
+mod unauthenticated;
 
-pub use crate::graphql::auth::{AuthenticatedMutation, UnauthenticatedMutation};
+pub use crate::graphql::auth::AuthenticatedMutation;
+pub use crate::graphql::unauthenticated::UnauthenticatedMutation;
 use async_graphql::{Context, EmptySubscription, Schema};
 use async_graphql::{InputObject, MergedObject, Object, SimpleObject};
 use serde::{Deserialize, Serialize};
