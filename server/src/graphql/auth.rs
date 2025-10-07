@@ -31,7 +31,11 @@ impl AuthenticatedMutation {
         LogoutPayload { success: rows > 0 }
     }
 
-    async fn create_tag(&self, ctx: &Context<'_>, name: String) -> async_graphql::Result<crate::graphql::Tag> {
+    async fn create_tag(
+        &self,
+        ctx: &Context<'_>,
+        name: String,
+    ) -> async_graphql::Result<crate::graphql::Tag> {
         crate::graphql::takenlijst::tags::create_tag(ctx, name).await
     }
 

@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod integration_tests {
     use crate::graphql::build;
-    use crate::tasks::{time_utils, TaskBucket};
+    use crate::tasks::{TaskBucket, time_utils};
     use async_graphql::{Request, Response, Variables};
     use chrono::{Days, NaiveDate, Utc};
     use chrono_tz::Tz;
@@ -54,7 +54,8 @@ mod integration_tests {
 
     fn shift_date(base: NaiveDate, days: i64) -> NaiveDate {
         if days >= 0 {
-            base.checked_add_days(Days::new(days as u64)).unwrap_or(base)
+            base.checked_add_days(Days::new(days as u64))
+                .unwrap_or(base)
         } else {
             base.checked_sub_days(Days::new(days.abs() as u64))
                 .unwrap_or(base)
@@ -289,13 +290,8 @@ mod integration_tests {
         let tomorrow_str = date_str(tomorrow);
         let future_str = date_str(future);
 
-        let overdue_expected = time_utils::get_task_bucket(
-            Some(yesterday_str.as_str()),
-            None,
-            None,
-            None,
-            tz,
-        );
+        let overdue_expected =
+            time_utils::get_task_bucket(Some(yesterday_str.as_str()), None, None, None, tz);
 
         // Find specific tasks and verify their derived fields
         let overdue_task = items
@@ -303,58 +299,31 @@ mod integration_tests {
             .find(|t| t["id"] == "task1")
             .expect("Should find overdue task");
         assert_eq!(overdue_task["isOverdue"], true);
-        assert_eq!(
-            parse_bucket(&overdue_task["bucket"]),
-            overdue_expected
-        );
+        assert_eq!(parse_bucket(&overdue_task["bucket"]), overdue_expected);
 
         let today_task = items
             .iter()
             .find(|t| t["id"] == "task2")
             .expect("Should find today task");
-        let today_expected = time_utils::get_task_bucket(
-            Some(today_str.as_str()),
-            Some(540),
-            None,
-            None,
-            tz,
-        );
-        assert_eq!(
-            parse_bucket(&today_task["bucket"]),
-            today_expected
-        );
+        let today_expected =
+            time_utils::get_task_bucket(Some(today_str.as_str()), Some(540), None, None, tz);
+        assert_eq!(parse_bucket(&today_task["bucket"]), today_expected);
 
         let tomorrow_task = items
             .iter()
             .find(|t| t["id"] == "task3")
             .expect("Should find tomorrow task");
-        let tomorrow_expected = time_utils::get_task_bucket(
-            Some(tomorrow_str.as_str()),
-            None,
-            None,
-            None,
-            tz,
-        );
-        assert_eq!(
-            parse_bucket(&tomorrow_task["bucket"]),
-            tomorrow_expected
-        );
+        let tomorrow_expected =
+            time_utils::get_task_bucket(Some(tomorrow_str.as_str()), None, None, None, tz);
+        assert_eq!(parse_bucket(&tomorrow_task["bucket"]), tomorrow_expected);
 
         let future_task = items
             .iter()
             .find(|t| t["id"] == "task4")
             .expect("Should find future task");
-        let future_expected = time_utils::get_task_bucket(
-            Some(future_str.as_str()),
-            None,
-            None,
-            None,
-            tz,
-        );
-        assert_eq!(
-            parse_bucket(&future_task["bucket"]),
-            future_expected
-        );
+        let future_expected =
+            time_utils::get_task_bucket(Some(future_str.as_str()), None, None, None, tz);
+        assert_eq!(parse_bucket(&future_task["bucket"]), future_expected);
 
         let deadline_task = items
             .iter()
@@ -366,10 +335,7 @@ mod integration_tests {
             .iter()
             .find(|t| t["id"] == "task6")
             .expect("Should find no date task");
-        assert_eq!(
-            parse_bucket(&no_date_task["bucket"]),
-            TaskBucket::NoDate
-        );
+        assert_eq!(parse_bucket(&no_date_task["bucket"]), TaskBucket::NoDate);
     }
 
     #[tokio::test]
@@ -625,12 +591,7 @@ mod integration_tests {
         let test_tasks = vec![
             ("order1", "No Date Task A", None, None),
             ("order2", "No Date Task B", None, None),
-            (
-                "order3",
-                "Tomorrow Task",
-                Some(tomorrow_str.clone()),
-                None,
-            ),
+            ("order3", "Tomorrow Task", Some(tomorrow_str.clone()), None),
             (
                 "order4",
                 "Today Task Early",
