@@ -1,5 +1,6 @@
 use sqlx::{Row, SqlitePool};
 mod auth;
+mod takenlijst;
 mod tests_history;
 mod tests_integration;
 mod tests_recurring_series;
