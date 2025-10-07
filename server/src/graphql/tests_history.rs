@@ -158,7 +158,7 @@ mod tests {
 
         let query = r#"
             query {
-                history(statuses: [done, abandoned], timezone: "UTC") {
+                history(statuses: [DONE, ABANDONED], timezone: "UTC") {
                     totalCount
                     items {
                         id
@@ -215,7 +215,7 @@ mod tests {
         // Test only done tasks
         let query = r#"
             query {
-                history(statuses: [done], timezone: "UTC") {
+                history(statuses: [DONE], timezone: "UTC") {
                     totalCount
                     items {
                         id
@@ -241,7 +241,7 @@ mod tests {
         // Test only abandoned tasks
         let query = r#"
             query {
-                history(statuses: [abandoned], timezone: "UTC") {
+                history(statuses: [ABANDONED], timezone: "UTC") {
                     totalCount
                     items {
                         id
@@ -284,7 +284,7 @@ mod tests {
         let query = format!(
             r#"
             query {{
-                history(statuses: [done], projectId: "{}", timezone: "UTC") {{
+                history(statuses: [DONE], projectId: "{}", timezone: "UTC") {{
                     totalCount
                     items {{
                         id
@@ -329,7 +329,7 @@ mod tests {
         let query = format!(
             r#"
             query {{
-                history(statuses: [done], tagIds: ["{}"], timezone: "UTC") {{
+                history(statuses: [DONE], tagIds: ["{}"], timezone: "UTC") {{
                     totalCount
                     items {{
                         id
@@ -370,7 +370,7 @@ mod tests {
 
         let query = r#"
             query {
-                history(statuses: [done], timezone: "UTC", limit: 2, offset: 0) {
+                history(statuses: [DONE], timezone: "UTC", limit: 2, offset: 0) {
                     totalCount
                     items {
                         id
@@ -416,7 +416,7 @@ mod tests {
         let query = format!(
             r#"
             query {{
-                history(statuses: [done], timezone: "UTC", fromDate: "{}", toDate: "{}") {{
+                history(statuses: [DONE], timezone: "UTC", fromDate: "{}", toDate: "{}") {{
                     totalCount
                     items {{
                         id

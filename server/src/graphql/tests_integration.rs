@@ -1,8 +1,7 @@
 #[cfg(test)]
 mod integration_tests {
-    use crate::db::init;
     use crate::graphql::build;
-    use async_graphql::http::{GraphQLRequest, GraphQLResponse};
+    use async_graphql::{Request, Response, Variables};
     use serde_json::{Value, json};
     use sqlx::SqlitePool;
 
@@ -42,19 +41,25 @@ mod integration_tests {
         pool
     }
 
+    fn response_data(response: &Response) -> serde_json::Value {
+        response
+            .data
+            .clone()
+            .into_json()
+            .expect("Response data should convert to JSON")
+    }
+
     async fn execute_graphql_query(
         schema: &crate::graphql::AppSchema,
         query: &str,
         variables: Option<Value>,
         user_id: Option<&str>,
-    ) -> GraphQLResponse {
-        let mut request = GraphQLRequest::new(query);
+    ) -> Response {
+        let mut request = Request::new(query);
         if let Some(vars) = variables {
-            request = request.variables(vars);
+            request = request.variables(Variables::from_json(vars));
         }
 
-        // Add user context if provided
-        let mut ctx = async_graphql::Request::from(request);
         if let Some(uid) = user_id {
             use crate::auth::Claims;
             use std::sync::Arc;
@@ -63,40 +68,40 @@ mod integration_tests {
                 sub: uid.to_string(),
                 exp: 9999999999, // Far future expiry
             };
-            ctx = ctx.data(Arc::new(claims));
+            request = request.data(Arc::new(claims));
         }
 
-        schema.execute(ctx).await.into()
+        schema.execute(request).await
     }
 
     async fn seed_tasks_for_timezone_testing(pool: &SqlitePool) {
         // Insert tasks with various dates and times for timezone testing
         let tasks = [
             // Overdue task (yesterday)
-            ("task1", "Overdue Task", "2025-01-01", None, None, None),
+            ("task1", "Overdue Task", Some("2025-01-01"), None, None, None),
             // Today task (scheduled)
-            ("task2", "Today Task", "2025-01-02", Some(540), None, None), // 9:00 AM
+            ("task2", "Today Task", Some("2025-01-02"), Some(540), None, None), // 9:00 AM
             // Tomorrow task
-            ("task3", "Tomorrow Task", "2025-01-03", None, None, None),
+            ("task3", "Tomorrow Task", Some("2025-01-03"), None, None, None),
             // Future task
-            ("task4", "Future Task", "2025-01-10", None, None, None),
+            ("task4", "Future Task", Some("2025-01-10"), None, None, None),
             // Task with deadline (overdue)
             (
                 "task5",
                 "Deadline Overdue",
                 None,
                 None,
-                "2025-01-01",
+                Some("2025-01-01"),
                 Some(720),
             ), // 12:00 PM
             // Task with no dates
             ("task6", "No Date Task", None, None, None, None),
             // Completed task for history
-            ("task7", "Completed Task", "2025-01-01", None, None, None),
+            ("task7", "Completed Task", Some("2025-01-01"), None, None, None),
             // Another completed task
-            ("task8", "Another Completed", "2025-01-02", None, None, None),
+            ("task8", "Another Completed", Some("2025-01-02"), None, None, None),
             // Abandoned task
-            ("task9", "Abandoned Task", "2025-01-02", None, None, None),
+            ("task9", "Abandoned Task", Some("2025-01-02"), None, None, None),
         ];
 
         for (id, title, scheduled_date, scheduled_time, deadline_date, deadline_time) in tasks {
@@ -164,7 +169,7 @@ mod integration_tests {
             response.errors
         );
 
-        let data = response.data.expect("No data in response");
+        let data = response_data(&response);
         let tasks = &data["tasks"];
 
         assert_eq!(tasks["totalCount"], 6); // 6 todo tasks
@@ -177,25 +182,25 @@ mod integration_tests {
             .find(|t| t["id"] == "task1")
             .expect("Should find overdue task");
         assert_eq!(overdue_task["isOverdue"], true);
-        assert_eq!(overdue_task["bucket"], "Overdue");
+        assert_eq!(overdue_task["bucket"], "OVERDUE");
 
         let today_task = items
             .iter()
             .find(|t| t["id"] == "task2")
             .expect("Should find today task");
-        assert_eq!(today_task["bucket"], "Today");
+        assert_eq!(today_task["bucket"], "TODAY");
 
         let tomorrow_task = items
             .iter()
             .find(|t| t["id"] == "task3")
             .expect("Should find tomorrow task");
-        assert_eq!(tomorrow_task["bucket"], "Tomorrow");
+        assert_eq!(tomorrow_task["bucket"], "TOMORROW");
 
         let future_task = items
             .iter()
             .find(|t| t["id"] == "task4")
             .expect("Should find future task");
-        assert_eq!(future_task["bucket"], "Upcoming");
+        assert_eq!(future_task["bucket"], "UPCOMING");
 
         let deadline_task = items
             .iter()
@@ -207,7 +212,7 @@ mod integration_tests {
             .iter()
             .find(|t| t["id"] == "task6")
             .expect("Should find no date task");
-        assert_eq!(no_date_task["bucket"], "NoDate");
+        assert_eq!(no_date_task["bucket"], "NO_DATE");
     }
 
     #[tokio::test]
@@ -261,7 +266,7 @@ mod integration_tests {
             response.errors
         );
 
-        let data = response.data.expect("No data in response");
+        let data = response_data(&response);
         let tasks = &data["tasks"];
 
         assert!(tasks["totalCount"].as_i64().unwrap() >= 1);
@@ -326,7 +331,7 @@ mod integration_tests {
             response.errors
         );
 
-        let data = response.data.expect("No data in response");
+        let data = response_data(&response);
         let tasks = &data["tasks"];
 
         assert!(tasks["totalCount"].as_i64().unwrap() >= 1);
@@ -392,7 +397,7 @@ mod integration_tests {
             response.errors
         );
 
-        let data = response.data.expect("No data in response");
+        let data = response_data(&response);
         let tasks = &data["tasks"];
 
         assert_eq!(tasks["totalCount"], 25);
@@ -414,7 +419,7 @@ mod integration_tests {
             response.errors
         );
 
-        let data = response.data.expect("No data in response");
+        let data = response_data(&response);
         let tasks = &data["tasks"];
 
         assert_eq!(tasks["totalCount"], 25);
@@ -436,7 +441,7 @@ mod integration_tests {
             response.errors
         );
 
-        let data = response.data.expect("No data in response");
+        let data = response_data(&response);
         let tasks = &data["tasks"];
 
         assert_eq!(tasks["totalCount"], 25);
@@ -502,7 +507,7 @@ mod integration_tests {
             response.errors
         );
 
-        let data = response.data.expect("No data in response");
+        let data = response_data(&response);
         let items = data["tasks"]["items"]
             .as_array()
             .expect("Items should be array");
@@ -546,8 +551,8 @@ mod integration_tests {
                 "hist1",
                 "Completed Task 1",
                 "done",
-                "2025-01-01T10:00:00Z",
-                "user1",
+                Some("2025-01-01T10:00:00Z"),
+                Some("user1"),
                 None,
                 None,
             ),
@@ -555,8 +560,8 @@ mod integration_tests {
                 "hist2",
                 "Completed Task 2",
                 "done",
-                "2025-01-01T11:00:00Z",
-                "user1",
+                Some("2025-01-01T11:00:00Z"),
+                Some("user1"),
                 None,
                 None,
             ),
@@ -564,8 +569,8 @@ mod integration_tests {
                 "hist3",
                 "Completed Task 3",
                 "done",
-                "2025-01-02T09:00:00Z",
-                "user1",
+                Some("2025-01-02T09:00:00Z"),
+                Some("user1"),
                 None,
                 None,
             ),
@@ -575,8 +580,8 @@ mod integration_tests {
                 "abandoned",
                 None,
                 None,
-                "2025-01-01T14:00:00Z",
-                "user1",
+                Some("2025-01-01T14:00:00Z"),
+                Some("user1"),
             ),
             (
                 "hist5",
@@ -584,8 +589,8 @@ mod integration_tests {
                 "abandoned",
                 None,
                 None,
-                "2025-01-02T15:00:00Z",
-                "user1",
+                Some("2025-01-02T15:00:00Z"),
+                Some("user1"),
             ),
         ];
 
@@ -632,7 +637,7 @@ mod integration_tests {
 
         // Test with both done and abandoned tasks
         let variables = json!({
-            "statuses": ["done", "abandoned"],
+            "statuses": ["DONE", "ABANDONED"],
             "timezone": "UTC",
             "limit": 3,
             "offset": 0
@@ -646,7 +651,7 @@ mod integration_tests {
             response.errors
         );
 
-        let data = response.data.expect("No data in response");
+        let data = response_data(&response);
         let history = &data["history"];
 
         assert_eq!(history["totalCount"], 5);
@@ -655,7 +660,7 @@ mod integration_tests {
         // Test ordering (should be most recent first)
         let items = history["items"].as_array().unwrap();
         let first_item = &items[0];
-        let second_item = &items[1];
+        let _second_item = &items[1];
 
         // Verify derived fields are computed even for completed/abandoned tasks
         assert!(first_item["isOverdue"].is_boolean());
@@ -663,7 +668,7 @@ mod integration_tests {
 
         // Test second page
         let variables = json!({
-            "statuses": ["done", "abandoned"],
+            "statuses": ["DONE", "ABANDONED"],
             "timezone": "UTC",
             "limit": 3,
             "offset": 3
@@ -677,7 +682,7 @@ mod integration_tests {
             response.errors
         );
 
-        let data = response.data.expect("No data in response");
+        let data = response_data(&response);
         let history = &data["history"];
 
         assert_eq!(history["totalCount"], 5);
@@ -752,7 +757,7 @@ mod integration_tests {
         "#;
 
         let variables = json!({
-            "statuses": ["done"],
+            "statuses": ["DONE"],
             "timezone": "UTC"
         });
 
@@ -764,7 +769,7 @@ mod integration_tests {
             response.errors
         );
 
-        let data = response.data.expect("No data in response");
+        let data = response_data(&response);
         let items = data["history"]["items"]
             .as_array()
             .expect("Items should be array");
@@ -840,7 +845,7 @@ mod integration_tests {
         "#;
 
         let variables = json!({
-            "statuses": ["done"],
+            "statuses": ["DONE"],
             "timezone": "Europe/Amsterdam"
         });
 
@@ -852,7 +857,7 @@ mod integration_tests {
             response.errors
         );
 
-        let data = response.data.expect("No data in response");
+        let data = response_data(&response);
         let history = &data["history"];
 
         assert!(history["totalCount"].as_i64().unwrap() >= 1);
@@ -907,7 +912,7 @@ mod integration_tests {
         "#;
 
         let variables = json!({
-            "statuses": ["abandoned"],
+            "statuses": ["ABANDONED"],
             "timezone": "America/New_York"
         });
 
@@ -919,7 +924,7 @@ mod integration_tests {
             response.errors
         );
 
-        let data = response.data.expect("No data in response");
+        let data = response_data(&response);
         let history = &data["history"];
 
         assert!(history["totalCount"].as_i64().unwrap() >= 1);
