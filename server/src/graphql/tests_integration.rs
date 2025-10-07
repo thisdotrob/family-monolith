@@ -1,7 +1,10 @@
 #[cfg(test)]
 mod integration_tests {
     use crate::graphql::build;
+    use crate::tasks::{time_utils, TaskBucket};
     use async_graphql::{Request, Response, Variables};
+    use chrono::{Days, NaiveDate, Utc};
+    use chrono_tz::Tz;
     use serde_json::{Value, json};
     use sqlx::SqlitePool;
 
@@ -49,6 +52,34 @@ mod integration_tests {
             .expect("Response data should convert to JSON")
     }
 
+    fn shift_date(base: NaiveDate, days: i64) -> NaiveDate {
+        if days >= 0 {
+            base.checked_add_days(Days::new(days as u64)).unwrap_or(base)
+        } else {
+            base.checked_sub_days(Days::new(days.abs() as u64))
+                .unwrap_or(base)
+        }
+    }
+
+    fn date_str(date: NaiveDate) -> String {
+        date.format("%Y-%m-%d").to_string()
+    }
+
+    fn datetime_str(date: NaiveDate, time: &str) -> String {
+        format!("{}T{}", date_str(date), time)
+    }
+
+    fn parse_bucket(value: &serde_json::Value) -> TaskBucket {
+        match value.as_str().expect("bucket should be a string") {
+            "OVERDUE" => TaskBucket::Overdue,
+            "TODAY" => TaskBucket::Today,
+            "TOMORROW" => TaskBucket::Tomorrow,
+            "UPCOMING" => TaskBucket::Upcoming,
+            "NO_DATE" => TaskBucket::NoDate,
+            other => panic!("Unexpected bucket value: {}", other),
+        }
+    }
+
     async fn execute_graphql_query(
         schema: &crate::graphql::AppSchema,
         query: &str,
@@ -76,33 +107,96 @@ mod integration_tests {
 
     async fn seed_tasks_for_timezone_testing(pool: &SqlitePool) {
         // Insert tasks with various dates and times for timezone testing
-        let tasks = [
+        let today = Utc::now().date_naive();
+        let yesterday = shift_date(today, -1);
+        let tomorrow = shift_date(today, 1);
+        let future = shift_date(today, 8);
+
+        let yesterday_str = date_str(yesterday);
+        let today_str = date_str(today);
+        let tomorrow_str = date_str(tomorrow);
+        let future_str = date_str(future);
+
+        let tasks = vec![
             // Overdue task (yesterday)
-            ("task1", "Overdue Task", Some("2025-01-01"), None, None, None),
+            (
+                "task1",
+                "Overdue Task",
+                Some(yesterday_str.clone()),
+                None,
+                None,
+                None,
+            ),
             // Today task (scheduled)
-            ("task2", "Today Task", Some("2025-01-02"), Some(540), None, None), // 9:00 AM
+            (
+                "task2",
+                "Today Task",
+                Some(today_str.clone()),
+                Some(540),
+                None,
+                None,
+            ), // 9:00 AM
             // Tomorrow task
-            ("task3", "Tomorrow Task", Some("2025-01-03"), None, None, None),
+            (
+                "task3",
+                "Tomorrow Task",
+                Some(tomorrow_str.clone()),
+                None,
+                None,
+                None,
+            ),
             // Future task
-            ("task4", "Future Task", Some("2025-01-10"), None, None, None),
+            (
+                "task4",
+                "Future Task",
+                Some(future_str.clone()),
+                None,
+                None,
+                None,
+            ),
             // Task with deadline (overdue)
             (
                 "task5",
                 "Deadline Overdue",
                 None,
                 None,
-                Some("2025-01-01"),
+                Some(yesterday_str.clone()),
                 Some(720),
             ), // 12:00 PM
             // Task with no dates
             ("task6", "No Date Task", None, None, None, None),
             // Completed task for history
-            ("task7", "Completed Task", Some("2025-01-01"), None, None, None),
+            (
+                "task7",
+                "Completed Task",
+                Some(yesterday_str.clone()),
+                None,
+                None,
+                None,
+            ),
             // Another completed task
-            ("task8", "Another Completed", Some("2025-01-02"), None, None, None),
+            (
+                "task8",
+                "Another Completed",
+                Some(today_str.clone()),
+                None,
+                None,
+                None,
+            ),
             // Abandoned task
-            ("task9", "Abandoned Task", Some("2025-01-02"), None, None, None),
+            (
+                "task9",
+                "Abandoned Task",
+                Some(today_str.clone()),
+                None,
+                None,
+                None,
+            ),
         ];
+
+        let completed_at_done = datetime_str(today, "10:00:00Z");
+        let completed_by = "user1";
+        let abandoned_at = datetime_str(today, "11:00:00Z");
 
         for (id, title, scheduled_date, scheduled_time, deadline_date, deadline_time) in tasks {
             let status = match id {
@@ -120,14 +214,22 @@ mod integration_tests {
             .bind("user1")
             .bind(title)
             .bind(status)
-            .bind(scheduled_date)
+            .bind(scheduled_date.as_deref())
             .bind(scheduled_time)
-            .bind(deadline_date)
+            .bind(deadline_date.as_deref())
             .bind(deadline_time)
-            .bind(if status == "done" { Some("2025-01-02T10:00:00Z") } else { None })
-            .bind(if status == "done" { Some("user1") } else { None })
-            .bind(if status == "abandoned" { Some("2025-01-02T11:00:00Z") } else { None })
-            .bind(if status == "abandoned" { Some("user1") } else { None })
+            .bind(if status == "done" {
+                Some(completed_at_done.as_str())
+            } else {
+                None
+            })
+            .bind(if status == "done" { Some(completed_by) } else { None })
+            .bind(if status == "abandoned" {
+                Some(abandoned_at.as_str())
+            } else {
+                None
+            })
+            .bind(if status == "abandoned" { Some(completed_by) } else { None })
             .execute(pool)
             .await
             .expect(&format!("Failed to insert task {}", id));
@@ -176,31 +278,83 @@ mod integration_tests {
 
         let items = tasks["items"].as_array().expect("Items should be array");
 
+        let tz: Tz = "UTC".parse().unwrap();
+        let today = Utc::now().date_naive();
+        let yesterday = shift_date(today, -1);
+        let tomorrow = shift_date(today, 1);
+        let future = shift_date(today, 8);
+
+        let yesterday_str = date_str(yesterday);
+        let today_str = date_str(today);
+        let tomorrow_str = date_str(tomorrow);
+        let future_str = date_str(future);
+
+        let overdue_expected = time_utils::get_task_bucket(
+            Some(yesterday_str.as_str()),
+            None,
+            None,
+            None,
+            tz,
+        );
+
         // Find specific tasks and verify their derived fields
         let overdue_task = items
             .iter()
             .find(|t| t["id"] == "task1")
             .expect("Should find overdue task");
         assert_eq!(overdue_task["isOverdue"], true);
-        assert_eq!(overdue_task["bucket"], "OVERDUE");
+        assert_eq!(
+            parse_bucket(&overdue_task["bucket"]),
+            overdue_expected
+        );
 
         let today_task = items
             .iter()
             .find(|t| t["id"] == "task2")
             .expect("Should find today task");
-        assert_eq!(today_task["bucket"], "TODAY");
+        let today_expected = time_utils::get_task_bucket(
+            Some(today_str.as_str()),
+            Some(540),
+            None,
+            None,
+            tz,
+        );
+        assert_eq!(
+            parse_bucket(&today_task["bucket"]),
+            today_expected
+        );
 
         let tomorrow_task = items
             .iter()
             .find(|t| t["id"] == "task3")
             .expect("Should find tomorrow task");
-        assert_eq!(tomorrow_task["bucket"], "TOMORROW");
+        let tomorrow_expected = time_utils::get_task_bucket(
+            Some(tomorrow_str.as_str()),
+            None,
+            None,
+            None,
+            tz,
+        );
+        assert_eq!(
+            parse_bucket(&tomorrow_task["bucket"]),
+            tomorrow_expected
+        );
 
         let future_task = items
             .iter()
             .find(|t| t["id"] == "task4")
             .expect("Should find future task");
-        assert_eq!(future_task["bucket"], "UPCOMING");
+        let future_expected = time_utils::get_task_bucket(
+            Some(future_str.as_str()),
+            None,
+            None,
+            None,
+            tz,
+        );
+        assert_eq!(
+            parse_bucket(&future_task["bucket"]),
+            future_expected
+        );
 
         let deadline_task = items
             .iter()
@@ -212,7 +366,10 @@ mod integration_tests {
             .iter()
             .find(|t| t["id"] == "task6")
             .expect("Should find no date task");
-        assert_eq!(no_date_task["bucket"], "NO_DATE");
+        assert_eq!(
+            parse_bucket(&no_date_task["bucket"]),
+            TaskBucket::NoDate
+        );
     }
 
     #[tokio::test]
@@ -220,6 +377,8 @@ mod integration_tests {
         let pool = setup_test_db().await;
 
         // Seed tasks with dates that will behave differently in Amsterdam timezone
+        let today = Utc::now().date_naive();
+        let amsterdam_date = date_str(today);
         sqlx::query(
             "INSERT INTO tasks (id, project_id, author_id, title, status, scheduled_date, scheduled_time_minutes, created_at, updated_at) 
              VALUES (?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))"
@@ -229,7 +388,7 @@ mod integration_tests {
         .bind("user1")
         .bind("Amsterdam Task")
         .bind("todo")
-        .bind("2025-01-02") // Today in UTC, but might be different in Amsterdam
+        .bind(amsterdam_date.as_str()) // Today in UTC, but might be different in Amsterdam
         .bind(60) // 1:00 AM
         .execute(&pool)
         .await
@@ -287,6 +446,8 @@ mod integration_tests {
         let pool = setup_test_db().await;
 
         // Seed a task for New York timezone testing
+        let today = Utc::now().date_naive();
+        let ny_date = date_str(today);
         sqlx::query(
             "INSERT INTO tasks (id, project_id, author_id, title, status, scheduled_date, scheduled_time_minutes, created_at, updated_at) 
              VALUES (?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))"
@@ -296,7 +457,7 @@ mod integration_tests {
         .bind("user1")
         .bind("New York Task")
         .bind("todo")
-        .bind("2025-01-02") 
+        .bind(ny_date.as_str())
         .bind(300) // 5:00 AM
         .execute(&pool)
         .await
@@ -453,13 +614,41 @@ mod integration_tests {
         let pool = setup_test_db().await;
 
         // Insert tasks with different dates to test ordering
-        let test_tasks = [
+        let today = Utc::now().date_naive();
+        let tomorrow = shift_date(today, 1);
+        let yesterday = shift_date(today, -1);
+
+        let today_str = date_str(today);
+        let tomorrow_str = date_str(tomorrow);
+        let yesterday_str = date_str(yesterday);
+
+        let test_tasks = vec![
             ("order1", "No Date Task A", None, None),
             ("order2", "No Date Task B", None, None),
-            ("order3", "Tomorrow Task", Some("2025-01-03"), None),
-            ("order4", "Today Task Early", Some("2025-01-02"), Some(480)), // 8:00 AM
-            ("order5", "Today Task Late", Some("2025-01-02"), Some(960)),  // 4:00 PM
-            ("order6", "Yesterday Task", Some("2025-01-01"), None),
+            (
+                "order3",
+                "Tomorrow Task",
+                Some(tomorrow_str.clone()),
+                None,
+            ),
+            (
+                "order4",
+                "Today Task Early",
+                Some(today_str.clone()),
+                Some(480),
+            ), // 8:00 AM
+            (
+                "order5",
+                "Today Task Late",
+                Some(today_str.clone()),
+                Some(960),
+            ), // 4:00 PM
+            (
+                "order6",
+                "Yesterday Task",
+                Some(yesterday_str.clone()),
+                None,
+            ),
         ];
 
         for (id, title, scheduled_date, scheduled_time) in test_tasks {
@@ -472,7 +661,7 @@ mod integration_tests {
             .bind("user1")
             .bind(title)
             .bind("todo")
-            .bind(scheduled_date)
+            .bind(scheduled_date.as_deref())
             .bind(scheduled_time)
             .execute(&pool)
             .await
@@ -546,12 +735,22 @@ mod integration_tests {
         let pool = setup_test_db().await;
 
         // Insert completed and abandoned tasks for history testing
+        let today = Utc::now().date_naive();
+        let yesterday = shift_date(today, -1);
+        let two_days_ago = shift_date(today, -2);
+
+        let hist1_completed = datetime_str(two_days_ago, "10:00:00Z");
+        let hist2_completed = datetime_str(two_days_ago, "11:00:00Z");
+        let hist3_completed = datetime_str(yesterday, "09:00:00Z");
+        let hist4_abandoned = datetime_str(two_days_ago, "14:00:00Z");
+        let hist5_abandoned = datetime_str(yesterday, "15:00:00Z");
+
         let history_tasks = [
             (
                 "hist1",
                 "Completed Task 1",
                 "done",
-                Some("2025-01-01T10:00:00Z"),
+                Some(hist1_completed.clone()),
                 Some("user1"),
                 None,
                 None,
@@ -560,7 +759,7 @@ mod integration_tests {
                 "hist2",
                 "Completed Task 2",
                 "done",
-                Some("2025-01-01T11:00:00Z"),
+                Some(hist2_completed.clone()),
                 Some("user1"),
                 None,
                 None,
@@ -569,7 +768,7 @@ mod integration_tests {
                 "hist3",
                 "Completed Task 3",
                 "done",
-                Some("2025-01-02T09:00:00Z"),
+                Some(hist3_completed.clone()),
                 Some("user1"),
                 None,
                 None,
@@ -580,7 +779,7 @@ mod integration_tests {
                 "abandoned",
                 None,
                 None,
-                Some("2025-01-01T14:00:00Z"),
+                Some(hist4_abandoned.clone()),
                 Some("user1"),
             ),
             (
@@ -589,7 +788,7 @@ mod integration_tests {
                 "abandoned",
                 None,
                 None,
-                Some("2025-01-02T15:00:00Z"),
+                Some(hist5_abandoned.clone()),
                 Some("user1"),
             ),
         ];
@@ -619,8 +818,22 @@ mod integration_tests {
 
         // Test history query with pagination and timezone
         let query = r#"
-            query TestHistory($statuses: [TaskStatus!]!, $timezone: String!, $limit: Int!, $offset: Int!) {
-                history(statuses: $statuses, timezone: $timezone, limit: $limit, offset: $offset) {
+            query TestHistory(
+                $statuses: [TaskStatus!]!,
+                $timezone: String!,
+                $limit: Int!,
+                $offset: Int!,
+                $fromDate: String!,
+                $toDate: String!
+            ) {
+                history(
+                    statuses: $statuses,
+                    timezone: $timezone,
+                    limit: $limit,
+                    offset: $offset,
+                    fromDate: $fromDate,
+                    toDate: $toDate
+                ) {
                     totalCount
                     items {
                         id
@@ -635,12 +848,17 @@ mod integration_tests {
             }
         "#;
 
+        let from_date = date_str(two_days_ago);
+        let to_date = date_str(today);
+
         // Test with both done and abandoned tasks
         let variables = json!({
             "statuses": ["DONE", "ABANDONED"],
             "timezone": "UTC",
             "limit": 3,
-            "offset": 0
+            "offset": 0,
+            "fromDate": from_date.clone(),
+            "toDate": to_date.clone()
         });
 
         let response =
@@ -671,7 +889,9 @@ mod integration_tests {
             "statuses": ["DONE", "ABANDONED"],
             "timezone": "UTC",
             "limit": 3,
-            "offset": 3
+            "offset": 3,
+            "fromDate": from_date,
+            "toDate": to_date
         });
 
         let response =
@@ -694,33 +914,36 @@ mod integration_tests {
         let pool = setup_test_db().await;
 
         // Insert tasks completed at different times on the same day and different days
+        let today = Utc::now().date_naive();
+        let next_day = shift_date(today, 1);
+
         let tasks = [
             (
                 "day1_early",
                 "Early Morning Task",
                 "done",
-                "2025-01-02T08:00:00Z",
+                datetime_str(today, "08:00:00Z"),
                 "user1",
             ),
             (
                 "day1_late",
                 "Late Evening Task",
                 "done",
-                "2025-01-02T22:00:00Z",
+                datetime_str(today, "22:00:00Z"),
                 "user1",
             ),
             (
                 "day2_task",
                 "Next Day Task",
                 "done",
-                "2025-01-03T12:00:00Z",
+                datetime_str(next_day, "12:00:00Z"),
                 "user1",
             ),
             (
                 "day1_mid",
                 "Midday Task",
                 "done",
-                "2025-01-02T12:00:00Z",
+                datetime_str(today, "12:00:00Z"),
                 "user1",
             ),
         ];
@@ -745,8 +968,18 @@ mod integration_tests {
         let schema = build(pool);
 
         let query = r#"
-            query TestDayGrouping($statuses: [TaskStatus!]!, $timezone: String!) {
-                history(statuses: $statuses, timezone: $timezone) {
+            query TestDayGrouping(
+                $statuses: [TaskStatus!]!,
+                $timezone: String!,
+                $fromDate: String!,
+                $toDate: String!
+            ) {
+                history(
+                    statuses: $statuses,
+                    timezone: $timezone,
+                    fromDate: $fromDate,
+                    toDate: $toDate
+                ) {
                     items {
                         id
                         title
@@ -758,7 +991,9 @@ mod integration_tests {
 
         let variables = json!({
             "statuses": ["DONE"],
-            "timezone": "UTC"
+            "timezone": "UTC",
+            "fromDate": date_str(today),
+            "toDate": date_str(next_day)
         });
 
         let response =
@@ -790,17 +1025,19 @@ mod integration_tests {
             );
         }
 
-        // The first item should be from day2 (2025-01-03)
-        assert!(completion_dates[0].starts_with("2025-01-03"));
+        // The first item should be from the most recent day
+        let day2_prefix = date_str(next_day);
+        assert!(completion_dates[0].starts_with(&day2_prefix));
 
         // Tasks from the same day should be grouped together
+        let day1_prefix = date_str(today);
         let day2_count = completion_dates
             .iter()
-            .filter(|d| d.starts_with("2025-01-03"))
+            .filter(|d| d.starts_with(&day2_prefix))
             .count();
         let day1_count = completion_dates
             .iter()
-            .filter(|d| d.starts_with("2025-01-02"))
+            .filter(|d| d.starts_with(&day1_prefix))
             .count();
 
         assert_eq!(day2_count, 1);
@@ -812,6 +1049,8 @@ mod integration_tests {
         let pool = setup_test_db().await;
 
         // Insert a task completed at a time that might fall on different days in different timezones
+        let today = Utc::now().date_naive();
+        let amsterdam_completed = datetime_str(today, "23:30:00Z");
         sqlx::query(
             "INSERT INTO tasks (id, project_id, author_id, title, status, completed_at, completed_by, created_at, updated_at) 
              VALUES (?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))"
@@ -821,7 +1060,7 @@ mod integration_tests {
         .bind("user1")
         .bind("Timezone History Task")
         .bind("done")
-        .bind("2025-01-02T23:30:00Z") // Late UTC, might be next day in Amsterdam
+        .bind(amsterdam_completed.as_str())
         .bind("user1")
         .execute(&pool)
         .await
@@ -830,8 +1069,13 @@ mod integration_tests {
         let schema = build(pool);
 
         let query = r#"
-            query TestHistoryTimezone($statuses: [TaskStatus!]!, $timezone: String!) {
-                history(statuses: $statuses, timezone: $timezone) {
+            query TestHistoryTimezone(
+                $statuses: [TaskStatus!]!,
+                $timezone: String!,
+                $fromDate: String!,
+                $toDate: String!
+            ) {
+                history(statuses: $statuses, timezone: $timezone, fromDate: $fromDate, toDate: $toDate) {
                     totalCount
                     items {
                         id
@@ -846,7 +1090,9 @@ mod integration_tests {
 
         let variables = json!({
             "statuses": ["DONE"],
-            "timezone": "Europe/Amsterdam"
+            "timezone": "Europe/Amsterdam",
+            "fromDate": date_str(shift_date(today, -1)),
+            "toDate": date_str(shift_date(today, 1))
         });
 
         let response =
@@ -879,6 +1125,8 @@ mod integration_tests {
         let pool = setup_test_db().await;
 
         // Insert a task completed at a time that will test New York timezone handling
+        let today = Utc::now().date_naive();
+        let ny_abandoned = datetime_str(today, "05:00:00Z");
         sqlx::query(
             "INSERT INTO tasks (id, project_id, author_id, title, status, abandoned_at, abandoned_by, created_at, updated_at) 
              VALUES (?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))"
@@ -888,7 +1136,7 @@ mod integration_tests {
         .bind("user1")
         .bind("New York History Task")
         .bind("abandoned")
-        .bind("2025-01-02T05:00:00Z") // Early UTC, previous day in NY
+        .bind(ny_abandoned.as_str())
         .bind("user1")
         .execute(&pool)
         .await
@@ -897,8 +1145,13 @@ mod integration_tests {
         let schema = build(pool);
 
         let query = r#"
-            query TestHistoryNY($statuses: [TaskStatus!]!, $timezone: String!) {
-                history(statuses: $statuses, timezone: $timezone) {
+            query TestHistoryNY(
+                $statuses: [TaskStatus!]!,
+                $timezone: String!,
+                $fromDate: String!,
+                $toDate: String!
+            ) {
+                history(statuses: $statuses, timezone: $timezone, fromDate: $fromDate, toDate: $toDate) {
                     totalCount
                     items {
                         id
@@ -913,7 +1166,9 @@ mod integration_tests {
 
         let variables = json!({
             "statuses": ["ABANDONED"],
-            "timezone": "America/New_York"
+            "timezone": "America/New_York",
+            "fromDate": date_str(shift_date(today, -1)),
+            "toDate": date_str(shift_date(today, 1))
         });
 
         let response =
