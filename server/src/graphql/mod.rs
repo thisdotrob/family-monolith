@@ -8,6 +8,8 @@ mod tests_saved_views;
 mod unauthenticated;
 
 pub use crate::graphql::auth::AuthenticatedMutation;
+pub use crate::graphql::takenlijst::projects::ProjectsMutation;
+pub use crate::graphql::takenlijst::tags::TagsMutation;
 pub use crate::graphql::unauthenticated::UnauthenticatedMutation;
 use async_graphql::{Context, EmptySubscription, Schema};
 use async_graphql::{InputObject, MergedObject, Object, SimpleObject};
@@ -865,7 +867,12 @@ impl QueryRoot {
 }
 
 #[derive(MergedObject, Default)]
-pub struct CombinedMutation(UnauthenticatedMutation, AuthenticatedMutation);
+pub struct CombinedMutation(
+    UnauthenticatedMutation,
+    AuthenticatedMutation,
+    TagsMutation,
+    ProjectsMutation,
+);
 
 pub type AppSchema = Schema<QueryRoot, CombinedMutation, EmptySubscription>;
 
