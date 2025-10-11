@@ -54,7 +54,7 @@ Wave 3 (after 001, 003, 004)
 - [x] .prompts/server-graphql-module-restructure/implementation/005_restructure_takenlijst_existing_mutations.md
 
 Wave 4 (after 001, 002, 003, 004, 005)
-- [ ] .prompts/server-graphql-module-restructure/implementation/006_update_main_module_schema_building.md
+- [x] .prompts/server-graphql-module-restructure/implementation/006_update_main_module_schema_building.md
 
 Wave 5 (after 006; note each ticket’s full deps are satisfied here) — fully parallel
 - [ ] .prompts/server-graphql-module-restructure/implementation/007_migrate_and_organize_tests.md
@@ -88,7 +88,7 @@ Mark tickets done here as work proceeds.
 - [x] 003_extract_remaining_queries_from_mod.md
 - [x] 004_extract_auth_mutations.md
 - [x] 005_restructure_takenlijst_existing_mutations.md
-- [ ] 006_update_main_module_schema_building.md
+- [x] 006_update_main_module_schema_building.md
 - [ ] 007_migrate_and_organize_tests.md
 - [ ] 008_create_placeholder_app_structure.md
 - [ ] 009_final_verification_and_cleanup.md

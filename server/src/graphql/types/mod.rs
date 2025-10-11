@@ -10,6 +10,9 @@ pub use tag::Tag;
 pub mod task;
 pub use task::Task;
 
+pub mod paged_tasks;
+pub use paged_tasks::PagedTasks;
+
 pub mod saved_view;
 pub use saved_view::SavedView;
 
