@@ -1,4 +1,7 @@
 instructions:
+  - name: server-graphql-module-restructure-idea-honing
+    description: server-graphql-module-restructure-idea-honing
+    content_file: ../.prompts/server-graphql-module-restructure/project/idea-honing.md
   - name: todo-app idea honing
     description: Develop a project spec for a family todo list mobile app.
     content_file: ../.prompts/todo-app/project/idea-honing.md
