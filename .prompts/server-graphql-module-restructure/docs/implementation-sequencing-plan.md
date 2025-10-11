@@ -41,7 +41,7 @@ Equivalent grouped dependencies per ticket:
 Each wave can be run fully in parallel by unlimited agents. Begin a wave when all tickets in prior waves are done. Check off tickets as they complete; the “Next work-ready tickets” section below updates accordingly.
 
 Wave 0
-- [ ] .prompts/server-graphql-module-restructure/implementation/001_create_types_directory.md
+- [x] .prompts/server-graphql-module-restructure/implementation/001_create_types_directory.md
 
 Wave 1 (after 001)
 - [ ] .prompts/server-graphql-module-restructure/implementation/002_create_shared_directory.md
