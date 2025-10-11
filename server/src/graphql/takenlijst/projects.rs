@@ -7,7 +7,7 @@ use crate::auth::Claims;
 use crate::auth::guard::require_owner;
 use crate::db::helpers::normalize_project_name;
 use crate::error_codes::ErrorCode;
-use crate::graphql::Project;
+use crate::graphql::types::Project;
 
 #[derive(Default)]
 pub struct ProjectsMutation;
