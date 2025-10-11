@@ -1,23 +1,23 @@
 use sqlx::{Row, SqlitePool};
 mod auth;
+pub mod shared;
 mod takenlijst;
 mod tests_history;
 mod tests_integration;
 mod tests_recurring_series;
 mod tests_saved_views;
 pub mod types;
-mod unauthenticated;
 
 pub use crate::graphql::auth::AuthenticatedMutation;
+use crate::graphql::shared::{SharedMutation, SharedQuery};
 pub use crate::graphql::takenlijst::projects::ProjectsMutation;
 pub use crate::graphql::takenlijst::tags::TagsMutation;
-pub use crate::graphql::unauthenticated::UnauthenticatedMutation;
 use async_graphql::{Context, EmptySubscription, Schema};
 use async_graphql::{MergedObject, Object};
 
 use crate::auth::Claims;
 use crate::auth::guard::require_member;
-use crate::graphql::types::{Project, SavedView, SavedViewFilters, Tag, Task, User};
+use crate::graphql::types::{Project, SavedView, SavedViewFilters, Tag, Task};
 use crate::tasks::{TaskStatus, time_utils};
 use std::sync::Arc;
 
@@ -29,35 +29,11 @@ pub struct PagedTasks {
 }
 
 // Define a query root
+#[derive(Default)]
 pub struct QueryRoot;
 
 #[Object]
 impl QueryRoot {
-    async fn me(&self, ctx: &Context<'_>) -> async_graphql::Result<User> {
-        let claims = match ctx.data_opt::<Arc<Claims>>() {
-            Some(claims) => claims,
-            None => {
-                return Err(async_graphql::Error::new("Authentication required"));
-            }
-        };
-
-        let pool = ctx.data::<SqlitePool>()?;
-
-        let username = &claims.sub;
-
-        let user_data = sqlx::query_as::<_, (String, Option<String>)>(
-            "SELECT username, first_name FROM users WHERE username = ?1",
-        )
-        .bind(username)
-        .fetch_one(pool)
-        .await?;
-
-        Ok(User {
-            username: user_data.0,
-            first_name: user_data.1,
-        })
-    }
-
     async fn projects(
         &self,
         ctx: &Context<'_>,
@@ -796,19 +772,26 @@ impl QueryRoot {
 
 #[derive(MergedObject, Default)]
 pub struct CombinedMutation(
-    UnauthenticatedMutation,
+    SharedMutation,
     AuthenticatedMutation,
     TagsMutation,
     ProjectsMutation,
 );
 
-pub type AppSchema = Schema<QueryRoot, CombinedMutation, EmptySubscription>;
+#[derive(MergedObject, Default)]
+pub struct CombinedQuery(QueryRoot, SharedQuery);
+
+pub type AppSchema = Schema<CombinedQuery, CombinedMutation, EmptySubscription>;
 
 pub fn build(pool: SqlitePool) -> AppSchema {
-    Schema::build(QueryRoot, CombinedMutation::default(), EmptySubscription)
-        .data(pool)
-        .limit_depth(5)
-        .limit_complexity(50)
-        .disable_introspection()
-        .finish()
+    Schema::build(
+        CombinedQuery::default(),
+        CombinedMutation::default(),
+        EmptySubscription,
+    )
+    .data(pool)
+    .limit_depth(5)
+    .limit_complexity(50)
+    .disable_introspection()
+    .finish()
 }

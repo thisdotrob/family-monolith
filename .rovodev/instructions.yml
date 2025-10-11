@@ -1,4 +1,6 @@
 instructions:
+  - name: server-graphql-module-restructure-code-review
+    content_file: ../.prompts/server-graphql-module-restructure/project/code-review.md
   - name: server-graphql-module-restructure-pick-up-ticket
     content_file: ../.prompts/server-graphql-module-restructure/project/pick-up-ticket.md
   - name: server-graphql-module-restructure-next-tickets-to-work-on

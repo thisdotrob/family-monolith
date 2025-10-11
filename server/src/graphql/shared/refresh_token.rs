@@ -1,47 +1,15 @@
-use crate::graphql::types::{LoginInput, LoginPayload, RefreshInput, RefreshPayload};
+use crate::graphql::types::{RefreshInput, RefreshPayload};
 use async_graphql::{Context, Object};
 use sqlx::SqlitePool;
 
 #[derive(Default)]
-pub struct UnauthenticatedMutation;
+pub struct RefreshTokenMutation;
 
 #[Object]
-impl UnauthenticatedMutation {
-    async fn login(&self, ctx: &Context<'_>, input: LoginInput) -> LoginPayload {
-        let pool = ctx.data::<sqlx::SqlitePool>().unwrap();
-        let user_result = sqlx::query_as::<_, (String, String, String)>(
-            "SELECT id, username, password FROM users WHERE username = ?1",
-        )
-        .bind(&input.username.to_lowercase())
-        .fetch_one(pool)
-        .await;
-
-        if let Ok(user) = user_result {
-            if crate::auth::verify(&user.2, &input.password).await {
-                let token = crate::auth::encode(&user.1, 5).unwrap();
-                let refresh = crate::auth::refresh::create(pool, &user.0).await.unwrap();
-                return LoginPayload {
-                    success: true,
-                    token: Some(token),
-                    refresh_token: Some(refresh),
-                    errors: vec![],
-                };
-            }
-        }
-        LoginPayload {
-            success: false,
-            token: None,
-            refresh_token: None,
-            errors: vec!["INVALID_CREDENTIALS".into()],
-        }
-    }
-
+impl RefreshTokenMutation {
     async fn refresh_token(&self, ctx: &Context<'_>, input: RefreshInput) -> RefreshPayload {
         let pool = ctx.data::<SqlitePool>().unwrap();
         let refresh_token = input.refresh_token;
-
-        // Since we can't access the private refresh module directly,
-        // we need to implement the rotation logic here
 
         // First, try to find the user_id associated with this token
         let user_id_result = crate::db::helpers::fetch_one::<(String,)>(
