@@ -1,100 +1,100 @@
 instructions:
   - name: todo-app idea honing
     description: Develop a project spec for a family todo list mobile app.
-    content_file: todo-app-idea-honing.md
+    content_file: ../.prompts/todo-app/project/idea-honing.md
   - name: todo-app implementation planning
-    content_file: todo-app-implementation-planning.md
+    content_file: ../.prompts/todo-app/project/implementation-planning.md
   - name: todo-app implementation sequencing
-    content_file: todo-app-implementation-sequencing.md
+    content_file: ../.prompts/todo-app/project/implementation-sequencing.md
   - name: todo-app 001 server migrations projects memberships
-    content_file: todo-app-001_server_migrations_projects_memberships.md
+    content_file: ../.prompts/todo-app/implementation/001_server_migrations_projects_memberships.md
   - name: todo-app-next-tickets-to-work-on
-    content_file: todo-app-next-tickets-to-work-on.md
+    content_file: ../.prompts/todo-app/project/next-tickets-to-work-on.md
   - name: todo-app-pick-up-ticket
-    content_file: todo-app/pick-up-ticket.md
+    content_file: ../.prompts/todo-app/project/pick-up-ticket.md
   - name: todo-app-code-review
-    content_file: todo-app/code-review.md
+    content_file: ../.prompts/todo-app/project/code-review.md
   - name: todo-app 002 server graphql projects queries
-    content_file: todo-app-002_server_graphql_projects_queries.md
+    content_file: ../.prompts/todo-app/implementation/002_server_graphql_projects_queries.md
   - name: todo-app 003 server graphql projects mutations
-    content_file: todo-app-003_server_graphql_projects_mutations.md
+    content_file: ../.prompts/todo-app/implementation/003_server_graphql_projects_mutations.md
   - name: todo-app 004 server permissions projects
-    content_file: todo-app-004_server_permissions_projects.md
+    content_file: ../.prompts/todo-app/implementation/004_server_permissions_projects.md
   - name: todo-app 005 server migrations tags
-    content_file: todo-app-005_server_migrations_tags.md
+    content_file: ../.prompts/todo-app/implementation/005_server_migrations_tags.md
   - name: todo-app 006 server graphql tags crud
-    content_file: todo-app-006_server_graphql_tags_crud.md
+    content_file: ../.prompts/todo-app/implementation/006_server_graphql_tags_crud.md
   - name: todo-app 007 server migrations tasks task_tags
-    content_file: todo-app-007_server_migrations_tasks_task_tags.md
+    content_file: ../.prompts/todo-app/implementation/007_server_migrations_tasks_task_tags.md
   - name: todo-app 008 server graphql tasks list
-    content_file: todo-app-008_server_graphql_tasks_list.md
+    content_file: ../.prompts/todo-app/implementation/008_server_graphql_tasks_list.md
   - name: todo-app 009 server graphql tasks mutations
-    content_file: todo-app-009_server_graphql_tasks_mutations.md
+    content_file: ../.prompts/todo-app/implementation/009_server_graphql_tasks_mutations.md
   - name: todo-app 010 server tasks derived fields
-    content_file: todo-app-010_server_tasks_derived_fields.md
+    content_file: ../.prompts/todo-app/implementation/010_server_tasks_derived_fields.md
   - name: todo-app 011 server migrations saved views
-    content_file: todo-app-011_server_migrations_saved_views.md
+    content_file: ../.prompts/todo-app/implementation/011_server_migrations_saved_views.md
   - name: todo-app 012 server graphql saved views
-    content_file: todo-app-012_server_graphql_saved_views.md
+    content_file: ../.prompts/todo-app/implementation/012_server_graphql_saved_views.md
   - name: todo-app 013 server migrations recurring series
-    content_file: todo-app-013_server_migrations_recurring_series.md
+    content_file: ../.prompts/todo-app/implementation/013_server_migrations_recurring_series.md
   - name: todo-app 014 server graphql create series validation
-    content_file: todo-app-014_server_graphql_create_series_validation.md
+    content_file: ../.prompts/todo-app/implementation/014_server_graphql_create_series_validation.md
   - name: todo-app 015 server generation series occurrences
-    content_file: todo-app-015_server_generation_series_occurrences.md
+    content_file: ../.prompts/todo-app/implementation/015_server_generation_series_occurrences.md
   - name: todo-app 016 server update series regeneration
-    content_file: todo-app-016_server_update_series_regeneration.md
+    content_file: ../.prompts/todo-app/implementation/016_server_update_series_regeneration.md
   - name: todo-app 017 server series topup on completion
-    content_file: todo-app-017_server_series_topup_on_completion.md
+    content_file: ../.prompts/todo-app/implementation/017_server_series_topup_on_completion.md
   - name: todo-app 018 server graphql history query
-    content_file: todo-app-018_server_graphql_history_query.md
+    content_file: ../.prompts/todo-app/implementation/018_server_graphql_history_query.md
   - name: todo-app 019 placeholder
-    content_file: todo-app-019_server_placeholder.md
+    content_file: ../.prompts/todo-app/implementation/019_server_placeholder.md
   - name: todo-app 020 server tests unit
-    content_file: todo-app-020_server_tests_unit.md
+    content_file: ../.prompts/todo-app/implementation/020_server_tests_unit.md
   - name: todo-app 021 server tests integration
-    content_file: todo-app-021_server_tests_integration.md
+    content_file: ../.prompts/todo-app/implementation/021_server_tests_integration.md
   - name: todo-app 030 mobile app module skeleton
-    content_file: todo-app-030_mobile_app_module_skeleton.md
+    content_file: ../.prompts/todo-app/implementation/030_mobile_app_module_skeleton.md
   - name: todo-app 031 mobile app wiring selector app.config
-    content_file: todo-app-031_mobile_app_wiring_selector_app_config.md
+    content_file: ../.prompts/todo-app/implementation/031_mobile_app_wiring_selector_app_config.md
   - name: todo-app 032 mobile navigation tabs placeholders
-    content_file: todo-app-032_mobile_navigation_tabs_placeholders.md
+    content_file: ../.prompts/todo-app/implementation/032_mobile_navigation_tabs_placeholders.md
   - name: todo-app 033 mobile projects list
-    content_file: todo-app-033_mobile_projects_list.md
+    content_file: ../.prompts/todo-app/implementation/033_mobile_projects_list.md
   - name: todo-app 034 mobile project settings
-    content_file: todo-app-034_mobile_project_settings.md
+    content_file: ../.prompts/todo-app/implementation/034_mobile_project_settings.md
   - name: todo-app 035 mobile project members
-    content_file: todo-app-035_mobile_project_members.md
+    content_file: ../.prompts/todo-app/implementation/035_mobile_project_members.md
   - name: todo-app 036 mobile tag manager
-    content_file: todo-app-036_mobile_tag_manager.md
+    content_file: ../.prompts/todo-app/implementation/036_mobile_tag_manager.md
   - name: todo-app 037 mobile tasks list grouping polling tz
-    content_file: todo-app-037_mobile_tasks_list_grouping_polling_tz.md
+    content_file: ../.prompts/todo-app/implementation/037_mobile_tasks_list_grouping_polling_tz.md
   - name: todo-app 038 mobile task form
-    content_file: todo-app-038_mobile_task_form.md
+    content_file: ../.prompts/todo-app/implementation/038_mobile_task_form.md
   - name: todo-app 039 mobile task swipe actions
-    content_file: todo-app-039_mobile_task_swipe_actions.md
+    content_file: ../.prompts/todo-app/implementation/039_mobile_task_swipe_actions.md
   - name: todo-app 040 mobile saved views ui
-    content_file: todo-app-040_mobile_saved_views_ui.md
+    content_file: ../.prompts/todo-app/implementation/040_mobile_saved_views_ui.md
   - name: todo-app 041 mobile history tab
-    content_file: todo-app-041_mobile_history_tab.md
+    content_file: ../.prompts/todo-app/implementation/041_mobile_history_tab.md
   - name: todo-app 042 mobile recurrence fields in form
-    content_file: todo-app-042_mobile_recurrence_fields_in_form.md
+    content_file: ../.prompts/todo-app/implementation/042_mobile_recurrence_fields_in_form.md
   - name: todo-app 043 mobile series management
-    content_file: todo-app-043_mobile_series_management.md
+    content_file: ../.prompts/todo-app/implementation/043_mobile_series_management.md
   - name: todo-app 044 mobile timezone plumbing
-    content_file: todo-app-044_mobile_timezone_plumbing.md
+    content_file: ../.prompts/todo-app/implementation/044_mobile_timezone_plumbing.md
   - name: todo-app 045 mobile persist last selected project view
-    content_file: todo-app-045_mobile_persist_last_selected_project_view.md
+    content_file: ../.prompts/todo-app/implementation/045_mobile_persist_last_selected_project_view.md
   - name: todo-app 046 mobile stale write retry ux
-    content_file: todo-app-046_mobile_stale_write_retry_ux.md
+    content_file: ../.prompts/todo-app/implementation/046_mobile_stale_write_retry_ux.md
   - name: todo-app 050 shared graphql documents
-    content_file: todo-app-050_shared_graphql_documents.md
+    content_file: ../.prompts/todo-app/implementation/050_shared_graphql_documents.md
   - name: todo-app 051 shared timezone and apollo
-    content_file: todo-app-051_shared_timezone_and_apollo.md
+    content_file: ../.prompts/todo-app/implementation/051_shared_timezone_and_apollo.md
   - name: todo-app 052 shared offline and storage
-    content_file: todo-app-052_shared_offline_and_storage.md
+    content_file: ../.prompts/todo-app/implementation/052_shared_offline_and_storage.md
   - name: todo-app 060 docs update database
-    content_file: todo-app-060_docs_update_database.md
+    content_file: ../.prompts/todo-app/implementation/060_docs_update_database.md
   - name: todo-app 061 docs update architecture and mobile readme
-    content_file: todo-app-061_docs_update_architecture_and_mobile_readme.md
+    content_file: ../.prompts/todo-app/implementation/061_docs_update_architecture_and_mobile_readme.md
