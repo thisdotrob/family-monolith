@@ -5,6 +5,9 @@ mod logout;
 mod me;
 mod refresh_token;
 
+#[cfg(test)]
+pub mod tests;
+
 pub use login::LoginMutation;
 pub use logout::LogoutMutation;
 pub use me::MeQuery;
