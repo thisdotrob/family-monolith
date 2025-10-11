@@ -1,4 +1,6 @@
 instructions:
+  - name: server-graphql-module-restructure-pick-up-ticket
+    content_file: ../.prompts/server-graphql-module-restructure/project/pick-up-ticket.md
   - name: server-graphql-module-restructure-next-tickets-to-work-on
     content_file: ../.prompts/server-graphql-module-restructure/project/next-tickets-to-work-on.md
   - name: server-graphql-module-restructure-implementation-sequencing
