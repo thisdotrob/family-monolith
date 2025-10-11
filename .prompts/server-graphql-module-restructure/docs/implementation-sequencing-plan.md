@@ -44,7 +44,7 @@ Wave 0
 - [x] .prompts/server-graphql-module-restructure/implementation/001_create_types_directory.md
 
 Wave 1 (after 001)
-- [ ] .prompts/server-graphql-module-restructure/implementation/002_create_shared_directory.md
+- [x] .prompts/server-graphql-module-restructure/implementation/002_create_shared_directory.md
 
 Wave 2 (after 001, 002) — fully parallel
 - [ ] .prompts/server-graphql-module-restructure/implementation/003_extract_remaining_queries_from_mod.md
@@ -84,7 +84,7 @@ Use this section during execution to know what to pick up next. At any moment, t
 ## Progress Checklist (master)
 Mark tickets done here as work proceeds.
 - [ ] 001_create_types_directory.md
-- [ ] 002_create_shared_directory.md
+- [x] 002_create_shared_directory.md
 - [ ] 003_extract_remaining_queries_from_mod.md
 - [ ] 004_extract_auth_mutations.md
 - [ ] 005_restructure_takenlijst_existing_mutations.md

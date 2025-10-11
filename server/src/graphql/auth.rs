@@ -2,8 +2,7 @@ use crate::auth::Claims;
 use crate::auth::guard::require_member;
 use crate::error_codes::ErrorCode;
 use crate::graphql::types::{
-    CreateSeriesInput, LogoutInput, LogoutPayload, RecurringSeries, SavedView, SavedViewFilters,
-    SavedViewFiltersInput,
+    CreateSeriesInput, RecurringSeries, SavedView, SavedViewFilters, SavedViewFiltersInput,
 };
 use async_graphql::{Context, ErrorExtensions, Object};
 use chrono::{NaiveDate, NaiveTime, TimeZone, Utc};
@@ -17,22 +16,6 @@ pub struct AuthenticatedMutation;
 
 #[Object]
 impl AuthenticatedMutation {
-    async fn logout(&self, ctx: &Context<'_>, input: LogoutInput) -> LogoutPayload {
-        // Require valid claims for logout
-        let _claims = match ctx.data_opt::<Arc<Claims>>() {
-            Some(c) => c,
-            None => {
-                return LogoutPayload { success: false };
-            }
-        };
-
-        let pool = ctx.data::<SqlitePool>().unwrap();
-        let rows = crate::auth::refresh::delete(pool, &input.refresh_token)
-            .await
-            .unwrap_or(0);
-        LogoutPayload { success: rows > 0 }
-    }
-
     async fn create_recurring_series(
         &self,
         ctx: &Context<'_>,
