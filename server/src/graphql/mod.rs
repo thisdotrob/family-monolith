@@ -1,6 +1,5 @@
 use async_graphql::{EmptySubscription, MergedObject, Schema};
 
-mod auth;
 pub mod shared;
 mod takenlijst;
 mod tests_history;
@@ -9,7 +8,6 @@ mod tests_recurring_series;
 mod tests_saved_views;
 pub mod types;
 
-pub use crate::graphql::auth::AuthenticatedMutation;
 use crate::graphql::shared::{SharedMutation, SharedQuery};
 use crate::graphql::takenlijst::{TakenlijstMutation, TakenlijstQuery};
 use crate::graphql::types::Task;
@@ -22,7 +20,7 @@ pub struct PagedTasks {
 }
 
 #[derive(MergedObject, Default)]
-pub struct CombinedMutation(SharedMutation, AuthenticatedMutation, TakenlijstMutation);
+pub struct CombinedMutation(SharedMutation, TakenlijstMutation);
 
 #[derive(MergedObject, Default)]
 pub struct CombinedQuery(TakenlijstQuery, SharedQuery);
