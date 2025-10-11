@@ -51,7 +51,7 @@ Wave 2 (after 001, 002) — fully parallel
 - [x] .prompts/server-graphql-module-restructure/implementation/004_extract_auth_mutations.md
 
 Wave 3 (after 001, 003, 004)
-- [ ] .prompts/server-graphql-module-restructure/implementation/005_restructure_takenlijst_existing_mutations.md
+- [x] .prompts/server-graphql-module-restructure/implementation/005_restructure_takenlijst_existing_mutations.md
 
 Wave 4 (after 001, 002, 003, 004, 005)
 - [ ] .prompts/server-graphql-module-restructure/implementation/006_update_main_module_schema_building.md
@@ -87,7 +87,7 @@ Mark tickets done here as work proceeds.
 - [x] 002_create_shared_directory.md
 - [x] 003_extract_remaining_queries_from_mod.md
 - [x] 004_extract_auth_mutations.md
-- [ ] 005_restructure_takenlijst_existing_mutations.md
+- [x] 005_restructure_takenlijst_existing_mutations.md
 - [ ] 006_update_main_module_schema_building.md
 - [ ] 007_migrate_and_organize_tests.md
 - [ ] 008_create_placeholder_app_structure.md
