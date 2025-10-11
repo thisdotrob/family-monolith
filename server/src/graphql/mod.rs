@@ -5,6 +5,7 @@ mod tests_history;
 mod tests_integration;
 mod tests_recurring_series;
 mod tests_saved_views;
+pub mod types;
 mod unauthenticated;
 
 pub use crate::graphql::auth::AuthenticatedMutation;
@@ -12,92 +13,19 @@ pub use crate::graphql::takenlijst::projects::ProjectsMutation;
 pub use crate::graphql::takenlijst::tags::TagsMutation;
 pub use crate::graphql::unauthenticated::UnauthenticatedMutation;
 use async_graphql::{Context, EmptySubscription, Schema};
-use async_graphql::{InputObject, MergedObject, Object, SimpleObject};
-use serde::{Deserialize, Serialize};
+use async_graphql::{MergedObject, Object};
 
 use crate::auth::Claims;
 use crate::auth::guard::require_member;
-use crate::tasks::{Task, TaskStatus, time_utils};
+use crate::graphql::types::{Project, SavedView, SavedViewFilters, Tag, Task, User};
+use crate::tasks::{TaskStatus, time_utils};
 use std::sync::Arc;
 
-#[derive(SimpleObject)]
-struct User {
-    username: String,
-    #[graphql(name = "firstName")]
-    first_name: Option<String>,
-}
-
-#[derive(SimpleObject)]
-struct Project {
-    id: String,
-    name: String,
-    #[graphql(name = "ownerId")]
-    owner_id: String,
-    #[graphql(name = "archivedAt")]
-    archived_at: Option<String>,
-    #[graphql(name = "createdAt")]
-    created_at: String,
-    #[graphql(name = "updatedAt")]
-    updated_at: String,
-}
-
-#[derive(SimpleObject)]
-pub struct Tag {
-    id: String,
-    name: String,
-    #[graphql(name = "createdAt")]
-    created_at: String,
-    #[graphql(name = "updatedAt")]
-    updated_at: String,
-}
-
-#[derive(SimpleObject)]
+#[derive(async_graphql::SimpleObject)]
 pub struct PagedTasks {
     items: Vec<Task>,
     #[graphql(name = "totalCount")]
     total_count: i32,
-}
-
-#[derive(SimpleObject)]
-pub struct SavedView {
-    id: String,
-    #[graphql(name = "projectId")]
-    project_id: String,
-    name: String,
-    filters: SavedViewFilters,
-    #[graphql(name = "createdBy")]
-    created_by: String,
-    #[graphql(name = "createdAt")]
-    created_at: String,
-    #[graphql(name = "updatedAt")]
-    updated_at: String,
-}
-
-#[derive(SimpleObject, Serialize, Deserialize)]
-pub struct SavedViewFilters {
-    statuses: Vec<TaskStatus>,
-    assignee: Option<String>,
-    #[graphql(name = "includeUnassigned")]
-    #[serde(rename = "includeUnassigned")]
-    include_unassigned: bool,
-    #[graphql(name = "assignedToMe")]
-    #[serde(rename = "assignedToMe")]
-    assigned_to_me: bool,
-    #[graphql(name = "tagIds")]
-    #[serde(rename = "tagIds")]
-    tag_ids: Vec<String>,
-}
-
-#[derive(InputObject)]
-pub struct SavedViewFiltersInput {
-    statuses: Vec<TaskStatus>,
-    assignee: Option<String>,
-    #[graphql(name = "includeUnassigned")]
-    include_unassigned: bool,
-    #[graphql(name = "assignedToMe")]
-    assigned_to_me: bool,
-    #[graphql(name = "tagIds")]
-    tag_ids: Vec<String>,
 }
 
 // Define a query root

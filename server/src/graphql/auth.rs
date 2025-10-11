@@ -1,7 +1,11 @@
 use crate::auth::Claims;
 use crate::auth::guard::require_member;
 use crate::error_codes::ErrorCode;
-use async_graphql::{Context, ErrorExtensions, InputObject, Object, SimpleObject};
+use crate::graphql::types::{
+    CreateSeriesInput, LogoutInput, LogoutPayload, RecurringSeries, SavedView, SavedViewFilters,
+    SavedViewFiltersInput,
+};
+use async_graphql::{Context, ErrorExtensions, Object};
 use chrono::{NaiveDate, NaiveTime, TimeZone, Utc};
 use chrono_tz::Tz;
 use rrule::RRule;
@@ -236,10 +240,9 @@ impl AuthenticatedMutation {
         ctx: &Context<'_>,
         project_id: String,
         name: String,
-        filters: crate::graphql::SavedViewFiltersInput,
+        filters: SavedViewFiltersInput,
     ) -> async_graphql::Result<crate::graphql::SavedView> {
         use crate::db::helpers::normalize_project_name; // Reuse for general name normalization
-        use crate::graphql::{SavedView, SavedViewFilters};
 
         // Require authentication
         let claims = match ctx.data_opt::<Arc<Claims>>() {
@@ -372,11 +375,10 @@ impl AuthenticatedMutation {
         ctx: &Context<'_>,
         id: String,
         name: Option<String>,
-        filters: Option<crate::graphql::SavedViewFiltersInput>,
+        filters: Option<SavedViewFiltersInput>,
         last_known_updated_at: String,
     ) -> async_graphql::Result<crate::graphql::SavedView> {
         use crate::db::helpers::normalize_project_name;
-        use crate::graphql::{SavedView, SavedViewFilters};
 
         // Require authentication
         let claims = match ctx.data_opt::<Arc<Claims>>() {
@@ -649,60 +651,4 @@ impl AuthenticatedMutation {
 
         Ok(true)
     }
-}
-
-#[derive(InputObject)]
-struct LogoutInput {
-    refresh_token: String,
-}
-
-#[derive(SimpleObject)]
-struct LogoutPayload {
-    success: bool,
-}
-
-#[derive(SimpleObject)]
-pub struct RecurringSeries {
-    id: String,
-    #[graphql(name = "projectId")]
-    project_id: String,
-    #[graphql(name = "createdBy")]
-    created_by: String,
-    title: String,
-    description: Option<String>,
-    #[graphql(name = "assigneeId")]
-    assignee_id: Option<String>,
-    rrule: String,
-    #[graphql(name = "dtstartDate")]
-    dtstart_date: String,
-    #[graphql(name = "dtstartTimeMinutes")]
-    dtstart_time_minutes: Option<i32>,
-    #[graphql(name = "deadlineOffsetMinutes")]
-    deadline_offset_minutes: i32,
-    #[graphql(name = "createdAt")]
-    created_at: String,
-    #[graphql(name = "updatedAt")]
-    updated_at: String,
-    #[graphql(name = "defaultTagIds")]
-    default_tag_ids: Vec<String>,
-}
-
-#[derive(InputObject)]
-pub struct CreateSeriesInput {
-    #[graphql(name = "projectId")]
-    pub project_id: String,
-    pub title: String,
-    pub description: Option<String>,
-    #[graphql(name = "assigneeId")]
-    pub assignee_id: Option<String>,
-    #[graphql(name = "defaultTagIds")]
-    pub default_tag_ids: Option<Vec<String>>,
-    pub rrule: String,
-    #[graphql(name = "dtstartDate")]
-    pub dtstart_date: String,
-    #[graphql(name = "dtstartTimeMinutes")]
-    pub dtstart_time_minutes: Option<i32>,
-    #[graphql(name = "deadlineOffsetMinutes")]
-    pub deadline_offset_minutes: i32,
-    pub timezone: String,
 }

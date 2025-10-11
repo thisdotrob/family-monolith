@@ -1,32 +1,6 @@
-use async_graphql::{Context, InputObject, Object, SimpleObject};
+use crate::graphql::types::{LoginInput, LoginPayload, RefreshInput, RefreshPayload};
+use async_graphql::{Context, Object};
 use sqlx::SqlitePool;
-
-#[derive(InputObject)]
-pub struct LoginInput {
-    pub username: String,
-    pub password: String,
-}
-
-#[derive(SimpleObject)]
-pub struct LoginPayload {
-    pub success: bool,
-    pub token: Option<String>,
-    pub refresh_token: Option<String>,
-    pub errors: Vec<String>,
-}
-
-#[derive(InputObject)]
-struct RefreshInput {
-    refresh_token: String,
-}
-
-#[derive(SimpleObject)]
-struct RefreshPayload {
-    success: bool,
-    token: Option<String>,
-    refresh_token: Option<String>,
-    errors: Vec<String>,
-}
 
 #[derive(Default)]
 pub struct UnauthenticatedMutation;
