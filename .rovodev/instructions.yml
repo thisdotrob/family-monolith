@@ -1,4 +1,7 @@
 instructions:
+  - name: server-graphql-module-restructure-implementation-planning
+    description: server-graphql-module-restructure-implementation-planning
+    content_file: ../.prompts/server-graphql-module-restructure/project/implementation-planning.md
   - name: server-graphql-module-restructure-idea-honing
     description: server-graphql-module-restructure-idea-honing
     content_file: ../.prompts/server-graphql-module-restructure/project/idea-honing.md
@@ -101,3 +104,21 @@ instructions:
     content_file: ../.prompts/todo-app/implementation/060_docs_update_database.md
   - name: todo-app 061 docs update architecture and mobile readme
     content_file: ../.prompts/todo-app/implementation/061_docs_update_architecture_and_mobile_readme.md
+  - name: server-graphql-module-restructure-001_create_types_directory
+    content_file: ../.prompts/server-graphql-module-restructure/implementation/001_create_types_directory.md
+  - name: server-graphql-module-restructure-002_create_shared_directory
+    content_file: ../.prompts/server-graphql-module-restructure/implementation/002_create_shared_directory.md
+  - name: server-graphql-module-restructure-003_extract_remaining_queries_from_mod
+    content_file: ../.prompts/server-graphql-module-restructure/implementation/003_extract_remaining_queries_from_mod.md
+  - name: server-graphql-module-restructure-004_extract_auth_mutations
+    content_file: ../.prompts/server-graphql-module-restructure/implementation/004_extract_auth_mutations.md
+  - name: server-graphql-module-restructure-005_restructure_takenlijst_existing_mutations
+    content_file: ../.prompts/server-graphql-module-restructure/implementation/005_restructure_takenlijst_existing_mutations.md
+  - name: server-graphql-module-restructure-006_update_main_module_schema_building
+    content_file: ../.prompts/server-graphql-module-restructure/implementation/006_update_main_module_schema_building.md
+  - name: server-graphql-module-restructure-007_migrate_and_organize_tests
+    content_file: ../.prompts/server-graphql-module-restructure/implementation/007_migrate_and_organize_tests.md
+  - name: server-graphql-module-restructure-008_create_placeholder_app_structure
+    content_file: ../.prompts/server-graphql-module-restructure/implementation/008_create_placeholder_app_structure.md
+  - name: server-graphql-module-restructure-009_final_verification_and_cleanup
+    content_file: ../.prompts/server-graphql-module-restructure/implementation/009_final_verification_and_cleanup.md
