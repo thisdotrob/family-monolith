@@ -1,7 +1,13 @@
 use async_graphql::MergedObject;
 
-pub mod projects;
-pub mod tags;
+mod add_project_member_by_username;
+mod archive_project;
+mod create_project;
+mod create_tag;
+mod delete_tag;
+mod rename_project;
+mod rename_tag;
+mod unarchive_project;
 
 mod history_query;
 mod project_default_saved_view_query;
@@ -23,14 +29,20 @@ pub use saved_views_query::SavedViewsQuery;
 pub use tags_query::TagsQuery;
 pub use tasks_query::TasksQuery;
 
-pub use projects::ProjectsMutation;
-pub use tags::TagsMutation;
-
 pub use create_recurring_series::CreateRecurringSeriesMutation;
 pub use create_saved_view::CreateSavedViewMutation;
 pub use delete_saved_view::DeleteSavedViewMutation;
 pub use set_project_default_saved_view::SetProjectDefaultSavedViewMutation;
 pub use update_saved_view::UpdateSavedViewMutation;
+
+use add_project_member_by_username::AddProjectMemberByUsernameMutation;
+use archive_project::ArchiveProjectMutation;
+use create_project::CreateProjectMutation;
+use create_tag::CreateTagMutation;
+use delete_tag::DeleteTagMutation;
+use rename_project::RenameProjectMutation;
+use rename_tag::RenameTagMutation;
+use unarchive_project::UnarchiveProjectMutation;
 
 #[derive(MergedObject, Default)]
 pub struct TakenlijstQuery(
@@ -41,6 +53,18 @@ pub struct TakenlijstQuery(
     SavedViewsQuery,
     ProjectDefaultSavedViewQuery,
 );
+
+#[derive(MergedObject, Default)]
+pub struct ProjectsMutation(
+    CreateProjectMutation,
+    RenameProjectMutation,
+    ArchiveProjectMutation,
+    UnarchiveProjectMutation,
+    AddProjectMemberByUsernameMutation,
+);
+
+#[derive(MergedObject, Default)]
+pub struct TagsMutation(CreateTagMutation, RenameTagMutation, DeleteTagMutation);
 
 #[derive(MergedObject, Default)]
 pub struct TakenlijstMutation(

@@ -1,0 +1,109 @@
+use std::sync::Arc;
+
+use async_graphql::{Context, ErrorExtensions, Object};
+use sqlx::SqlitePool;
+
+use crate::auth::Claims;
+use crate::db::helpers::normalize_tag_name;
+use crate::graphql::types::Tag;
+
+#[derive(Default)]
+pub struct RenameTagMutation;
+
+#[Object]
+impl RenameTagMutation {
+    async fn rename_tag(
+        &self,
+        ctx: &Context<'_>,
+        tag_id: String,
+        new_name: String,
+    ) -> async_graphql::Result<Tag> {
+        // Require authentication
+        let _claims = match ctx.data_opt::<Arc<Claims>>() {
+            Some(claims) => claims,
+            None => {
+                return Err(async_graphql::Error::new("Authentication required"));
+            }
+        };
+
+        let pool = ctx.data::<SqlitePool>()?;
+        let normalized_name = normalize_tag_name(&new_name);
+
+        if normalized_name.is_empty() {
+            let error = async_graphql::Error::new("Tag name cannot be empty after normalization")
+                .extend_with(|_, e| e.set("code", "VALIDATION_FAILED"));
+            return Err(error);
+        }
+
+        // Check if the tag to rename exists
+        let existing_tag = sqlx::query_as::<_, (String, String, String, String)>(
+            "SELECT id, name, created_at, updated_at FROM tags WHERE id = ?1",
+        )
+        .bind(&tag_id)
+        .fetch_one(pool)
+        .await;
+
+        if existing_tag.is_err() {
+            let error = async_graphql::Error::new("Tag not found")
+                .extend_with(|_, e| e.set("code", "NOT_FOUND"));
+            return Err(error);
+        }
+
+        // Check if a tag with the new name already exists
+        if let Ok(collision_tag) = sqlx::query_as::<_, (String, String, String, String)>(
+            "SELECT id, name, created_at, updated_at FROM tags WHERE name = ?1",
+        )
+        .bind(&normalized_name)
+        .fetch_one(pool)
+        .await
+        {
+            // If it's the same tag, just return it
+            if collision_tag.0 == tag_id {
+                return Ok(Tag {
+                    id: collision_tag.0,
+                    name: collision_tag.1,
+                    created_at: collision_tag.2,
+                    updated_at: collision_tag.3,
+                });
+            }
+
+            // Merge: move any task_tags from old tag to existing tag (when task_tags table exists)
+            // For now, we'll just delete the old tag since task_tags doesn't exist yet
+            // TODO: When task_tags table exists, implement proper merge:
+            // UPDATE task_tags SET tag_id = ?1 WHERE tag_id = ?2
+            sqlx::query("DELETE FROM tags WHERE id = ?1")
+                .bind(&tag_id)
+                .execute(pool)
+                .await?;
+
+            return Ok(Tag {
+                id: collision_tag.0,
+                name: collision_tag.1,
+                created_at: collision_tag.2,
+                updated_at: collision_tag.3,
+            });
+        }
+
+        // No collision, just rename
+        sqlx::query("UPDATE tags SET name = ?1 WHERE id = ?2")
+            .bind(&normalized_name)
+            .bind(&tag_id)
+            .execute(pool)
+            .await?;
+
+        // Fetch updated tag
+        let tag = sqlx::query_as::<_, (String, String, String, String)>(
+            "SELECT id, name, created_at, updated_at FROM tags WHERE id = ?1",
+        )
+        .bind(&tag_id)
+        .fetch_one(pool)
+        .await?;
+
+        Ok(Tag {
+            id: tag.0,
+            name: tag.1,
+            created_at: tag.2,
+            updated_at: tag.3,
+        })
+    }
+}
