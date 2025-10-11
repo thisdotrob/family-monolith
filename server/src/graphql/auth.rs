@@ -224,7 +224,7 @@ impl AuthenticatedMutation {
         project_id: String,
         name: String,
         filters: SavedViewFiltersInput,
-    ) -> async_graphql::Result<crate::graphql::SavedView> {
+    ) -> async_graphql::Result<SavedView> {
         use crate::db::helpers::normalize_project_name; // Reuse for general name normalization
 
         // Require authentication
@@ -360,7 +360,7 @@ impl AuthenticatedMutation {
         name: Option<String>,
         filters: Option<SavedViewFiltersInput>,
         last_known_updated_at: String,
-    ) -> async_graphql::Result<crate::graphql::SavedView> {
+    ) -> async_graphql::Result<SavedView> {
         use crate::db::helpers::normalize_project_name;
 
         // Require authentication
