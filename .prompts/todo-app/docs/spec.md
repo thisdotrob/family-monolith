@@ -96,10 +96,12 @@
 ## 8) API (GraphQL) Design
 - General
   - Auth: reuse existing login/refresh/logout.
-  - Errors: Native GraphQL errors with standardized extensions.code values: VALIDATION_FAILED, PERMISSION_DENIED, NOT_FOUND, CONFLICT_STALE_WRITE, RATE_LIMITED, BAD_REQUEST, INTERNAL_SERVER_ERROR.
+  - Errors: Native GraphQL errors with standardized extensions.code values: INVALID_CREDENTIALS, TOKEN_EXPIRED, VALIDATION_FAILED, PERMISSION_DENIED, NOT_FOUND, CONFLICT_STALE_WRITE, INTERNAL_ERROR.
   - Concurrency: Stale-write protection via updatedAt. Mutations take lastKnownUpdatedAt; server rejects if stale with extensions.code=CONFLICT_STALE_WRITE.
   - Pagination: Offset + limit with totalCount.
   - Client sends timezone (IANA tz name) on queries/mutations that need validation/derived fields.
+  - Server schema limits: depth limit 5, complexity limit 50; introspection disabled in production build.
+  - Module structure: file-per-resolver with `types/` for shared types, `shared/` for cross-app resolvers, and `takenlijst/` for app-specific resolvers; combined via `MergedObject` in `server/src/graphql/mod.rs`.
 
 - Types (suggested)
   - enum TaskStatus { todo, done, abandoned }
@@ -152,7 +154,6 @@
 - Queries (key ones)
   - me: User
   - projects(includeArchived: Boolean = false, offset: Int = 0, limit: Int = 50): [Project!]!
-  - projectMembers(projectId: ID!): [User!]!
   - tags(offset: Int = 0, limit: Int = 200): [Tag!]!
   - savedViews(projectId: ID!): [SavedView!]!
   - projectDefaultSavedView(projectId: ID!): SavedView
@@ -290,6 +291,8 @@
   - Apply migrations automatically on startup (matches existing server behavior).
 - Shared code
   - Reuse shared Apollo client and AuthContext. Add storage keys for project selection and saved view where helpful.
+- Tests organization
+  - GraphQL tests live under `server/src/graphql/shared/tests/` and `server/src/graphql/takenlijst/tests/`, with integration tests under `server/src/graphql/tests_*.rs`.
 
 ## 17) Testing & QA Criteria
 - Unit tests (server):
