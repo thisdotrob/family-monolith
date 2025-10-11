@@ -1,4 +1,7 @@
 instructions:
+  - name: server-graphql-module-restructure-implementation-sequencing
+    description: server-graphql-module-restructure-implementation-sequencing
+    content_file: ../.prompts/server-graphql-module-restructure/project/implementation-sequencing.md
   - name: server-graphql-module-restructure-implementation-planning
     description: server-graphql-module-restructure-implementation-planning
     content_file: ../.prompts/server-graphql-module-restructure/project/implementation-planning.md
