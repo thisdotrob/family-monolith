@@ -1,5 +1,5 @@
 use crate::auth::Claims;
-use crate::graphql::PagedTasks;
+use crate::graphql::types::PagedTasks;
 use crate::graphql::types::Task;
 use crate::tasks::{TaskStatus, time_utils};
 use async_graphql::{Context, Object};

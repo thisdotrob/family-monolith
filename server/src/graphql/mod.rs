@@ -10,26 +10,17 @@ pub mod types;
 
 use crate::graphql::shared::{SharedMutation, SharedQuery};
 use crate::graphql::takenlijst::{TakenlijstMutation, TakenlijstQuery};
-use crate::graphql::types::Task;
-
-#[derive(async_graphql::SimpleObject)]
-pub struct PagedTasks {
-    items: Vec<Task>,
-    #[graphql(name = "totalCount")]
-    total_count: i32,
-}
-
 #[derive(MergedObject, Default)]
 pub struct CombinedMutation(SharedMutation, TakenlijstMutation);
 
 #[derive(MergedObject, Default)]
-pub struct CombinedQuery(TakenlijstQuery, SharedQuery);
+pub struct QueryRoot(SharedQuery, TakenlijstQuery);
 
-pub type AppSchema = Schema<CombinedQuery, CombinedMutation, EmptySubscription>;
+pub type AppSchema = Schema<QueryRoot, CombinedMutation, EmptySubscription>;
 
 pub fn build(pool: sqlx::SqlitePool) -> AppSchema {
     Schema::build(
-        CombinedQuery::default(),
+        QueryRoot::default(),
         CombinedMutation::default(),
         EmptySubscription,
     )
