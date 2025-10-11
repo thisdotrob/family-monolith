@@ -61,7 +61,7 @@ Wave 5 (after 006; note each ticket’s full deps are satisfied here) — fully 
 - [x] .prompts/server-graphql-module-restructure/implementation/008_create_placeholder_app_structure.md
 
 Wave 6 (final, after 001–008)
-- [ ] .prompts/server-graphql-module-restructure/implementation/009_final_verification_and_cleanup.md
+- [x] .prompts/server-graphql-module-restructure/implementation/009_final_verification_and_cleanup.md
 
 ## “Next work-ready tickets” logic
 Use this section during execution to know what to pick up next. At any moment, the next tickets are those whose dependencies are all checked off.
@@ -83,7 +83,7 @@ Use this section during execution to know what to pick up next. At any moment, t
 
 ## Progress Checklist (master)
 Mark tickets done here as work proceeds.
-- [ ] 001_create_types_directory.md
+- [x] 001_create_types_directory.md
 - [x] 002_create_shared_directory.md
 - [x] 003_extract_remaining_queries_from_mod.md
 - [x] 004_extract_auth_mutations.md
@@ -91,4 +91,4 @@ Mark tickets done here as work proceeds.
 - [x] 006_update_main_module_schema_building.md
 - [x] 007_migrate_and_organize_tests.md
 - [x] 008_create_placeholder_app_structure.md
-- [ ] 009_final_verification_and_cleanup.md
+- [x] 009_final_verification_and_cleanup.md
