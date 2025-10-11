@@ -1,8 +1,17 @@
 # Family Takenlijst (Mobile Todo App) — Delivery Blueprint
 
-This blueprint translates the specification in `todo-app-spec.md` into an actionable implementation plan for this repository. It outlines architecture, milestones, and a right-sized breakdown into iterative tickets with clear dependencies to enable parallel work. All tickets are markdown files under `.rovodev/`.
+This blueprint translates the specification in `todo-app-spec.md` into an actionable implementation plan for this repository. It outlines architecture, milestones, and a right-sized breakdown into iterative tickets with clear dependencies to enable parallel work. All tickets are markdown files under `.prompts/todo-app/implementation/`.
 
 ## Architecture Overview (Repo Integration)
+- Server GraphQL module structure (post-restructure):
+  - File-per-resolver organization under `server/src/graphql/`
+  - `types/` for shared GraphQL types and inputs
+  - `shared/` for cross-app resolvers (auth: login, refreshToken, me, logout)
+  - `takenlijst/` for app-specific resolvers (projects, tags, tasks, saved views, history, recurrence)
+  - `placeholder/` for sample resolvers
+  - Main `server/src/graphql/mod.rs` combines `Shared*`, `Takenlijst*`, and `Placeholder*` via `MergedObject` into the final schema
+- Server schema limits: depth limit 5, complexity limit 50; introspection disabled in production build
+- Standardized GraphQL error codes: INVALID_CREDENTIALS, TOKEN_EXPIRED, VALIDATION_FAILED, PERMISSION_DENIED, NOT_FOUND, CONFLICT_STALE_WRITE, INTERNAL_ERROR
 - Mobile: New Expo app module `apps/mobile/takenlijst` (slug `takenlijst`, display name "Family Takenlijst"), integrated via `mobileapp/src/selectMobileApp.ts` and `mobileapp/app.config.ts`.
 - Backend: Extend Rust server (Axum + async-graphql + sqlx/SQLite) with schema, resolvers, and migrations:
   - Projects + Memberships
@@ -13,6 +22,7 @@ This blueprint translates the specification in `todo-app-spec.md` into an action
   - History query
   - Concurrency via `updatedAt` + GraphQL errors with standardized `extensions.code`
 - Shared: Add GraphQL documents and helpers for timezone and offline; reuse `shared/apollo` and `AuthContext`.
+- Tests organization: App-specific GraphQL tests under `server/src/graphql/{app}/tests/`; shared auth tests under `server/src/graphql/shared/tests/`; integration tests at top-level `server/src/graphql/tests_*.rs`.
 
 ## Delivery Strategy & Milestones
 1) Foundations
