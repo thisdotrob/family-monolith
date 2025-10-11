@@ -22,6 +22,9 @@ mod delete_saved_view;
 mod set_project_default_saved_view;
 mod update_saved_view;
 
+#[cfg(test)]
+pub mod tests;
+
 pub use history_query::HistoryQuery;
 pub use project_default_saved_view_query::ProjectDefaultSavedViewQuery;
 pub use projects_query::ProjectsQuery;
