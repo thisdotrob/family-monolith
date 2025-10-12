@@ -22,6 +22,13 @@ mod delete_saved_view;
 mod set_project_default_saved_view;
 mod update_saved_view;
 
+// Task mutations
+mod abandon_task;
+mod complete_task;
+mod create_task;
+mod restore_task;
+mod update_task;
+
 #[cfg(test)]
 pub mod tests;
 
@@ -78,4 +85,9 @@ pub struct TakenlijstMutation(
     UpdateSavedViewMutation,
     DeleteSavedViewMutation,
     SetProjectDefaultSavedViewMutation,
+    create_task::CreateTaskMutation,
+    update_task::UpdateTaskMutation,
+    complete_task::CompleteTaskMutation,
+    abandon_task::AbandonTaskMutation,
+    restore_task::RestoreTaskMutation,
 );

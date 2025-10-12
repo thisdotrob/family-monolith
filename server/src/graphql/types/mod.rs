@@ -45,3 +45,9 @@ pub use logout_payload::LogoutPayload;
 
 pub mod create_series_input;
 pub use create_series_input::CreateSeriesInput;
+
+pub mod create_task_input;
+pub use create_task_input::CreateTaskInput;
+
+pub mod update_task_input;
+pub use update_task_input::UpdateTaskInput;
