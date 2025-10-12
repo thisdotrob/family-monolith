@@ -6,14 +6,16 @@ Spec refs: §§5,8
 Show list of members and allow owner to add a member by exact username.
 
 ## Scope
-- Query projectMembers(projectId)
-- Mutation addProjectMemberByUsername(projectId, username)
+- Pending API surface. The `projectMembers` query was removed during the GraphQL module restructure and is not currently exposed.
+- Blocked: Do not implement UI until a replacement members surface is introduced (follow-up server ticket required).
+- Mutation addProjectMemberByUsername(projectId, username) remains out of scope until the query returns members.
 
 ## Acceptance Criteria
 - Adding existing member shows error; non-existent username shows error
 
 ## Dependencies
 - 003, 033
+- New: Depends on a future server ticket to expose a members listing surface (e.g., `projectMembers` or `project(projectId) { members { ... } }`).
 
 ## Implementation Steps
 1) Display members including owner
