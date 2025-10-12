@@ -34,5 +34,6 @@
     "../shared/**/*.tsx",
     "../apps/web/**/*.ts",
     "../apps/web/**/*.tsx"
-  ]
+  ],
+  "exclude": ["../shared/**/*.native.ts", "../shared/**/*.native.tsx"]
 }
