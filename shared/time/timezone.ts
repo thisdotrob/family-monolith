@@ -11,11 +11,11 @@
 export const getDeviceTimezone = async (): Promise<string> => {
   try {
     // Try to use expo-localization if available (mobile environment)
-    const ExpoLocalization = await import('expo-localization').catch(() => null);
+    const ExpoLocalization: any = await import('expo-localization').catch(() => null);
     if (ExpoLocalization?.getLocales) {
-      const locales = ExpoLocalization.getLocales();
-      if (locales[0]?.timeZone) {
-        return locales[0].timeZone;
+      const locales: any[] = ExpoLocalization.getLocales();
+      if (locales?.[0]?.timeZone) {
+        return locales[0].timeZone as string;
       }
     }
   } catch (error) {

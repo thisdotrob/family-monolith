@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import NetInfo from '@react-native-community/netinfo';
+import NetInfo, { type NetInfoState } from '@react-native-community/netinfo';
 
 /**
  * React Native implementation using @react-native-community/netinfo
@@ -23,7 +23,7 @@ export function useOffline(): boolean {
       }
     })();
 
-    const unsubscribe = NetInfo.addEventListener((state) => {
+    const unsubscribe = NetInfo.addEventListener((state: NetInfoState) => {
       const reachable = state.isInternetReachable ?? state.isConnected ?? true;
       setIsOffline(!reachable);
     });

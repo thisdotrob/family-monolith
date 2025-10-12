@@ -35,7 +35,7 @@ const SavedViewsScreen: React.FC<SavedViewsScreenProps> = ({ onNavigate }) => {
         </Text>
         <Text variant="bodyLarge" style={styles.description}>
           This is a placeholder for the Saved Views screen. According to the spec, the Tag Manager
-          should be accessible from the "header overflow" menu, but for convenience it's also
+          should be accessible from the “header overflow” menu, but for convenience it’s also
           accessible via the tag icon.
         </Text>
 
