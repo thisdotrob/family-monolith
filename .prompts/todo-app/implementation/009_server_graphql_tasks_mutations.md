@@ -1,3 +1,18 @@
-# 009 — Server: GraphQL Task Mutations with Concurrency\n\nSpec refs: §§5,6,8,10,13\n\n## Summary\nImplement mutations: createTask, updateTask, completeTask, abandonTask, restoreTask, with validation, permissions, and concurrency checks.\n\n## Scope\n- Mutations implement status rules:\n  - complete: sets done + completedAt/By (only from todo)\n  - abandon: sets abandoned + abandonedAt/By (only from todo)\n  - restore: only from abandoned -> todo (clear abandoned fields)\n- Validation: title/description lengths; tag constraints; schedule/deadline bounds\n- Concurrency: `lastKnownUpdatedAt` handling, return `CONFLICT_STALE_WRITE` on mismatch\n\n## Acceptance Criteria\n- Only members may create/edit; archived projects are read-only (reject writes)\n- Assignee default = creator if not provided\n- Tags persisted in task_tags\n\n## Dependencies\n- 008, 004, 006\n\n## Implementation Steps\n1) Inputs and validation\n2) Status transition guards\n3) Concurrency compare and error handling\n4) Tag linking updates\n5) Immediate read-after-write query helper\n\n## Tests\n- Status transitions\n- Concurrency rejections\n- Archived project write rejection\n
+# 009 — Server: GraphQL Task Mutations with Concurrency
+
+Spec refs: §§5,6,8,10,13
+
+## Summary
+
+Implement mutations: createTask, updateTask, completeTask, abandonTask, restoreTask, with validation, permissions, and concurrency checks
+
+## Scope
+
+Module placement and structure
+- Place resolvers under `server/src/graphql/takenlijst/` using a file-per-resolver pattern (e.g., `task_create_mutation.rs`, `task_update_mutation.rs`, etc.).
+- Put shared GraphQL types/inputs in `server/src/graphql/types/` where appropriate.
+- Ensure `server/src/graphql/mod.rs` merges takenlijst mutations via `MergedObject` into the root schema.
+- Follow the standardized error codes: INVALID_CREDENTIALS, TOKEN_EXPIRED, VALIDATION_FAILED, PERMISSION_DENIED, NOT_FOUND, CONFLICT_STALE_WRITE, INTERNAL_ERROR.
+- Tests: add unit tests under `server/src/graphql/takenlijst/tests/` and any integration tests under `server/src/graphql/tests_*.rs`.
 
 Note: When you complete this ticket, update todo-app-implementation-sequencing-plan.md to check off .rovodev/todo-app-009_server_graphql_tasks_mutations.md in the appropriate wave.

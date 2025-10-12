@@ -6,7 +6,8 @@ Spec refs: §8, §16
 Add typed GraphQL documents for Projects, Tags, Tasks, Saved Views, History; export from shared package for reuse by web/mobile (mobile first).
 
 ## Scope
-- Queries: me, projects, projectMembers, tags, tasks, savedViews, projectDefaultSavedView, history
+- Queries: me, projects, tags, tasks, savedViews, projectDefaultSavedView, history
+  - Note: `projectMembers` was removed from the API during the GraphQL module restructure; exclude it from shared docs until a replacement surface exists.
 - Mutations: project CRUD, tag CRUD, task CRUD, saved view CRUD/default, series create/update
 - Add TypeScript types via codegen or manual typings aligned with existing pattern
 

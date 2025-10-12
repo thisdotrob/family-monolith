@@ -19,9 +19,9 @@ Add unit tests to cover validation, permissions, concurrency, and recurrence beh
 - 006, 003, 009, 016, 017
 
 ## Implementation Steps
-1) Add unit tests under `server/src/...` or `tests/` as appropriate
-2) Mock or seed minimal data for each scenario
-3) Assert error codes via GraphQL extensions where relevant
+1) Place unit tests under `server/src/graphql/shared/tests/` and `server/src/graphql/takenlijst/tests/`; use `server/src/graphql/tests_*.rs` for integration-style tests.
+2) Mock or seed minimal data for each scenario.
+3) Assert GraphQL `extensions.code` values for errors where relevant. Use standardized codes: INVALID_CREDENTIALS, TOKEN_EXPIRED, VALIDATION_FAILED, PERMISSION_DENIED, NOT_FOUND, CONFLICT_STALE_WRITE, INTERNAL_ERROR.
 
 
 Note: When you complete this ticket, update todo-app-implementation-sequencing-plan.md to check off .rovodev/todo-app-020_server_tests_unit.md in the appropriate wave.
