@@ -262,7 +262,7 @@ const TagManager: React.FC<TagManagerProps> = ({ visible, onDismiss }) => {
         <Dialog.Title>Delete Tag</Dialog.Title>
         <Dialog.Content>
           <Text>
-            Are you sure you want to delete the tag "{deleteConfirmTag?.name}"?
+            Are you sure you want to delete the tag “{deleteConfirmTag?.name}”?
             {'\n\n'}
             Note: If this tag is being used by any tasks, deletion will be prevented.
           </Text>

@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
 import LocalStorage from '../LocalStorage';
 import {
@@ -44,7 +44,7 @@ export function LastSelectionProvider({ children }: { children: ReactNode }) {
         setState({ lastProjectId: projectId, lastSavedViewId: savedViewId, isRestoring: false });
       } catch (e) {
         if (__DEV__) console.warn('Failed to restore last selection', e);
-        if (mounted) setState((s) => ({ ...s, isRestoring: false }));
+        if (mounted) setState((s: LastSelectionState) => ({ ...s, isRestoring: false }));
       }
     })();
 
@@ -63,7 +63,7 @@ export function LastSelectionProvider({ children }: { children: ReactNode }) {
           } else {
             await storageSetLastSelectedProjectId(LocalStorage, projectId);
           }
-          setState((prev) => ({ ...prev, lastProjectId: projectId }));
+          setState((prev: LastSelectionState) => ({ ...prev, lastProjectId: projectId }));
         } catch (e) {
           if (__DEV__) console.warn('Failed to set last project id', e);
         }
@@ -75,7 +75,7 @@ export function LastSelectionProvider({ children }: { children: ReactNode }) {
           } else {
             await storageSetLastSavedViewId(LocalStorage, savedViewId);
           }
-          setState((prev) => ({ ...prev, lastSavedViewId: savedViewId }));
+          setState((prev: LastSelectionState) => ({ ...prev, lastSavedViewId: savedViewId }));
         } catch (e) {
           if (__DEV__) console.warn('Failed to set last saved view id', e);
         }
