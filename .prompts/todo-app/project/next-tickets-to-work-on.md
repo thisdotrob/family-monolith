@@ -1,1 +1,1 @@
-What are the next tickets that can be picked up to start work on, according to `todo-app-implementation-sequencing-plan.md`?
+What are the next tickets that can be picked up to start work on, according to `.prompts/todo-app/docs/implementation-sequencing-plan.md`? Give me the `name` value of each in `.rovodev/instructions.yml`
