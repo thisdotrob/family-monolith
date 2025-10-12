@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { Text, Appbar, Button } from 'react-native-paper';
 import TagManager from './TagManager';
@@ -7,7 +7,7 @@ interface SavedViewsScreenProps {
   onNavigate?: (screen: string) => void;
 }
 
-const SavedViewsScreen: React.FC<SavedViewsScreenProps> = ({ onNavigate }) => {
+const SavedViewsScreen = ({ onNavigate }: SavedViewsScreenProps) => {
   const [tagManagerVisible, setTagManagerVisible] = useState(false);
 
   const openTagManager = () => {

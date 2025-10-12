@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { Text, Appbar, Button } from 'react-native-paper';
 import TagManager from './TagManager';
@@ -7,7 +7,7 @@ interface TasksScreenProps {
   onNavigate?: (screen: string) => void;
 }
 
-const TasksScreen: React.FC<TasksScreenProps> = ({ onNavigate }) => {
+const TasksScreen = ({ onNavigate }: TasksScreenProps) => {
   const [tagManagerVisible, setTagManagerVisible] = useState(false);
 
   const openTagManager = () => {

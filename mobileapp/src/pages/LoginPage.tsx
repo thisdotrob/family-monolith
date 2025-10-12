@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { View, StyleSheet } from 'react-native';
-import { TextInput, Button, Text } from 'react-native-paper';
+import { TextInput as PaperTextInput, Button, Text } from 'react-native-paper';
+const AnyTextInput = PaperTextInput as any;
 import { useMutation } from '@apollo/client';
 import { useAuth } from '@shared/contexts/AuthContext';
 import { LOGIN_MUTATION } from '@shared/graphql/mutations';
@@ -32,7 +33,7 @@ const LoginPage = () => {
 
   return (
     <View style={styles.container}>
-      <TextInput
+      <AnyTextInput
         label="Username"
         value={username}
         onChangeText={setUsername}
@@ -40,7 +41,7 @@ const LoginPage = () => {
         autoCapitalize="none"
         testID="username-input"
       />
-      <TextInput
+      <AnyTextInput
         label="Password"
         value={password}
         onChangeText={setPassword}
