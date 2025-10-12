@@ -90,7 +90,7 @@ Next up when Wave 5 items complete:
 
 Wave 6 — Recurrence generation enabling + Mobile stale-write UX
 Backend
-- [ ] .rovodev/todo-app-015_server_generation_series_occurrences.md (depends on 014,007,009)
+- [x] .rovodev/todo-app-015_server_generation_series_occurrences.md (depends on 014,007,009)
 Mobile
 - [ ] .rovodev/todo-app-046_mobile_stale_write_retry_ux.md (depends on 009,004)
 

@@ -2,9 +2,9 @@ use crate::auth::Claims;
 use crate::auth::guard::require_member;
 use crate::graphql::types::{CreateSeriesInput, RecurringSeries};
 use async_graphql::{Context, ErrorExtensions, Object};
-use chrono::{NaiveDate, NaiveTime, TimeZone, Utc};
+use chrono::{Datelike, NaiveDate, NaiveTime, TimeZone, Timelike, Utc};
 use chrono_tz::Tz;
-use rrule::RRule;
+use rrule::{RRule, RRuleSet};
 use sqlx::SqlitePool;
 use std::sync::Arc;
 
@@ -162,6 +162,24 @@ impl CreateRecurringSeriesMutation {
         // Create the recurring series
         let series_id = uuid::Uuid::new_v4().to_string();
 
+        // Normalize RRULE for date-only series by stripping time-based parts (BYHOUR/BYMINUTE/BYSECOND)
+        let has_time_input = input.dtstart_time_minutes.is_some();
+        let normalized_rrule = if has_time_input {
+            input.rrule.clone()
+        } else {
+            let parts: Vec<&str> = input.rrule.split(';').collect();
+            let kept: Vec<&str> = parts
+                .into_iter()
+                .filter(|p| {
+                    let up = p.to_ascii_uppercase();
+                    !(up.starts_with("BYHOUR=")
+                        || up.starts_with("BYMINUTE=")
+                        || up.starts_with("BYSECOND="))
+                })
+                .collect();
+            kept.join(";")
+        };
+
         sqlx::query(
             "INSERT INTO recurring_series 
              (id, project_id, created_by, title, description, assignee_id, rrule, dtstart_date, dtstart_time_minutes, deadline_offset_minutes) 
@@ -173,7 +191,7 @@ impl CreateRecurringSeriesMutation {
         .bind(&input.title)
         .bind(&input.description)
         .bind(&input.assignee_id)
-        .bind(&input.rrule)
+        .bind(&normalized_rrule)
         .bind(&input.dtstart_date)
         .bind(input.dtstart_time_minutes)
         .bind(input.deadline_offset_minutes)
@@ -187,6 +205,103 @@ impl CreateRecurringSeriesMutation {
                 .bind(tag_id)
                 .execute(pool)
                 .await?;
+        }
+
+        // Generate 5 future task occurrences linked to this series using RRULE iterator with chrono-tz adapter
+        let dtstart_time_minutes = input.dtstart_time_minutes;
+        let (start_naive, has_time) = {
+            let date = chrono::NaiveDate::parse_from_str(&input.dtstart_date, "%Y-%m-%d")?;
+            match dtstart_time_minutes {
+                Some(m) => {
+                    let h = m / 60;
+                    let min = m % 60;
+                    let t = chrono::NaiveTime::from_hms_opt(h as u32, min as u32, 0)
+                        .ok_or_else(|| anyhow::anyhow!("Invalid time"))?;
+                    (date.and_time(t), true)
+                }
+                None => {
+                    let t = chrono::NaiveTime::from_hms_opt(0, 0, 0).unwrap();
+                    (date.and_time(t), false)
+                }
+            }
+        };
+        if let chrono::LocalResult::Single(start_in_tz) = tz.from_local_datetime(&start_naive) {
+            // Build an RRuleSet by composing a DTSTART (with TZID/DATE semantics) and the RRULE line.
+            let y = start_in_tz.year();
+            let mo = start_in_tz.month();
+            let d = start_in_tz.day();
+            let dtstart_line = if has_time {
+                let h = start_in_tz.hour();
+                let mi = start_in_tz.minute();
+                let s = start_in_tz.second();
+                format!(
+                    "DTSTART;TZID={}:{}{:02}{:02}T{:02}{:02}{:02}",
+                    input.timezone, y, mo, d, h, mi, s
+                )
+            } else {
+                format!(
+                    "DTSTART;VALUE=DATE;TZID={}:{}{:02}{:02}",
+                    input.timezone, y, mo, d
+                )
+            };
+            let rrule_line = format!("RRULE:{}", normalized_rrule);
+            let set_str = format!("{}\n{}", dtstart_line, rrule_line);
+            let set: RRuleSet = set_str.parse().map_err(|_| {
+                async_graphql::Error::new("Invalid RRULE/DTSTART combination")
+                    .extend_with(|_, e| e.set("code", "VALIDATION_FAILED"))
+            })?;
+
+            let mut created = 0usize;
+            for occ in set.into_iter() {
+                // occ is expected to be in the correct local timezone per TZID in DTSTART
+                let occ_dt = occ.with_timezone(&tz);
+                if occ_dt < now_in_tz {
+                    continue;
+                }
+
+                let task_id = uuid::Uuid::new_v4().to_string();
+                let scheduled_date = occ_dt.date_naive().format("%Y-%m-%d").to_string();
+                let scheduled_time_minutes = dtstart_time_minutes;
+
+                let deadline_dt =
+                    occ_dt + chrono::Duration::minutes(input.deadline_offset_minutes as i64);
+                let deadline_date = Some(deadline_dt.date_naive().format("%Y-%m-%d").to_string());
+                let deadline_time_minutes = if has_time {
+                    Some((deadline_dt.hour() as i32) * 60 + (deadline_dt.minute() as i32))
+                } else {
+                    None
+                };
+
+                sqlx::query("INSERT INTO tasks (id, project_id, author_id, assignee_id, series_id, title, description, status, scheduled_date, scheduled_time_minutes, deadline_date, deadline_time_minutes) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, 'todo', ?8, ?9, ?10, ?11)")
+                    .bind(&task_id)
+                    .bind(&input.project_id)
+                    .bind(&user_id)
+                    .bind(&input.assignee_id)
+                    .bind(&series_id)
+                    .bind(&input.title)
+                    .bind(&input.description)
+                    .bind(&scheduled_date)
+                    .bind(&scheduled_time_minutes)
+                    .bind(&deadline_date)
+                    .bind(&deadline_time_minutes)
+                    .execute(pool)
+                    .await?;
+
+                for tag_id in &default_tag_ids {
+                    sqlx::query(
+                        "INSERT OR IGNORE INTO task_tags (task_id, tag_id) VALUES (?1, ?2)",
+                    )
+                    .bind(&task_id)
+                    .bind(tag_id)
+                    .execute(pool)
+                    .await?;
+                }
+
+                created += 1;
+                if created >= 5 {
+                    break;
+                }
+            }
         }
 
         // Fetch the created series
