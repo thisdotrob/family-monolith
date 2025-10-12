@@ -26,63 +26,78 @@ const DEFAULT_GRAPHQL_URI = "https://blobfishapp.duckdns.org/v1/graphql";
 
 const createAuthHeaderLink = (
   getTokens: () => Promise<AuthTokens>,
-) => setContext(async (_request: any, prevContext: { headers?: Record<string, string> }) => {
-  const { token } = await getTokens();
-  return {
-    headers: {
-      ...prevContext.headers,
-      authorization: token ? `Bearer ${token}` : "",
-    },
-  };
-});
+) =>
+  setContext(async (_request: any, prevContext: { headers?: Record<string, string>; unauthenticated?: boolean }) => {
+    if (prevContext?.unauthenticated) {
+      // Do not attach auth headers for unauthenticated operations (login/refresh)
+      return { headers: { ...prevContext.headers } };
+    }
+    const { token } = await getTokens();
+    return {
+      headers: {
+        ...prevContext.headers,
+        authorization: token ? `Bearer ${token}` : '',
+      },
+    };
+  });
 
 const createErrorLink = (
   getClient: () => ApolloClient<any>,
   setIsAuthenticating: (isAuthenticating: boolean) => void,
   getTokens: () => Promise<AuthTokens>,
   saveTokens: (token: string, refreshToken: string) => Promise<void>,
-  logout: () => Promise<void>
-) => onError((input: any) => {
-  console.log(input);
+  logout: () => Promise<void>,
+) =>
+  onError((input: any) => {
+    const { graphQLErrors, operation, forward } = input;
 
-  const { graphQLErrors, operation, forward } = input;
+    const isUnauthenticatedOp = Boolean(operation?.getContext?.().unauthenticated);
 
-  if (graphQLErrors && graphQLErrors.some((error: any) => Array.isArray(error) && error.includes("TOKEN_EXPIRED"))) {
-    setIsAuthenticating(true);
+    const hasTokenExpired = Array.isArray(graphQLErrors)
+      ? graphQLErrors.some((e: any) => e?.extensions?.code === 'TOKEN_EXPIRED')
+      : false;
 
-    return new Observable((observer: any) => {
-      (async () => {
-        try {
-          const { refreshToken } = await getTokens();
+    if (!isUnauthenticatedOp && hasTokenExpired) {
+      setIsAuthenticating(true);
 
-          if (!refreshToken) {
-            throw new Error('No refresh token found');
+      return new Observable((observer: any) => {
+        (async () => {
+          try {
+            const { refreshToken } = await getTokens();
+            if (!refreshToken) throw new Error('No refresh token found');
+
+            const { data } = await getClient().mutate({
+              mutation: REFRESH_TOKEN_MUTATION,
+              variables: { refreshToken },
+              context: { unauthenticated: true },
+            });
+
+            const { success, token, refreshToken: newRefreshToken } = data.refreshToken;
+            if (!success || !token || !newRefreshToken) {
+              throw new Error('Refresh token mutation failed');
+            }
+
+            await saveTokens(token, newRefreshToken);
+
+            const oldHeaders = operation.getContext().headers;
+            operation.setContext({ headers: { ...oldHeaders, authorization: `Bearer ${token}` } });
+
+            forward(operation).subscribe({
+              next: (val: any) => observer.next(val),
+              error: (err: any) => observer.error(err),
+              complete: () => observer.complete(),
+            });
+          } catch (err: any) {
+            await logout();
+            operation.setContext({ headers: { ...(operation.getContext().headers || {}), authorization: '' } });
+            observer.error(err);
+          } finally {
+            setIsAuthenticating(false);
           }
-
-          const { data } = await getClient().mutate({ mutation: REFRESH_TOKEN_MUTATION, variables: { refreshToken }, context: { unauthenticated: true } });
-
-          const { success, token, refreshToken: newRefreshToken } = data.refreshToken;
-
-          if (!success) {
-            throw new Error('Refresh token mutation failed');
-          }
-
-          await saveTokens(token, newRefreshToken);
-
-          const oldHeaders = operation.getContext().headers;
-
-          operation.setContext({ headers: { ...oldHeaders, authorization: `Bearer ${token}` } });
-
-          forward(operation).subscribe(observer);
-        } catch (err: any) {
-          await logout();
-
-          observer.error(err);
-        }
-      })();
-    });
-  }
-});
+        })();
+      });
+    }
+  });
 
 let client: ApolloClient<NormalizedCacheObject> | null = null; // cache a single client instance
 

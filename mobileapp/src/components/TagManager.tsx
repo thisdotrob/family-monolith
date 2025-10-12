@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { View, StyleSheet, ScrollView } from 'react-native';
 import {
   Text,
@@ -11,7 +11,9 @@ import {
   ActivityIndicator,
   Snackbar,
 } from 'react-native-paper';
+const AnyTextInput = TextInput as any;
 import { useQuery, useMutation } from '@apollo/client';
+import { hasCode, isOfflineError } from '../gqlErrors';
 import { TAGS_QUERY } from '@shared/graphql/queries';
 import {
   CREATE_TAG_MUTATION,
@@ -39,13 +41,16 @@ const normalizeTagName = (name: string): string => {
     .replace(/^#+/, ''); // strip leading #
 };
 
-const TagManager: React.FC<TagManagerProps> = ({ visible, onDismiss }) => {
+const TagManager = ({ visible, onDismiss }: TagManagerProps) => {
   const [newTagName, setNewTagName] = useState('');
   const [editingTag, setEditingTag] = useState<Tag | null>(null);
   const [editTagName, setEditTagName] = useState('');
   const [deleteConfirmTag, setDeleteConfirmTag] = useState<Tag | null>(null);
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [snackbarVisible, setSnackbarVisible] = useState(false);
+  const [retryDialogVisible, setRetryDialogVisible] = useState(false);
+  const [retryMessage, setRetryMessage] = useState('');
+  const [retryAction, setRetryAction] = useState<null | (() => void)>(null);
 
   const { data, loading, error, refetch } = useQuery(TAGS_QUERY, {
     variables: { offset: 0, limit: 200 },
@@ -59,6 +64,14 @@ const TagManager: React.FC<TagManagerProps> = ({ visible, onDismiss }) => {
       showSnackbar('Tag created successfully');
     },
     onError: (error) => {
+      if (isOfflineError(error)) {
+        showSnackbar('You appear to be offline. Please try again when you are back online.');
+        return;
+      }
+      if (hasCode(error, 'PERMISSION_DENIED')) {
+        showSnackbar('You do not have permission to create tags in this project.');
+        return;
+      }
       showSnackbar(`Error creating tag: ${error.message}`);
     },
   });
@@ -70,7 +83,24 @@ const TagManager: React.FC<TagManagerProps> = ({ visible, onDismiss }) => {
       refetch();
       showSnackbar('Tag renamed successfully');
     },
-    onError: (error) => {
+    onError: async (error) => {
+      if (isOfflineError(error)) {
+        showSnackbar('You appear to be offline. Please try again when you are back online.');
+        return;
+      }
+      if (hasCode(error, 'CONFLICT_STALE_WRITE')) {
+        await refetch();
+        setRetryMessage(
+          'This tag was changed by someone else. We pulled the latest changes. Retry your rename?',
+        );
+        setRetryAction(() => () => handleRenameTag());
+        setRetryDialogVisible(true);
+        return;
+      }
+      if (hasCode(error, 'PERMISSION_DENIED')) {
+        showSnackbar('You do not have permission to rename tags in this project.');
+        return;
+      }
       showSnackbar(`Error renaming tag: ${error.message}`);
     },
   });
@@ -81,7 +111,28 @@ const TagManager: React.FC<TagManagerProps> = ({ visible, onDismiss }) => {
       refetch();
       showSnackbar('Tag deleted successfully');
     },
-    onError: (error) => {
+    onError: async (error) => {
+      if (isOfflineError(error)) {
+        showSnackbar('You appear to be offline. Please try again when you are back online.');
+        return;
+      }
+      if (hasCode(error, 'CONFLICT_STALE_WRITE')) {
+        await refetch();
+        setRetryMessage(
+          'This tag was changed by someone else. We pulled the latest changes. Retry your delete?',
+        );
+        setRetryAction(() => () => confirmDeleteTag());
+        setRetryDialogVisible(true);
+        return;
+      }
+      if (hasCode(error, 'PERMISSION_DENIED')) {
+        showSnackbar('You do not have permission to delete tags in this project.');
+        return;
+      }
+      if (hasCode(error, 'VALIDATION_FAILED')) {
+        showSnackbar('This tag is in use by tasks and cannot be deleted.');
+        return;
+      }
       showSnackbar(`Error deleting tag: ${error.message}`);
     },
   });
@@ -168,7 +219,7 @@ const TagManager: React.FC<TagManagerProps> = ({ visible, onDismiss }) => {
               Create New Tag
             </Text>
             <View style={styles.createRow}>
-              <TextInput
+              <AnyTextInput
                 mode="outlined"
                 label="Tag name"
                 value={newTagName}
@@ -201,7 +252,7 @@ const TagManager: React.FC<TagManagerProps> = ({ visible, onDismiss }) => {
                 <List.Item
                   key={tag.id}
                   title={tag.name}
-                  left={(props) => <List.Icon {...props} icon="tag" />}
+                  left={(props: any) => <List.Icon {...props} icon="tag" />}
                   right={() => (
                     <View style={styles.tagActions}>
                       <IconButton
@@ -233,7 +284,7 @@ const TagManager: React.FC<TagManagerProps> = ({ visible, onDismiss }) => {
       <Dialog visible={!!editingTag} onDismiss={() => setEditingTag(null)}>
         <Dialog.Title>Rename Tag</Dialog.Title>
         <Dialog.Content>
-          <TextInput
+          <AnyTextInput
             mode="outlined"
             label="Tag name"
             value={editTagName}
@@ -279,6 +330,28 @@ const TagManager: React.FC<TagManagerProps> = ({ visible, onDismiss }) => {
             buttonColor="#d32f2f"
           >
             Delete
+          </Button>
+        </Dialog.Actions>
+      </Dialog>
+
+      {/* Retry dialog for stale-write conflicts */}
+      <Dialog visible={retryDialogVisible} onDismiss={() => setRetryDialogVisible(false)}>
+        <Dialog.Title>Update needed</Dialog.Title>
+        <Dialog.Content>
+          <Text>{retryMessage}</Text>
+        </Dialog.Content>
+        <Dialog.Actions>
+          <Button onPress={() => setRetryDialogVisible(false)}>Cancel</Button>
+          <Button
+            mode="contained"
+            onPress={() => {
+              const action = retryAction;
+              setRetryDialogVisible(false);
+              setRetryAction(null);
+              if (action) action();
+            }}
+          >
+            Retry
           </Button>
         </Dialog.Actions>
       </Dialog>
