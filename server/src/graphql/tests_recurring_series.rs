@@ -1,8 +1,10 @@
 #[cfg(test)]
 mod tests {
+    use chrono::Timelike;
     use chrono::{NaiveDate, Utc};
     use chrono_tz::Tz;
     use rrule::RRule;
+    use rrule::RRuleSet;
 
     #[test]
     fn test_rrule_validation() {
@@ -73,5 +75,47 @@ mod tests {
 
         // Past should be invalid
         assert!(!(yesterday >= today));
+    }
+
+    #[test]
+    fn test_rrule_occurrences_across_dst_spring_forward() {
+        // Europe/Amsterdam DST starts around end of March (CET->CEST), losing 02:00-02:59 local times.
+        let tz: Tz = "Europe/Amsterdam".parse().unwrap();
+        let y = 2025;
+        let dtstart_line = format!(
+            "DTSTART;TZID=Europe/Amsterdam:{}{:02}{:02}T073000",
+            y, 3, 29
+        );
+        let rrule_line = "RRULE:FREQ=DAILY;COUNT=5";
+        let rruleset_str = format!("{}\n{}", dtstart_line, rrule_line);
+        let set: RRuleSet = rruleset_str.parse().unwrap();
+        let occs: Vec<_> = set.into_iter().collect();
+        assert_eq!(occs.len(), 5);
+        for (i, occ) in occs.iter().enumerate() {
+            let local = occ.with_timezone(&tz);
+            assert_eq!(local.hour(), 7, "occurrence {} hour drifted", i);
+            assert_eq!(local.minute(), 30, "occurrence {} minute drifted", i);
+        }
+    }
+
+    #[test]
+    fn test_rrule_occurrences_across_dst_fall_back() {
+        // America/New_York DST ends around early November (EDT->EST).
+        let tz: Tz = "America/New_York".parse().unwrap();
+        let y = 2025;
+        let dtstart_line = format!(
+            "DTSTART;TZID=America/New_York:{}{:02}{:02}T213000",
+            y, 10, 30
+        );
+        let rrule_line = "RRULE:FREQ=DAILY;COUNT=5";
+        let rruleset_str = format!("{}\n{}", dtstart_line, rrule_line);
+        let set: RRuleSet = rruleset_str.parse().unwrap();
+        let occs: Vec<_> = set.into_iter().collect();
+        assert_eq!(occs.len(), 5);
+        for (i, occ) in occs.iter().enumerate() {
+            let local = occ.with_timezone(&tz);
+            assert_eq!(local.hour(), 21, "occurrence {} hour drifted", i);
+            assert_eq!(local.minute(), 30, "occurrence {} minute drifted", i);
+        }
     }
 }

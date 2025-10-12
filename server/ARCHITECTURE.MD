@@ -48,6 +48,10 @@ These modules define the application's error handling strategy.
 
 ### `graphql`
 
+Note on recurring series RRULE normalization:
+- For date-only series (no dtstartTimeMinutes), we normalize the RRULE by stripping time-based parts (BYHOUR/BYMINUTE/BYSECOND) to preserve date-only semantics.
+- Occurrence generation uses an adapter that composes a DTSTART (with TZID and VALUE=DATE for date-only) together with the RRULE and parses it via RRuleSet, ensuring local wall-clock iteration with DST awareness.
+
 This module implements the GraphQL API layer using `async-graphql`.
 
 - It defines the GraphQL schema, including the root query, mutations, and subscriptions (currently empty).
