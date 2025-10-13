@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useStaleWriteRetry } from '../hooks/useStaleWriteRetry';
 import { View, StyleSheet, ScrollView } from 'react-native';
 import {
   Text,
@@ -11,7 +12,7 @@ import {
   ActivityIndicator,
   Snackbar,
 } from 'react-native-paper';
-import { useQuery, useMutation } from '@apollo/client';
+import { useQuery, useMutation, ApolloError } from '@apollo/client';
 import { TAGS_QUERY } from '@shared/graphql/queries';
 import {
   CREATE_TAG_MUTATION,
@@ -38,7 +39,6 @@ const normalizeTagName = (name: string): string => {
     .replace(/\s+/g, ' ') // collapse multiple spaces
     .replace(/^#+/, ''); // strip leading #
 };
-
 const TagManager: React.FC<TagManagerProps> = ({ visible, onDismiss }) => {
   const [newTagName, setNewTagName] = useState('');
   const [editingTag, setEditingTag] = useState<Tag | null>(null);
@@ -52,14 +52,27 @@ const TagManager: React.FC<TagManagerProps> = ({ visible, onDismiss }) => {
     skip: !visible,
   });
 
+  const showSnackbar = (message: string) => {
+    setSnackbarMessage(message);
+    setSnackbarVisible(true);
+  };
+
+  const { handleApolloError, ConflictRetryDialog } = useStaleWriteRetry({
+    refetch: async () => {
+      await refetch();
+    },
+    showMessage: showSnackbar,
+  });
+
   const [createTag, { loading: createLoading }] = useMutation(CREATE_TAG_MUTATION, {
     onCompleted: () => {
       setNewTagName('');
       refetch();
       showSnackbar('Tag created successfully');
     },
-    onError: (error) => {
-      showSnackbar(`Error creating tag: ${error.message}`);
+    onError: async (error) => {
+      const handled = await handleApolloError(error as ApolloError);
+      if (!handled) showSnackbar(`Error creating tag: ${error.message}`);
     },
   });
 
@@ -70,8 +83,13 @@ const TagManager: React.FC<TagManagerProps> = ({ visible, onDismiss }) => {
       refetch();
       showSnackbar('Tag renamed successfully');
     },
-    onError: (error) => {
-      showSnackbar(`Error renaming tag: ${error.message}`);
+    onError: async (error) => {
+      const handled = await handleApolloError(error as ApolloError, async () => {
+        if (!editingTag) return;
+        const normalized = normalizeTagName(editTagName);
+        await renameTag({ variables: { tagId: editingTag.id, newName: normalized } });
+      });
+      if (!handled) showSnackbar(`Error renaming tag: ${error.message}`);
     },
   });
 
@@ -81,15 +99,14 @@ const TagManager: React.FC<TagManagerProps> = ({ visible, onDismiss }) => {
       refetch();
       showSnackbar('Tag deleted successfully');
     },
-    onError: (error) => {
-      showSnackbar(`Error deleting tag: ${error.message}`);
+    onError: async (error) => {
+      const handled = await handleApolloError(error as ApolloError, async () => {
+        if (!deleteConfirmTag) return;
+        await deleteTag({ variables: { tagId: deleteConfirmTag.id } });
+      });
+      if (!handled) showSnackbar(`Error deleting tag: ${error.message}`);
     },
   });
-
-  const showSnackbar = (message: string) => {
-    setSnackbarMessage(message);
-    setSnackbarVisible(true);
-  };
 
   const handleCreateTag = () => {
     const normalized = normalizeTagName(newTagName);
@@ -158,76 +175,79 @@ const TagManager: React.FC<TagManagerProps> = ({ visible, onDismiss }) => {
   const tags: Tag[] = data?.tags || [];
 
   return (
-    <Portal>
-      <Dialog visible={visible} onDismiss={onDismiss} style={styles.dialog}>
-        <Dialog.Title>Tag Manager</Dialog.Title>
-        <Dialog.Content>
-          {/* Create new tag */}
-          <View style={styles.createSection}>
-            <Text variant="titleSmall" style={styles.sectionTitle}>
-              Create New Tag
-            </Text>
-            <View style={styles.createRow}>
-              <TextInput
-                mode="outlined"
-                label="Tag name"
-                value={newTagName}
-                onChangeText={setNewTagName}
-                style={styles.createInput}
-                onSubmitEditing={handleCreateTag}
-                disabled={createLoading}
-              />
-              <Button
-                mode="contained"
-                onPress={handleCreateTag}
-                disabled={createLoading || !newTagName.trim()}
-                loading={createLoading}
-                style={styles.createButton}
-              >
-                Add
-              </Button>
-            </View>
-          </View>
-
-          {/* Tags list */}
-          <ScrollView style={styles.tagsList}>
-            <Text variant="titleSmall" style={styles.sectionTitle}>
-              Existing Tags ({tags.length})
-            </Text>
-            {tags.length === 0 ? (
-              <Text style={styles.emptyText}>No tags yet. Create one above!</Text>
-            ) : (
-              tags.map((tag) => (
-                <List.Item
-                  key={tag.id}
-                  title={tag.name}
-                  left={(props) => <List.Icon {...props} icon="tag" />}
-                  right={() => (
-                    <View style={styles.tagActions}>
-                      <IconButton
-                        icon="pencil"
-                        size={20}
-                        onPress={() => handleEditTag(tag)}
-                        disabled={renameLoading || deleteLoading}
-                      />
-                      <IconButton
-                        icon="delete"
-                        size={20}
-                        onPress={() => handleDeleteTag(tag)}
-                        disabled={renameLoading || deleteLoading}
-                      />
-                    </View>
-                  )}
-                  style={styles.tagItem}
+    <>
+      <ConflictRetryDialog />
+      <Portal>
+        <Dialog visible={visible} onDismiss={onDismiss} style={styles.dialog}>
+          <Dialog.Title>Tag Manager</Dialog.Title>
+          <Dialog.Content>
+            {/* Create new tag */}
+            <View style={styles.createSection}>
+              <Text variant="titleSmall" style={styles.sectionTitle}>
+                Create New Tag
+              </Text>
+              <View style={styles.createRow}>
+                <TextInput
+                  mode="outlined"
+                  label="Tag name"
+                  value={newTagName}
+                  onChangeText={setNewTagName}
+                  style={styles.createInput}
+                  onSubmitEditing={handleCreateTag}
+                  disabled={createLoading}
                 />
-              ))
-            )}
-          </ScrollView>
-        </Dialog.Content>
-        <Dialog.Actions>
-          <Button onPress={onDismiss}>Close</Button>
-        </Dialog.Actions>
-      </Dialog>
+                <Button
+                  mode="contained"
+                  onPress={handleCreateTag}
+                  disabled={createLoading || !newTagName.trim()}
+                  loading={createLoading}
+                  style={styles.createButton}
+                >
+                  Add
+                </Button>
+              </View>
+            </View>
+
+            {/* Tags list */}
+            <ScrollView style={styles.tagsList}>
+              <Text variant="titleSmall" style={styles.sectionTitle}>
+                Existing Tags ({tags.length})
+              </Text>
+              {tags.length === 0 ? (
+                <Text style={styles.emptyText}>No tags yet. Create one above!</Text>
+              ) : (
+                tags.map((tag) => (
+                  <List.Item
+                    key={tag.id}
+                    title={tag.name}
+                    left={(props) => <List.Icon {...props} icon="tag" />}
+                    right={() => (
+                      <View style={styles.tagActions}>
+                        <IconButton
+                          icon="pencil"
+                          size={20}
+                          onPress={() => handleEditTag(tag)}
+                          disabled={renameLoading || deleteLoading}
+                        />
+                        <IconButton
+                          icon="delete"
+                          size={20}
+                          onPress={() => handleDeleteTag(tag)}
+                          disabled={renameLoading || deleteLoading}
+                        />
+                      </View>
+                    )}
+                    style={styles.tagItem}
+                  />
+                ))
+              )}
+            </ScrollView>
+          </Dialog.Content>
+          <Dialog.Actions>
+            <Button onPress={onDismiss}>Close</Button>
+          </Dialog.Actions>
+        </Dialog>
+      </Portal>
 
       {/* Edit tag dialog */}
       <Dialog visible={!!editingTag} onDismiss={() => setEditingTag(null)}>
@@ -291,7 +311,7 @@ const TagManager: React.FC<TagManagerProps> = ({ visible, onDismiss }) => {
       >
         {snackbarMessage}
       </Snackbar>
-    </Portal>
+    </>
   );
 };
 
