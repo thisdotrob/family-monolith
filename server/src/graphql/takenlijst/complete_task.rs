@@ -3,6 +3,7 @@ use std::sync::Arc;
 use async_graphql::{Context, ErrorExtensions, Object};
 use sqlx::{Row, SqlitePool};
 
+use super::series_topup::top_up_series;
 use crate::auth::Claims;
 use crate::auth::guard::require_member;
 use crate::error_codes::ErrorCode;
@@ -89,6 +90,11 @@ impl CompleteTaskMutation {
             .bind(&id)
             .fetch_one(pool)
             .await?;
+
+        // If this task belongs to a recurring series, attempt a top-up to ensure 5 future TODOs remain
+        if let Some(series_id) = row.get::<Option<String>, _>("series_id") {
+            let _ = top_up_series(pool, &series_id, &timezone).await;
+        }
 
         let status: String = row.get("status");
         let status = match status.as_str() {
