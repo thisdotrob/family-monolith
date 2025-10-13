@@ -20,6 +20,7 @@ mod create_recurring_series;
 mod create_saved_view;
 mod delete_saved_view;
 mod set_project_default_saved_view;
+mod update_recurring_series;
 mod update_saved_view;
 
 // Task mutations
@@ -43,6 +44,7 @@ pub use create_recurring_series::CreateRecurringSeriesMutation;
 pub use create_saved_view::CreateSavedViewMutation;
 pub use delete_saved_view::DeleteSavedViewMutation;
 pub use set_project_default_saved_view::SetProjectDefaultSavedViewMutation;
+pub use update_recurring_series::UpdateRecurringSeriesMutation;
 pub use update_saved_view::UpdateSavedViewMutation;
 
 use add_project_member_by_username::AddProjectMemberByUsernameMutation;
@@ -85,6 +87,7 @@ pub struct TakenlijstMutation(
     UpdateSavedViewMutation,
     DeleteSavedViewMutation,
     SetProjectDefaultSavedViewMutation,
+    UpdateRecurringSeriesMutation,
     create_task::CreateTaskMutation,
     update_task::UpdateTaskMutation,
     complete_task::CompleteTaskMutation,
