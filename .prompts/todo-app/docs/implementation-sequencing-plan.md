@@ -101,7 +101,7 @@ Next up when Wave 6 items complete:
 Wave 7 — Recurrence update/top-up and backend unit tests
 Backend
 - [ ] .rovodev/todo-app-016_server_update_series_regeneration.md (depends on 015)
-- [ ] .rovodev/todo-app-017_server_series_topup_on_completion.md (depends on 015,009)
+- [x] .rovodev/todo-app-017_server_series_topup_on_completion.md (depends on 015,009)
 - [ ] .rovodev/todo-app-020_server_tests_unit.md (depends on features as delivered; schedule here to cover recurrence, permissions, concurrency, derivations)
 
 Next up when Wave 7 items complete:

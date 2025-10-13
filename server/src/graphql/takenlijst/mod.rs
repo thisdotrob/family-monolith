@@ -19,6 +19,7 @@ mod tasks_query;
 mod create_recurring_series;
 mod create_saved_view;
 mod delete_saved_view;
+mod series_topup;
 mod set_project_default_saved_view;
 mod update_saved_view;
 
