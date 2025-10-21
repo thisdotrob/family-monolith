@@ -1,5 +1,6 @@
 use async_graphql::MergedObject;
 
+pub mod queries;
 pub mod types;
 
 mod add_project_member_by_username;
@@ -10,13 +11,6 @@ mod delete_tag;
 mod rename_project;
 mod rename_tag;
 mod unarchive_project;
-
-mod history_query;
-mod project_default_saved_view_query;
-mod projects_query;
-mod saved_views_query;
-mod tags_query;
-mod tasks_query;
 
 mod create_recurring_series;
 mod create_saved_view;
@@ -34,12 +28,12 @@ mod update_task;
 #[cfg(test)]
 pub mod tests;
 
-pub use history_query::HistoryQuery;
-pub use project_default_saved_view_query::ProjectDefaultSavedViewQuery;
-pub use projects_query::ProjectsQuery;
-pub use saved_views_query::SavedViewsQuery;
-pub use tags_query::TagsQuery;
-pub use tasks_query::TasksQuery;
+pub use queries::HistoryQuery;
+pub use queries::ProjectDefaultSavedViewQuery;
+pub use queries::ProjectsQuery;
+pub use queries::SavedViewsQuery;
+pub use queries::TagsQuery;
+pub use queries::TasksQuery;
 
 pub use create_recurring_series::CreateRecurringSeriesMutation;
 pub use create_saved_view::CreateSavedViewMutation;
