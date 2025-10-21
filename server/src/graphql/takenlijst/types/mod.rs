@@ -30,3 +30,6 @@ pub use create_task_input::CreateTaskInput;
 
 pub mod update_task_input;
 pub use update_task_input::UpdateTaskInput;
+
+pub mod update_series_input;
+pub use update_series_input::UpdateSeriesInput;

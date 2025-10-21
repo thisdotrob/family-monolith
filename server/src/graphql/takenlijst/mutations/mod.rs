@@ -14,5 +14,6 @@ pub mod rename_tag;
 pub mod restore_task;
 pub mod set_project_default_saved_view;
 pub mod unarchive_project;
+pub mod update_recurring_series;
 pub mod update_saved_view;
 pub mod update_task;
