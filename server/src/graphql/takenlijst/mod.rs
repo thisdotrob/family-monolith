@@ -32,6 +32,7 @@ use mutations::rename_project::RenameProjectMutation;
 use mutations::rename_tag::RenameTagMutation;
 use mutations::restore_task::RestoreTaskMutation;
 use mutations::unarchive_project::UnarchiveProjectMutation;
+use mutations::update_recurring_series::UpdateRecurringSeriesMutation;
 use mutations::update_task::UpdateTaskMutation;
 
 #[derive(MergedObject, Default)]
@@ -61,6 +62,7 @@ pub struct TakenlijstMutation(
     ProjectsMutation,
     TagsMutation,
     CreateRecurringSeriesMutation,
+    UpdateRecurringSeriesMutation,
     CreateSavedViewMutation,
     UpdateSavedViewMutation,
     DeleteSavedViewMutation,

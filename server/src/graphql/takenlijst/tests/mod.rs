@@ -17,4 +17,5 @@ mod set_project_default_saved_view;
 mod tags_query;
 mod tasks_query;
 mod unarchive_project;
+mod update_recurring_series;
 mod update_saved_view;
