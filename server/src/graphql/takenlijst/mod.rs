@@ -1,29 +1,8 @@
 use async_graphql::MergedObject;
 
+pub mod mutations;
 pub mod queries;
 pub mod types;
-
-mod add_project_member_by_username;
-mod archive_project;
-mod create_project;
-mod create_tag;
-mod delete_tag;
-mod rename_project;
-mod rename_tag;
-mod unarchive_project;
-
-mod create_recurring_series;
-mod create_saved_view;
-mod delete_saved_view;
-mod set_project_default_saved_view;
-mod update_saved_view;
-
-// Task mutations
-mod abandon_task;
-mod complete_task;
-mod create_task;
-mod restore_task;
-mod update_task;
 
 #[cfg(test)]
 pub mod tests;
@@ -35,20 +14,25 @@ pub use queries::SavedViewsQuery;
 pub use queries::TagsQuery;
 pub use queries::TasksQuery;
 
-pub use create_recurring_series::CreateRecurringSeriesMutation;
-pub use create_saved_view::CreateSavedViewMutation;
-pub use delete_saved_view::DeleteSavedViewMutation;
-pub use set_project_default_saved_view::SetProjectDefaultSavedViewMutation;
-pub use update_saved_view::UpdateSavedViewMutation;
+pub use mutations::create_recurring_series::CreateRecurringSeriesMutation;
+pub use mutations::create_saved_view::CreateSavedViewMutation;
+pub use mutations::delete_saved_view::DeleteSavedViewMutation;
+pub use mutations::set_project_default_saved_view::SetProjectDefaultSavedViewMutation;
+pub use mutations::update_saved_view::UpdateSavedViewMutation;
 
-use add_project_member_by_username::AddProjectMemberByUsernameMutation;
-use archive_project::ArchiveProjectMutation;
-use create_project::CreateProjectMutation;
-use create_tag::CreateTagMutation;
-use delete_tag::DeleteTagMutation;
-use rename_project::RenameProjectMutation;
-use rename_tag::RenameTagMutation;
-use unarchive_project::UnarchiveProjectMutation;
+use mutations::abandon_task::AbandonTaskMutation;
+use mutations::add_project_member_by_username::AddProjectMemberByUsernameMutation;
+use mutations::archive_project::ArchiveProjectMutation;
+use mutations::complete_task::CompleteTaskMutation;
+use mutations::create_project::CreateProjectMutation;
+use mutations::create_tag::CreateTagMutation;
+use mutations::create_task::CreateTaskMutation;
+use mutations::delete_tag::DeleteTagMutation;
+use mutations::rename_project::RenameProjectMutation;
+use mutations::rename_tag::RenameTagMutation;
+use mutations::restore_task::RestoreTaskMutation;
+use mutations::unarchive_project::UnarchiveProjectMutation;
+use mutations::update_task::UpdateTaskMutation;
 
 #[derive(MergedObject, Default)]
 pub struct TakenlijstQuery(
@@ -81,9 +65,9 @@ pub struct TakenlijstMutation(
     UpdateSavedViewMutation,
     DeleteSavedViewMutation,
     SetProjectDefaultSavedViewMutation,
-    create_task::CreateTaskMutation,
-    update_task::UpdateTaskMutation,
-    complete_task::CompleteTaskMutation,
-    abandon_task::AbandonTaskMutation,
-    restore_task::RestoreTaskMutation,
+    CreateTaskMutation,
+    UpdateTaskMutation,
+    CompleteTaskMutation,
+    AbandonTaskMutation,
+    RestoreTaskMutation,
 );

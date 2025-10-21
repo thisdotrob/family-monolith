@@ -2,7 +2,7 @@
 
 #[cfg(test)]
 mod tests {
-    use crate::graphql::takenlijst::create_tag::CreateTagMutation;
+    use crate::graphql::takenlijst::mutations::create_tag::CreateTagMutation;
 
     #[tokio::test]
     async fn compiles_and_links_create_tag() {

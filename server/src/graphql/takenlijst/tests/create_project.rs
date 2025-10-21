@@ -2,7 +2,7 @@
 
 #[cfg(test)]
 mod tests {
-    use crate::graphql::takenlijst::create_project::CreateProjectMutation;
+    use crate::graphql::takenlijst::mutations::create_project::CreateProjectMutation;
 
     #[tokio::test]
     async fn compiles_and_links_create_project() {

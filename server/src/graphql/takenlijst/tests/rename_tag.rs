@@ -2,7 +2,7 @@
 
 #[cfg(test)]
 mod tests {
-    use crate::graphql::takenlijst::rename_tag::RenameTagMutation;
+    use crate::graphql::takenlijst::mutations::rename_tag::RenameTagMutation;
 
     #[tokio::test]
     async fn compiles_and_links_rename_tag() {

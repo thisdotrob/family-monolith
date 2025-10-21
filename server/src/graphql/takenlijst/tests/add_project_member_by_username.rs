@@ -2,7 +2,7 @@
 
 #[cfg(test)]
 mod tests {
-    use crate::graphql::takenlijst::add_project_member_by_username::AddProjectMemberByUsernameMutation;
+    use crate::graphql::takenlijst::mutations::add_project_member_by_username::AddProjectMemberByUsernameMutation;
 
     #[tokio::test]
     async fn compiles_and_links_add_project_member_by_username() {

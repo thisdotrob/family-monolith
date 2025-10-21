@@ -2,7 +2,7 @@
 
 #[cfg(test)]
 mod tests {
-    use crate::graphql::takenlijst::delete_tag::DeleteTagMutation;
+    use crate::graphql::takenlijst::mutations::delete_tag::DeleteTagMutation;
 
     #[tokio::test]
     async fn compiles_and_links_delete_tag() {
