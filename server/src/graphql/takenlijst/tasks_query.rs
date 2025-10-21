@@ -1,7 +1,7 @@
 use crate::auth::Claims;
 use crate::auth::guard::require_member;
-use crate::graphql::types::PagedTasks;
-use crate::graphql::types::Task;
+use crate::graphql::takenlijst::types::PagedTasks;
+use crate::graphql::takenlijst::types::Task;
 use crate::tasks::{TaskStatus, time_utils};
 use async_graphql::{Context, Object};
 use sqlx::{Row, SqlitePool};

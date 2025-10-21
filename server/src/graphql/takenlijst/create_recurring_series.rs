@@ -1,6 +1,6 @@
 use crate::auth::Claims;
 use crate::auth::guard::require_member;
-use crate::graphql::types::{CreateSeriesInput, RecurringSeries};
+use crate::graphql::takenlijst::types::{CreateSeriesInput, RecurringSeries};
 use async_graphql::{Context, ErrorExtensions, Object};
 use chrono::{Datelike, NaiveDate, NaiveTime, TimeZone, Timelike, Utc};
 use chrono_tz::Tz;

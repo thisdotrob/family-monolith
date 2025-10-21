@@ -1,6 +1,6 @@
 use crate::auth::Claims;
 use crate::auth::guard::require_member;
-use crate::graphql::types::{SavedView, SavedViewFilters};
+use crate::graphql::takenlijst::types::{SavedView, SavedViewFilters};
 use async_graphql::{Context, Object};
 use sqlx::{Row, SqlitePool};
 use std::sync::Arc;

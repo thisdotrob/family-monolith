@@ -1,6 +1,6 @@
 use async_graphql::SimpleObject;
 
-use crate::graphql::types::Task;
+use super::Task;
 
 #[derive(SimpleObject)]
 pub struct PagedTasks {

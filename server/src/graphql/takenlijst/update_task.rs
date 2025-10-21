@@ -6,8 +6,8 @@ use sqlx::{Row, SqlitePool};
 use crate::auth::Claims;
 use crate::auth::guard::{is_member, require_member};
 use crate::error_codes::ErrorCode;
-use crate::graphql::types::Task;
-use crate::graphql::types::UpdateTaskInput;
+use crate::graphql::takenlijst::types::Task;
+use crate::graphql::takenlijst::types::UpdateTaskInput;
 use crate::tasks::{TaskStatus, time_utils};
 
 #[derive(Default)]

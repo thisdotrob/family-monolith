@@ -1,5 +1,5 @@
 use crate::auth::Claims;
-use crate::graphql::types::Tag;
+use crate::graphql::takenlijst::types::Tag;
 use async_graphql::{Context, Object};
 use sqlx::SqlitePool;
 use std::sync::Arc;

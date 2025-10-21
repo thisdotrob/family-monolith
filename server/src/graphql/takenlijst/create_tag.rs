@@ -5,7 +5,7 @@ use sqlx::SqlitePool;
 
 use crate::auth::Claims;
 use crate::db::helpers::normalize_tag_name;
-use crate::graphql::types::Tag;
+use crate::graphql::takenlijst::types::Tag;
 
 #[derive(Default)]
 pub struct CreateTagMutation;

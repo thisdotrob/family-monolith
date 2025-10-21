@@ -1,5 +1,7 @@
 use async_graphql::MergedObject;
 
+pub mod types;
+
 mod add_project_member_by_username;
 mod archive_project;
 mod create_project;
