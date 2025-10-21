@@ -1,3 +1,20 @@
-// Tests for takenlijst GraphQL resolvers
-
-// Add per-resolver unit tests here as needed, e.g. create_project.rs, projects_query.rs, etc.
+mod add_project_member_by_username;
+mod archive_project;
+mod create_project;
+mod create_recurring_series;
+mod create_saved_view;
+mod create_tag;
+mod delete_saved_view;
+mod delete_tag;
+mod history_query;
+mod integration;
+mod project_default_saved_view_query;
+mod projects_query;
+mod rename_project;
+mod rename_tag;
+mod saved_views_query;
+mod set_project_default_saved_view;
+mod tags_query;
+mod tasks_query;
+mod unarchive_project;
+mod update_saved_view;

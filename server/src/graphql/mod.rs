@@ -3,10 +3,6 @@ use async_graphql::{EmptySubscription, MergedObject, Schema};
 mod placeholder;
 pub mod shared;
 mod takenlijst;
-mod tests_history;
-mod tests_integration;
-mod tests_recurring_series;
-mod tests_saved_views;
 pub mod types;
 
 use crate::graphql::placeholder::{PlaceholderMutation, PlaceholderQuery};
